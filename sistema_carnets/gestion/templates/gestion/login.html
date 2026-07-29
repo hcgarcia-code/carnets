@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso al Sistema de Carnets</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #ffffff; display: flex; height: 100vh; justify-content: center; align-items: center; color: #000000; }
+        .caja-login { background: #ffffff; padding: 40px; border: 2px solid #000000; border-top: 8px solid #cc0000; width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #000000; margin-top: 0; margin-bottom: 30px; font-size: 24px; text-transform: uppercase; }
+        .campo { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 15px; color: #000000; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 12px; border: 1px solid #000000; box-sizing: border-box; font-size: 16px; }
+        input[type="text"]:focus, input[type="password"]:focus { outline: 2px solid #cc0000; border-color: #cc0000; }
+        button { width: 100%; background-color: #cc0000; color: #ffffff; border: 2px solid #cc0000; padding: 14px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; transition: all 0.2s ease; }
+        button:hover { background-color: #000000; border-color: #000000; }
+        .error { background-color: #ffffff; color: #cc0000; padding: 12px; border: 2px solid #cc0000; text-align: center; margin-bottom: 20px; font-size: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="caja-login">
+        <h2>Acceso Sindicatos</h2>
+
+        {% if form.errors %}
+            <div class="error">
+                Usuario o contraseña incorrectos. Inténtelo de nuevo.
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="campo">
+                <label for="id_username">Nombre de Usuario</label>
+                {{ form.username }}
+            </div>
+            <div class="campo">
+                <label for="id_password">Contraseña</label>
+                {{ form.password }}
+            </div>
+            <button type="submit">Iniciar Sesión</button>
+        </form>
+    </div>
+
+</body>
+</html>
