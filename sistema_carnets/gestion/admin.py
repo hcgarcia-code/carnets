@@ -2,8 +2,9 @@ import pandas as pd
 from django.contrib import admin
 from django.http import HttpResponse
 from django.utils import timezone
+from simple_history.admin import SimpleHistoryAdmin
 
-from .models import Afiliado, PerfilSindicato
+from .models import Afiliado, PerfilSindicato, RegistroSubida
 from .services import marcar_como_impresos_y_notificar
 
 
@@ -54,7 +55,7 @@ def exportar_imprenta(modeladmin, request, queryset):
 
 
 # --- CONFIGURACIÓN DEL PANEL VISUAL ---
-class AfiliadoAdmin(admin.ModelAdmin):
+class AfiliadoAdmin(SimpleHistoryAdmin):
     # Columnas que ves en la pantalla
     list_display = (
         'sindicato_codigo', 'num_afiliado', 'nombre_apellidos', 'estado',
@@ -73,3 +74,14 @@ class AfiliadoAdmin(admin.ModelAdmin):
 
 admin.site.register(Afiliado, AfiliadoAdmin)
 admin.site.register(PerfilSindicato)
+
+
+@admin.register(RegistroSubida)
+class RegistroSubidaAdmin(admin.ModelAdmin):
+    list_display = ('sindicato', 'fecha', 'cantidad_afiliados', 'nombre_archivo')
+    list_filter = ('sindicato',)
+    readonly_fields = ('sindicato', 'fecha', 'cantidad_afiliados', 'nombre_archivo')
+
+    def has_add_permission(self, request):
+        # Solo se crean automáticamente al subir un Excel, nunca a mano.
+        return False

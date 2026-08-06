@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 from django.utils import timezone
 
-from .models import Afiliado, PerfilSindicato
+from .models import Afiliado, PerfilSindicato, RegistroSubida
 
 logger = logging.getLogger(__name__)
 
@@ -135,6 +135,11 @@ def cargar_datos_sindicato(request):
                 errores.append(f"Fila {numero_fila}: datos incompletos o con formato incorrecto.")
 
         if afiliados_creados:
+            RegistroSubida.objects.create(
+                sindicato=request.user,
+                cantidad_afiliados=afiliados_creados,
+                nombre_archivo=excel_file.name,
+            )
             messages.success(
                 request,
                 f"¡Éxito! Se han procesado y guardado {afiliados_creados} afiliados correctamente.",

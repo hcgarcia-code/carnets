@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 
 class PerfilSindicato(models.Model):
@@ -66,6 +67,8 @@ class Afiliado(models.Model):
     fecha_envio_imprenta = models.DateTimeField(
         null=True, blank=True, verbose_name="Fecha de envío a imprenta",
     )
+    fecha_creacion = models.DateTimeField(auto_now_add=True, null=True)
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.sindicato_codigo} - {self.num_afiliado} - {self.nombre_apellidos}"
@@ -75,6 +78,17 @@ class Afiliado(models.Model):
         if self.fecha_expedicion:
             return self.fecha_expedicion.strftime('%m/%y')
         return ""
+
+
+class RegistroSubida(models.Model):
+    sindicato = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subidas')
+    fecha = models.DateTimeField(auto_now_add=True)
+    cantidad_afiliados = models.IntegerField()
+    nombre_archivo = models.CharField(max_length=255)
+
+    def __str__(self):
+        fecha = self.fecha.strftime('%d/%m/%Y')
+        return f"{self.sindicato.username} - {self.cantidad_afiliados} afiliados ({fecha})"
 
 
 class Notificacion(models.Model):
