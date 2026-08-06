@@ -51,7 +51,7 @@ class Afiliado(models.Model):
 
     nombre_apellidos = models.CharField(max_length=255)
     lengua = models.CharField(max_length=1, choices=LENGUA_CHOICES)
-    estado = models.CharField(max_length=4, choices=ESTADO_CHOICES)
+    estado = models.CharField(max_length=50, choices=ESTADO_CHOICES)
 
     fecha_expedicion = models.DateField(null=True, blank=True)
     notas_historicas = models.TextField(

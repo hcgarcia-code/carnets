@@ -138,9 +138,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'subir_excel'
 
-# Default primary key field type (coincide con el tipo usado en las migraciones existentes).
-# https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Coincide con el tipo real usado en las migraciones existentes de producción
+# (AutoField, no BigAutoField: ver gestion/migrations/0002_...).
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Cookies de sesión/CSRF solo por HTTPS. Por defecto False para poder probar
 # en local por HTTP; en producción (servida por HTTPS) debe ponerse a True
