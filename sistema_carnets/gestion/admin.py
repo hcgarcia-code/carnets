@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 from .models import Afiliado, PerfilSindicato
+from .services import marcar_como_impresos_y_notificar
 
 
 # --- ACCIÓN 1: Poner fecha a los carnets ---
@@ -43,6 +44,12 @@ def exportar_imprenta(modeladmin, request, queryset):
 
     # Enviamos el archivo al navegador para que se descargue
     df.to_excel(response, index=False, engine='openpyxl')
+
+    # Se marca como impreso y se notifica a cada sindicato solo DESPUÉS de que
+    # el Excel se ha generado correctamente, para no notificar en falso si
+    # algo falla antes de llegar aquí.
+    marcar_como_impresos_y_notificar(queryset)
+
     return response
 
 
@@ -50,12 +57,16 @@ def exportar_imprenta(modeladmin, request, queryset):
 class AfiliadoAdmin(admin.ModelAdmin):
     # Columnas que ves en la pantalla
     list_display = (
-        'sindicato_codigo', 'num_afiliado', 'nombre_apellidos', 'estado', 'fecha_expedicion_mmyy',
+        'sindicato_codigo', 'num_afiliado', 'nombre_apellidos', 'estado',
+        'fecha_expedicion_mmyy', 'estado_impresion',
     )
     # Filtros laterales
-    list_filter = ('sindicato_codigo', 'estado', 'lengua')
+    list_filter = ('sindicato_codigo', 'estado', 'lengua', 'estado_impresion')
     # Buscador superior
     search_fields = ('num_afiliado', 'nombre_apellidos')
+    # Estos campos solo deben cambiar a través de la acción de exportación,
+    # nunca editados a mano desde el formulario del admin.
+    readonly_fields = ('estado_impresion', 'fecha_envio_imprenta')
     # Conectamos las acciones que hemos creado arriba
     actions = [asignar_fecha_hoy, exportar_imprenta]
 

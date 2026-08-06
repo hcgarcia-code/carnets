@@ -13,3 +13,4 @@ ignore = ["S101"]
 [tool.pytest.ini_options]
 pythonpath = ["sistema_carnets"]
 testpaths = ["tests"]
+DJANGO_SETTINGS_MODULE = "sistema_carnets.settings"

@@ -150,3 +150,18 @@ def cargar_datos_sindicato(request):
             )
 
     return render(request, 'gestion/subir_excel.html')
+
+
+# 3. NOTIFICACIONES DEL SINDICATO
+@login_required
+def listar_notificaciones(request):
+    # request.user.notificaciones usa el related_name del FK: cada sindicato
+    # solo puede ver, por construcción, sus propias notificaciones. No se
+    # acepta ningún identificador desde la petición (GET/POST) para evitar
+    # que un usuario pueda pedir las notificaciones de otro (IDOR).
+    if request.method == 'POST':
+        request.user.notificaciones.filter(leida=False).update(leida=True)
+        return redirect('notificaciones')
+
+    notificaciones = request.user.notificaciones.all()
+    return render(request, 'gestion/notificaciones.html', {'notificaciones': notificaciones})

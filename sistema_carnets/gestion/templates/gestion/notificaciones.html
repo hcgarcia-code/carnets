@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificaciones</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px 20px; background-color: #ffffff; color: #000000; }
+        .contenedor { background: #ffffff; padding: 40px; border: 2px solid #000000; border-top: 8px solid #cc0000; max-width: 650px; margin: auto; }
+        h2 { color: #000000; margin-top: 0; font-size: 24px; border-bottom: 2px solid #000000; padding-bottom: 10px; text-transform: uppercase; }
+        .notificacion { padding: 15px; margin-bottom: 15px; border: 2px solid #000000; }
+        .notificacion.no-leida { border-color: #cc0000; }
+        .fecha { font-size: 13px; color: #555555; margin-top: 8px; }
+        .vacio { font-size: 15px; }
+        button[type="submit"] { background-color: #000000; color: #ffffff; border: 2px solid #000000; padding: 12px 20px; cursor: pointer; font-size: 15px; font-weight: bold; margin-top: 10px; }
+        button[type="submit"]:hover { background-color: #ffffff; color: #000000; }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor">
+        <h2>Notificaciones</h2>
+
+        {% if notificaciones %}
+            {% for notificacion in notificaciones %}
+                <div class="notificacion {% if not notificacion.leida %}no-leida{% endif %}">
+                    <div>{{ notificacion.mensaje }}</div>
+                    <div class="fecha">{{ notificacion.fecha_creacion }}</div>
+                </div>
+            {% endfor %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit">Marcar todas como leídas</button>
+            </form>
+        {% else %}
+            <p class="vacio">No tienes notificaciones todavía.</p>
+        {% endif %}
+    </div>
+
+</body>
+</html>

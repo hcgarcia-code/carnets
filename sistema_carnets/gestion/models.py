@@ -23,6 +23,13 @@ class Afiliado(models.Model):
     LENGUA_CHOICES = [('A', 'Castellano'), ('C', 'Catalán')]
     ESTADO_CHOICES = [('ALTA', 'Alta'), ('BAJA', 'Baja')]
 
+    ESTADO_PENDIENTE = 'PENDIENTE'
+    ESTADO_IMPRESO = 'IMPRESO'
+    ESTADO_IMPRESION_CHOICES = [
+        (ESTADO_PENDIENTE, 'Pendiente de imprimir'),
+        (ESTADO_IMPRESO, 'Impreso'),
+    ]
+
     sindicato_usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='afiliados')
 
     confederacion_territorial = models.CharField(
@@ -50,6 +57,16 @@ class Afiliado(models.Model):
         blank=True, null=True, help_text="Registro de reemisiones históricas.",
     )
 
+    estado_impresion = models.CharField(
+        max_length=10,
+        choices=ESTADO_IMPRESION_CHOICES,
+        default=ESTADO_PENDIENTE,
+        verbose_name="Estado de impresión",
+    )
+    fecha_envio_imprenta = models.DateTimeField(
+        null=True, blank=True, verbose_name="Fecha de envío a imprenta",
+    )
+
     def __str__(self):
         return f"{self.sindicato_codigo} - {self.num_afiliado} - {self.nombre_apellidos}"
 
@@ -58,3 +75,16 @@ class Afiliado(models.Model):
         if self.fecha_expedicion:
             return self.fecha_expedicion.strftime('%m/%y')
         return ""
+
+
+class Notificacion(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notificaciones')
+    mensaje = models.CharField(max_length=500)
+    leida = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha_creacion']
+
+    def __str__(self):
+        return f"Notificación para {self.usuario.username} ({self.fecha_creacion:%d/%m/%Y %H:%M})"

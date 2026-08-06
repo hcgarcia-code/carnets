@@ -1,6 +1,7 @@
 from django.contrib import admin
-from django.urls import path
 from django.contrib.auth import views as auth_views
+from django.urls import path
+
 from gestion import views
 
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
 
     path('acuerdo-legal/', views.acuerdo_legal, name='acuerdo_legal'),
     path('subir-datos/', views.cargar_datos_sindicato, name='subir_excel'),
+    path('notificaciones/', views.listar_notificaciones, name='notificaciones'),
 ]
