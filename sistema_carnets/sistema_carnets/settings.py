@@ -52,6 +52,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Rechaza pronto (413) peticiones cuyo Content-Length declarado sea
+    # excesivo, antes de que el resto del stack llegue a leer el cuerpo.
+    'gestion.middleware.LimiteTamanoPeticionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -86,7 +89,11 @@ WSGI_APPLICATION = 'sistema_carnets.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # DATABASE_NAME permite apuntar a una BD aislada (p. ej. para las
+        # pruebas dinámicas de tests/test_pentest.py contra un servidor real
+        # sin tocar la base de datos de desarrollo). Por defecto, sin
+        # cambios: db.sqlite3 en la carpeta del proyecto.
+        'NAME': os.environ.get('DATABASE_NAME', str(BASE_DIR / 'db.sqlite3')),
     }
 }
 
@@ -132,3 +139,9 @@ LOGIN_REDIRECT_URL = 'subir_excel'
 # Default primary key field type (coincide con el tipo usado en las migraciones existentes).
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Cookies de sesión/CSRF solo por HTTPS. Por defecto False para poder probar
+# en local por HTTP; en producción (servida por HTTPS) debe ponerse a True
+# en el .env del servidor.
+SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False') == 'True'
+CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False') == 'True'
