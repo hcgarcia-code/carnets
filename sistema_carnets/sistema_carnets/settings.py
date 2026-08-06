@@ -10,23 +10,32 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Carga las variables definidas en el archivo .env de la raíz del repositorio.
+# El archivo .env nunca se sube al repositorio (ver .gitignore); .env.example
+# documenta las variables necesarias.
+load_dotenv(BASE_DIR.parent / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 
+SECRET_KEY = os.environ['SECRET_KEY']
 
-# Apagamos el modo desarrollo para que no filtre código fuente en caso de error
-DEBUG = False
+# DEBUG debe estar desactivado en producción para no filtrar código fuente en caso de error.
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-# Autorizamos a PythonAnywhere a servir nuestra web (sustituye TU_USUARIO por el que vayas a usar al registrarte)
-ALLOWED_HOSTS = ['TU_USUARIO.eu.pythonanywhere.com', '127.0.0.1', 'localhost']
+# Lista de hosts autorizados, separados por comas en la variable de entorno ALLOWED_HOSTS.
+_allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost')
+ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_env.split(',') if h.strip()]
 
 
 # Application definition
@@ -119,3 +128,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'subir_excel'
+
+# Default primary key field type (coincide con el tipo usado en las migraciones existentes).
+# https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
