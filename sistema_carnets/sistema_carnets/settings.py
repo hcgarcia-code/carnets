@@ -122,9 +122,13 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# La aplicación es íntegramente en español y sus usuarios (sindicatos) operan
+# en España: el admin de Django y los mensajes se muestran en español y las
+# fechas en el huso peninsular. Con USE_TZ=True el almacenamiento sigue en UTC;
+# solo cambia la presentación. Ambos son sobreescribibles por entorno.
+LANGUAGE_CODE = os.environ.get('LANGUAGE_CODE', 'es-es')
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = os.environ.get('TIME_ZONE', 'Europe/Madrid')
 
 USE_I18N = True
 
@@ -151,6 +155,23 @@ CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False') == 'True'
 # Redirige HTTP -> HTTPS. Falso por defecto para poder probar en local sin
 # certificado; en el .env del servidor de producción debe ponerse a True.
 SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False') == 'True'
+
+# HSTS (HTTP Strict Transport Security): indica al navegador que use siempre
+# HTTPS para este dominio. Se deja en 0 (desactivado) por defecto para poder
+# probar en local por HTTP; en el .env del servidor HTTPS debe ponerse un valor
+# alto (p. ej. 31536000 = 1 año). Cuando se activa, cubre también subdominios y
+# habilita el preload, cerrando la ventana del primer acceso por HTTP.
+# Activar HSTS sin servir todo por HTTPS deja el sitio inaccesible: hacerlo solo
+# cuando el certificado esté en producción.
+SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '0'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = (
+    os.environ.get('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'True') == 'True'
+)
+SECURE_HSTS_PRELOAD = os.environ.get('SECURE_HSTS_PRELOAD', 'True') == 'True'
+
+# Evita el MIME sniffing del navegador (cabecera X-Content-Type-Options:nosniff),
+# un vector para que un archivo subido se interprete como HTML/JS ejecutable.
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # Cierre de sesión automático por inactividad (RGPD).
 SESSION_COOKIE_AGE = int(os.environ.get('SESSION_COOKIE_AGE', '1800'))

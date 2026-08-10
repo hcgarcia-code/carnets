@@ -33,6 +33,40 @@ def test_allowed_hosts_no_esta_vacio():
     assert settings.ALLOWED_HOSTS
 
 
+# --- Endurecimiento HTTPS/HSTS (cabecera Strict-Transport-Security) ---
+
+def test_hsts_seconds_es_configurable_desde_el_entorno():
+    # Antes no se definía SECURE_HSTS_SECONDS explícitamente, lo que hacía
+    # saltar el aviso security.W004 de `manage.py check --deploy`. Debe ser un
+    # entero leído del entorno (0 en local, un año en producción HTTPS).
+    assert isinstance(settings.SECURE_HSTS_SECONDS, int)
+
+
+def test_hsts_aplica_a_subdominios_y_preload():
+    # Cuando HSTS se activa en producción, debe cubrir también los subdominios
+    # y permitir el preload en los navegadores; de lo contrario la protección
+    # deja huecos. Django trae ambos a False por defecto: los forzamos a True.
+    assert settings.SECURE_HSTS_INCLUDE_SUBDOMAINS is True
+    assert settings.SECURE_HSTS_PRELOAD is True
+
+
+def test_content_type_nosniff_activo():
+    # Evita que el navegador "adivine" el tipo de contenido (MIME sniffing),
+    # un vector clásico para ejecutar como HTML un archivo subido.
+    assert settings.SECURE_CONTENT_TYPE_NOSNIFF is True
+
+
+# --- Localización coherente con el público real (sindicatos españoles) ---
+
+def test_idioma_y_zona_horaria_son_espanoles():
+    # La aplicación es íntegramente en español y sus usuarios operan en España;
+    # el admin y las fechas deben mostrarse en ese idioma y huso horario.
+    assert settings.LANGUAGE_CODE == 'es-es'
+    assert settings.TIME_ZONE == 'Europe/Madrid'
+    # Con USE_TZ el almacenamiento sigue en UTC; solo cambia la presentación.
+    assert settings.USE_TZ is True
+
+
 # --- Validación de archivos subidos (extensión y tamaño) ---
 
 def test_rechaza_archivo_sin_extension_xlsx():
