@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.views import LogoutView
 from django.urls import path
 
 from gestion import views
@@ -13,6 +14,7 @@ urlpatterns = [
         LoginConLimiteDeIntentos.as_view(template_name='gestion/login.html'),
         name='login',
     ),
+    path('logout/', LogoutView.as_view(), name='logout'),
 
     path('acuerdo-legal/', views.acuerdo_legal, name='acuerdo_legal'),
     path('subir-datos/', views.cargar_datos_sindicato, name='subir_excel'),

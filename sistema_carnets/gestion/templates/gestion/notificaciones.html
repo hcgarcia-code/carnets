@@ -1,42 +1,106 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notificaciones</title>
+    <meta name="description" content="Notificaciones del sindicato">
+    <title>Notificaciones - Carnets</title>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px 20px; background-color: #ffffff; color: #000000; }
-        .contenedor { background: #ffffff; padding: 40px; border: 2px solid #000000; border-top: 8px solid #cc0000; max-width: 650px; margin: auto; }
-        h2 { color: #000000; margin-top: 0; font-size: 24px; border-bottom: 2px solid #000000; padding-bottom: 10px; text-transform: uppercase; }
-        .notificacion { padding: 15px; margin-bottom: 15px; border: 2px solid #000000; }
-        .notificacion.no-leida { border-color: #cc0000; }
-        .fecha { font-size: 13px; color: #555555; margin-top: 8px; }
-        .vacio { font-size: 15px; }
-        button[type="submit"] { background-color: #000000; color: #ffffff; border: 2px solid #000000; padding: 12px 20px; cursor: pointer; font-size: 15px; font-weight: bold; margin-top: 10px; }
-        button[type="submit"]:hover { background-color: #ffffff; color: #000000; }
+        main {
+            padding: var(--space-lg) var(--space-md);
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+            flex-wrap: wrap;
+            gap: var(--space-md);
+        }
+
+        .notification-count {
+            background-color: var(--color-primary);
+            color: var(--color-light);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-bold);
+            padding: var(--space-xs) var(--space-md);
+            border-radius: 999px;
+        }
+
+        .notification-icon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .notification-body {
+            display: flex;
+            gap: var(--space-md);
+            align-items: flex-start;
+        }
+
+        .notification-text {
+            flex: 1;
+        }
     </style>
 </head>
-<body>
+<body class="layout-page">
+    <header class="header">
+        <div class="header-content">
+            <h1 class="header-title">Notificaciones</h1>
+            <nav class="header-nav">
+                <a href="{% url 'subir_excel' %}" aria-label="Volver a carga de datos">← Carga de Datos</a>
+                <form method="POST" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="link-like" aria-label="Cerrar sesión">Salir</button>
+                </form>
+            </nav>
+        </div>
+    </header>
 
-    <div class="contenedor">
-        <h2>Notificaciones</h2>
+    <main>
+        <div class="container">
+            <div class="notification-header">
+                <h2 style="margin: 0;">Tus notificaciones</h2>
+                {% if notificaciones %}
+                    <span class="notification-count">{{ notificaciones|length }}</span>
+                {% endif %}
+            </div>
 
-        {% if notificaciones %}
-            {% for notificacion in notificaciones %}
-                <div class="notificacion {% if not notificacion.leida %}no-leida{% endif %}">
-                    <div>{{ notificacion.mensaje }}</div>
-                    <div class="fecha">{{ notificacion.fecha_creacion }}</div>
+            {% if notificaciones %}
+                <div class="notifications-container">
+                    {% for notificacion in notificaciones %}
+                        <div class="notification {% if not notificacion.leida %}unread{% endif %}" role="listitem">
+                            <div class="notification-body">
+                                <div class="notification-icon">
+                                    {% if not notificacion.leida %}🔴{% else %}✓{% endif %}
+                                </div>
+                                <div class="notification-text">
+                                    <div>{{ notificacion.mensaje }}</div>
+                                    <div class="notification-meta">{{ notificacion.fecha_creacion }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
 
-            <form method="POST">
-                {% csrf_token %}
-                <button type="submit">Marcar todas como leídas</button>
-            </form>
-        {% else %}
-            <p class="vacio">No tienes notificaciones todavía.</p>
-        {% endif %}
-    </div>
-
+                <form method="POST" style="margin-top: var(--space-lg);">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-secondary">
+                        ✓ Marcar todas como leídas
+                    </button>
+                </form>
+            {% else %}
+                <div class="empty-state" role="status">
+                    <div class="empty-state-icon">📭</div>
+                    <p class="empty-state-title">No tienes notificaciones</p>
+                    <p class="empty-state-text">Aquí aparecerán los avisos cuando tu lote de afiliados se envíe a imprenta.</p>
+                    <a href="{% url 'subir_excel' %}" class="btn btn-primary">Ir a Carga de Datos</a>
+                </div>
+            {% endif %}
+        </div>
+    </main>
 </body>
 </html>

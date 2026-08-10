@@ -1,46 +1,114 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso al Sistema de Carnets</title>
+    <meta name="description" content="Acceso al sistema de gestión de carnets sindicales">
+    <title>Acceso - Sistema de Carnets</title>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #ffffff; display: flex; height: 100vh; justify-content: center; align-items: center; color: #000000; }
-        .caja-login { background: #ffffff; padding: 40px; border: 2px solid #000000; border-top: 8px solid #cc0000; width: 100%; max-width: 400px; }
-        h2 { text-align: center; color: #000000; margin-top: 0; margin-bottom: 30px; font-size: 24px; text-transform: uppercase; }
-        .campo { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 15px; color: #000000; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 12px; border: 1px solid #000000; box-sizing: border-box; font-size: 16px; }
-        input[type="text"]:focus, input[type="password"]:focus { outline: 2px solid #cc0000; border-color: #cc0000; }
-        button { width: 100%; background-color: #cc0000; color: #ffffff; border: 2px solid #cc0000; padding: 14px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; transition: all 0.2s ease; }
-        button:hover { background-color: #000000; border-color: #000000; }
-        .error { background-color: #ffffff; color: #cc0000; padding: 12px; border: 2px solid #cc0000; text-align: center; margin-bottom: 20px; font-size: 15px; font-weight: bold; }
+        .login-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: var(--space-md);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: var(--space-2xl);
+        }
+
+        .login-header h1 {
+            color: var(--color-dark);
+            font-size: var(--font-size-2xl);
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .login-header p {
+            color: var(--color-gray-500);
+            margin: var(--space-md) 0 0 0;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+        }
+
+        @media (max-width: 480px) {
+            .login-page {
+                min-height: 100vh;
+            }
+
+            .login-header h1 {
+                font-size: var(--font-size-xl);
+            }
+        }
     </style>
 </head>
-<body>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Acceso Sindicatos</h1>
+            <p>Sistema de Gestión de Carnets</p>
+        </div>
 
-    <div class="caja-login">
-        <h2>Acceso Sindicatos</h2>
+        <div class="container">
+            {% if form.errors %}
+                <div class="message error" role="alert">
+                    <div class="message-icon">⚠️</div>
+                    <div class="message-content">
+                        <strong>Credenciales incorrectas</strong>
+                        <p>Verifica el usuario y contraseña e intenta de nuevo.</p>
+                    </div>
+                </div>
+            {% endif %}
 
-        {% if form.errors %}
-            <div class="error">
-                Usuario o contraseña incorrectos. Inténtelo de nuevo.
-            </div>
-        {% endif %}
+            <form method="POST" class="login-form" novalidate>
+                {% csrf_token %}
 
-        <form method="POST">
-            {% csrf_token %}
-            <div class="campo">
-                <label for="id_username">Nombre de Usuario</label>
-                {{ form.username }}
-            </div>
-            <div class="campo">
-                <label for="id_password">Contraseña</label>
-                {{ form.password }}
-            </div>
-            <button type="submit">Iniciar Sesión</button>
-        </form>
+                <div class="form-group">
+                    <label for="id_username">Nombre de Usuario</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="message error" role="alert">
+                            {% for error in form.username.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_password">Contraseña</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                        <div class="message error" role="alert">
+                            {% for error in form.password.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Iniciar Sesión
+                </button>
+            </form>
+        </div>
+
+        <div style="text-align: center; margin-top: var(--space-lg); color: var(--color-gray-500); font-size: var(--font-size-sm);">
+            <p>Sistema CGT de Gestión de Carnets Sindicales</p>
+        </div>
     </div>
-
 </body>
 </html>

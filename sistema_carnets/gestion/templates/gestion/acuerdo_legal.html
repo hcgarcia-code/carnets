@@ -1,53 +1,219 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acuerdo de Protección de Datos</title>
+    <meta name="description" content="Acuerdo de procesamiento de datos personales según RGPD">
+    <title>Acuerdo Legal - Carnets</title>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <style>
-       body { font-family: Arial, sans-serif; margin: 40px 20px; background-color: #ffffff; color: #000000; line-height: 1.6; }
-        .contenedor { background: #ffffff; padding: 40px; border: 2px solid #000000; border-top: 8px solid #cc0000; max-width: 700px; margin: auto; }
-        h2 { color: #000000; margin-top: 0; font-size: 24px; border-bottom: 2px solid #000000; padding-bottom: 10px; text-transform: uppercase; }
-        .texto-legal { background: #ffffff; padding: 25px; border: 1px solid #000000; height: 250px; overflow-y: scroll; margin-bottom: 25px; font-size: 15px; }
-        .botones { display: flex; flex-direction: column; gap: 15px; }
-        .btn-descarga { background-color: #000000; color: #ffffff; text-decoration: none; padding: 14px; text-align: center; font-weight: bold; font-size: 16px; border: 2px solid #000000; transition: all 0.2s ease; }
-        .btn-descarga:hover { background-color: #ffffff; color: #000000; }
-        .btn-aceptar { background-color: #cc0000; color: #ffffff; border: 2px solid #cc0000; padding: 16px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.2s ease; }
-        .btn-aceptar:hover { background-color: #000000; border-color: #000000; }
-        .advertencia { color: #cc0000; background-color: #ffffff; padding: 15px; border: 2px solid #cc0000; font-size: 15px; margin-bottom: 25px; font-weight: bold; }
+        main {
+            padding: var(--space-lg) var(--space-md);
+        }
+
+        .steps {
+            display: flex;
+            gap: var(--space-md);
+            margin-bottom: var(--space-2xl);
+            flex-wrap: wrap;
+        }
+
+        .step {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            padding: var(--space-md);
+            background-color: var(--color-gray-50);
+            border-radius: var(--border-radius-md);
+            border: var(--border-width-thin) solid var(--color-gray-300);
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: var(--color-primary);
+            color: var(--color-light);
+            border-radius: 50%;
+            font-weight: var(--font-weight-heading);
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--space-md);
+        }
+
+        .step-title {
+            font-size: var(--font-size-sm);
+            color: var(--color-dark);
+            margin: 0;
+        }
+
+        .legal-content {
+            margin-bottom: var(--space-2xl);
+        }
+
+        .legal-box {
+            background-color: var(--color-gray-50);
+            border: var(--border-width-thin) solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+
+        .legal-box h3 {
+            margin-top: 0;
+            color: var(--color-dark);
+        }
+
+        .legal-box ol {
+            margin: var(--space-md) 0;
+            padding-left: var(--space-lg);
+        }
+
+        .legal-box li {
+            margin-bottom: var(--space-sm);
+            line-height: var(--line-height-relaxed);
+        }
+
+        .legal-box p {
+            margin-bottom: var(--space-md);
+        }
+
+        .scrollable-content {
+            background-color: var(--color-light);
+            border: var(--border-width-thin) solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            max-height: 500px;
+            overflow-y: auto;
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+            font-size: var(--font-size-sm);
+            line-height: var(--line-height-relaxed);
+        }
+
+        .scrollable-content h4 {
+            margin-top: 0;
+            color: var(--color-dark);
+        }
+
+        .scrollable-content ol {
+            margin: var(--space-md) 0;
+            padding-left: var(--space-lg);
+        }
+
+        .scrollable-content li {
+            margin-bottom: var(--space-sm);
+        }
+
+        .form-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .info-box {
+            background-color: #f0f8ff;
+            border: var(--border-width-thin) solid #0066cc;
+            border-radius: var(--border-radius-md);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+
+        .info-box strong {
+            color: #0066cc;
+        }
+
+        @media (max-width: 768px) {
+            .steps {
+                flex-direction: column;
+            }
+
+            .step {
+                min-width: auto;
+            }
+        }
     </style>
 </head>
-<body>
-
-    <div class="contenedor">
-        <h2 style="color: #333; margin-top: 0;">Acuerdo de Procesamiento de Datos</h2>
-        
-        <div class="advertencia">
-            <strong>Atención:</strong> Para poder acceder a la plataforma de carga de afiliaciones, es obligatorio leer y aceptar las siguientes condiciones, así como descargar el texto legal anexo.
+<body class="layout-page">
+    <header class="header">
+        <div class="header-content">
+            <h1 class="header-title">Acuerdo Legal</h1>
+            <nav class="header-nav">
+                <form method="POST" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="link-like" aria-label="Cerrar sesión">Salir</button>
+                </form>
+            </nav>
         </div>
+    </header>
 
-        <div class="texto-legal">
-            <p><strong>CLÁUSULA DE PROTECCIÓN DE DATOS Y CONFIDENCIALIDAD</strong></p>
-            <p>De conformidad con lo dispuesto en el Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD), el sindicato que realiza la presente carga de datos declara bajo su responsabilidad que:</p>
-            <ol>
-                <li>Ha recabado el consentimiento expreso de todos los afiliados cuyos datos se introducen en esta plataforma.</li>
-                <li>Garantiza la exactitud y veracidad de los datos personales suministrados.</li>
-                <li>Se compromete a descargar e incluir en todas sus hojas físicas de afiliación el texto legal proporcionado por la Administración Central.</li>
-            </ol>
-            <p>El sistema registrará su dirección IP y la hora exacta de aceptación de este documento como prueba de conformidad legal.</p>
-        </div>
+    <main>
+        <div class="container">
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <p class="step-title"><strong>Leer documento</strong></p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <p class="step-title"><strong>Descargar anexo</strong></p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <p class="step-title"><strong>Aceptar condiciones</strong></p>
+                </div>
+            </div>
 
-        <div class="botones">
-            <a href="/static/documentos/texto_afiliacion.pdf" target="_blank" class="btn-descarga">
-                📄 1. Descargar Texto para Hojas de Afiliación
-            </a>
-            
-            <form method="POST" style="display: flex; flex-direction: column;">
+            <div class="info-box" role="status">
+                <strong>ℹ️ Información importante:</strong>
+                <p style="margin: var(--space-sm) 0 0 0;">Para acceder a la plataforma de carga de afiliaciones, es <strong>obligatorio</strong> leer el siguiente documento, descargar el texto legal anexo e indicar tu conformidad.</p>
+            </div>
+
+            <div class="legal-content">
+                <h2>Acuerdo de Procesamiento de Datos</h2>
+
+                <div class="scrollable-content" aria-label="Documento legal completo" role="region">
+                    <h4>CLÁUSULA DE PROTECCIÓN DE DATOS Y CONFIDENCIALIDAD</h4>
+                    <p>De conformidad con lo dispuesto en el Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD), el sindicato que realiza la presente carga de datos declara bajo su responsabilidad que:</p>
+
+                    <ol>
+                        <li><strong>Consentimiento:</strong> Ha recabado el consentimiento expreso de todos los afiliados cuyos datos se introducen en esta plataforma.</li>
+                        <li><strong>Exactitud:</strong> Garantiza la exactitud y veracidad de los datos personales suministrados.</li>
+                        <li><strong>Cumplimiento legal:</strong> Se compromete a descargar e incluir en todas sus hojas físicas de afiliación el texto legal proporcionado por la Administración Central.</li>
+                    </ol>
+
+                    <p><strong>Registro legal:</strong> El sistema registrará la dirección IP desde la que se realiza esta aceptación y la hora exacta de aceptación de este documento como prueba de conformidad legal conforme a la normativa de protección de datos.</p>
+                </div>
+
+                <div class="legal-box">
+                    <h3>Datos que se registran</h3>
+                    <p>Al aceptar este acuerdo, el sistema registra:</p>
+                    <ul style="margin-left: var(--space-lg);">
+                        <li>Fecha y hora exacta de aceptación</li>
+                        <li>Tu dirección IP (primera parte visible tras proxy)</li>
+                        <li>Tu cuenta de usuario</li>
+                    </ul>
+                    <p><small>Estos datos se conservan con fines de trazabilidad legal y cumplimiento RGPD.</small></p>
+                </div>
+            </div>
+
+            <form method="POST" class="form-actions">
                 {% csrf_token %}
-                <button type="submit" class="btn-aceptar">2. Comprendo y acepto las condiciones</button>
+
+                <a href="{% static 'documentos/texto_afiliacion.pdf' %}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" style="text-align: center;">
+                    📄 Descargar texto para hojas de afiliación
+                </a>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;" aria-label="Aceptar el acuerdo de protección de datos">
+                    ✓ Comprendo y acepto las condiciones
+                </button>
+
+                <p style="text-align: center; font-size: var(--font-size-sm); color: var(--color-gray-500); margin: 0;">
+                    Al hacer clic, aceptas los términos y confirmas que tienes consentimiento de los afiliados.
+                </p>
             </form>
         </div>
-    </div>
-
+    </main>
 </body>
 </html>

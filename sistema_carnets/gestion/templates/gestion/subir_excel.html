@@ -1,46 +1,208 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subir Datos de Afiliación</title>
+    <meta name="description" content="Carga de datos de afiliación en formato Excel">
+    <title>Carga de Datos - Carnets</title>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px 20px; background-color: #ffffff; color: #000000; }
-        .contenedor { background: #ffffff; padding: 40px; border: 2px solid #000000; border-top: 8px solid #cc0000; max-width: 550px; margin: auto; }
-        h2 { color: #000000; margin-top: 0; font-size: 24px; border-bottom: 2px solid #000000; padding-bottom: 10px; text-transform: uppercase; }
-        p { font-size: 16px; line-height: 1.5; margin-bottom: 25px; }
-        .mensajes { padding: 15px; margin-bottom: 25px; font-weight: bold; font-size: 15px; }
-        .exito { background-color: #ffffff; color: #008000; border: 2px solid #008000; }
-        .error { background-color: #ffffff; color: #cc0000; border: 2px solid #cc0000; }
-        input[type="file"] { font-size: 16px; padding: 10px 0; width: 100%; cursor: pointer; }
-        button[type="submit"] { background-color: #cc0000; color: #ffffff; border: 2px solid #cc0000; padding: 14px 24px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; transition: all 0.2s ease; }
-        button[type="submit"]:hover { background-color: #000000; border-color: #000000; }
-        .btn-salir { background-color: #000000; color: #ffffff; border: 2px solid #000000; padding: 10px 15px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
-        .btn-salir:hover { background-color: #ffffff; color: #000000; }
+        main {
+            padding: var(--space-lg) var(--space-md);
+        }
+
+        .upload-instructions {
+            background-color: var(--color-gray-50);
+            border: var(--border-width-thin) solid var(--color-border);
+            border-radius: var(--border-radius-md);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+
+        .upload-instructions h3 {
+            margin-top: 0;
+            color: var(--color-dark);
+        }
+
+        .upload-requirements {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .upload-requirements li {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-sm) 0;
+            border-bottom: var(--border-width-thin) solid var(--color-gray-300);
+        }
+
+        .upload-requirements li:last-child {
+            border-bottom: none;
+        }
+
+        .upload-requirements li::before {
+            content: "✓";
+            color: var(--color-success);
+            font-weight: var(--font-weight-bold);
+            flex-shrink: 0;
+        }
+
+        .file-upload-zone {
+            border: 2px dashed var(--color-gray-300);
+            border-radius: var(--border-radius-md);
+            padding: var(--space-xl);
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            background-color: var(--color-gray-50);
+        }
+
+        .file-upload-zone:hover {
+            border-color: var(--color-primary);
+            background-color: var(--color-light);
+        }
+
+        .file-upload-zone input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-icon {
+            font-size: 2rem;
+            margin-bottom: var(--space-md);
+        }
+
+        .file-upload-zone p {
+            margin: 0;
+            color: var(--color-gray-500);
+        }
+
+        .file-upload-zone .file-name {
+            color: var(--color-primary);
+            font-weight: var(--font-weight-bold);
+            margin-top: var(--space-sm);
+        }
+
+        .navigation {
+            display: flex;
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
+            flex-wrap: wrap;
+        }
+
+        .navigation a {
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--border-radius-md);
+            font-size: var(--font-size-sm);
+            text-decoration: none;
+            transition: var(--transition);
+            border: var(--border-width-thin) solid var(--color-border);
+        }
+
+        .navigation a:hover {
+            background-color: var(--color-gray-50);
+        }
     </style>
 </head>
-<body>
+<body class="layout-page">
+    <header class="header">
+        <div class="header-content">
+            <h1 class="header-title">Carga de Datos Sindicales</h1>
+            <nav class="header-nav">
+                <a href="{% url 'notificaciones' %}" aria-label="Notificaciones">📬 Notificaciones</a>
+                <form method="POST" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="link-like" aria-label="Cerrar sesión">Salir</button>
+                </form>
+            </nav>
+        </div>
+    </header>
 
-    <div class="contenedor">
-        <h2>Carga de Datos Sindicales</h2>
-        <p>Sube el archivo Excel con las altas y bajas de afiliación. Asegúrate de usar la plantilla oficial.</p>
+    <main>
+        <div class="container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="message {% if message.tags == 'success' %}success{% else %}error{% endif %}" role="alert">
+                        <div class="message-icon">
+                            {% if message.tags == 'success' %}✅{% else %}❌{% endif %}
+                        </div>
+                        <div class="message-content">
+                            {{ message }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="mensajes {% if message.tags == 'success' %}exito{% else %}error{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div style="margin-bottom: 20px;">
-                <input type="file" name="archivo_excel" accept=".xlsx" required>
+            <div class="upload-instructions">
+                <h3>Instrucciones</h3>
+                <ul class="upload-requirements">
+                    <li>Formato: archivo Excel (.xlsx)</li>
+                    <li>Tamaño máximo: 5 MB</li>
+                    <li>Máximo 10.000 filas</li>
+                    <li>Columnas obligatorias: Confederacion, Fed_Local, Fed_Sectorial, Sindicato, Num_Afiliado, Nombre_Apellidos, Lengua, Estado</li>
+                </ul>
             </div>
-            <button type="submit">Procesar Archivo</button>
-        </form>
-    </div>
 
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="archivo_excel" class="file-upload-zone">
+                        <div class="file-upload-icon">📄</div>
+                        <p><strong>Haz clic para seleccionar un archivo</strong></p>
+                        <p style="font-size: var(--font-size-sm); margin: var(--space-sm) 0 0 0;">o arrastra y suelta aquí</p>
+                        <input
+                            type="file"
+                            id="archivo_excel"
+                            name="archivo_excel"
+                            accept=".xlsx"
+                            required
+                            aria-label="Selecciona un archivo Excel"
+                        >
+                        <div class="file-name" id="file-name"></div>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    ▶ Procesar Archivo
+                </button>
+            </form>
+
+            <nav class="navigation">
+                <a href="{% url 'notificaciones' %}">← Ver notificaciones</a>
+            </nav>
+        </div>
+    </main>
+
+    <script>
+        const fileInput = document.getElementById('archivo_excel');
+        const fileNameDisplay = document.getElementById('file-name');
+        const uploadZone = fileInput.parentElement;
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                fileNameDisplay.textContent = `Archivo seleccionado: ${e.target.files[0].name}`;
+            }
+        });
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.style.borderColor = 'var(--color-primary)';
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.style.borderColor = 'var(--color-gray-300)';
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.style.borderColor = 'var(--color-gray-300)';
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                fileNameDisplay.textContent = `Archivo seleccionado: ${e.dataTransfer.files[0].name}`;
+            }
+        });
+    </script>
 </body>
 </html>
