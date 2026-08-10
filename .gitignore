@@ -1,0 +1,28 @@
+# Entorno virtual
+venv/
+env/
+.venv/
+
+# Variables de entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Base de datos local (contiene datos personales de afiliados)
+db.sqlite3
+*.sqlite3
+
+# Archivos estáticos generados (collectstatic)
+staticfiles/
+
+# Editor / SO
+.vscode/
+.idea/
+.DS_Store
