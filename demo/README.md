@@ -6,33 +6,60 @@ base de datos de desarrollo ni la de producción**: todo vive en
 
 ## Puesta en marcha
 
-### Windows (PowerShell)
+### Linux / macOS
 
-```powershell
+Desde un clon recién hecho, sin nada preparado:
+
+```bash
 cd carnets
-.\venv\Scripts\activate
 
-# 1. Crear la base de datos de demo (solo la primera vez)
-$env:DATABASE_NAME = "$PWD\demo\db_demo.sqlite3"
-python sistema_carnets\manage.py migrate
+# 1. Entorno virtual y dependencias (solo la primera vez)
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 
-# 2. Crear los usuarios de prueba y los Excel de ejemplo
-python demo\preparar_demo.py
+# 2. Archivo .env con una SECRET_KEY generada al vuelo (solo la primera vez).
+#    Sin SECRET_KEY la aplicación no arranca. El .env nunca se sube a git.
+cat > .env <<EOF
+SECRET_KEY=$(python -c 'import secrets; print(secrets.token_urlsafe(50))')
+DEBUG=False
+ALLOWED_HOSTS=127.0.0.1,localhost,testserver
+EOF
 
-# 3. Arrancar el servidor
-python sistema_carnets\manage.py runserver 127.0.0.1:8000 --insecure
+# 3. Base de datos de demo y datos de prueba (solo la primera vez)
+export DATABASE_NAME="$PWD/demo/db_demo.sqlite3"
+python sistema_carnets/manage.py migrate
+python demo/preparar_demo.py
+
+# 4. Arrancar el servidor
+python sistema_carnets/manage.py runserver 127.0.0.1:8000 --insecure
 ```
 
-### Linux / macOS
+En arranques posteriores basta con los pasos 4 y las dos líneas de entorno:
 
 ```bash
 cd carnets
 source venv/bin/activate
-
 export DATABASE_NAME="$PWD/demo/db_demo.sqlite3"
-python sistema_carnets/manage.py migrate
-python demo/preparar_demo.py
 python sistema_carnets/manage.py runserver 127.0.0.1:8000 --insecure
+```
+
+### Windows (PowerShell)
+
+```powershell
+cd carnets
+
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+
+# Crear el .env a mano con, al menos: SECRET_KEY, DEBUG=False y
+# ALLOWED_HOSTS=127.0.0.1,localhost,testserver  (ver .env.example)
+
+$env:DATABASE_NAME = "$PWD\demo\db_demo.sqlite3"
+python sistema_carnets\manage.py migrate
+python demo\preparar_demo.py
+python sistema_carnets\manage.py runserver 127.0.0.1:8000 --insecure
 ```
 
 Luego abre <http://127.0.0.1:8000/login/> en el navegador.
