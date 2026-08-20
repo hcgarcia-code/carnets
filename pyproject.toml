@@ -1,3 +1,20 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "graphify"
+version = "0.1.0"
+description = "Installation and setup tool for carnets project"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+graphify = "graphify.cli:main"
+
+[tool.setuptools]
+packages = ["graphify"]
+
 [tool.bandit]
 exclude_dirs = ["venv", "tests", "sistema_carnets/gestion/migrations", "staticfiles"]
 
