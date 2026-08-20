@@ -24,7 +24,8 @@ class WindowsInstaller:
             return
 
         print("Creating virtual environment...")
-        subprocess.run(  # nosec: B603
+        # Use list instead of shell=True for safety
+        subprocess.run(  # noqa: S603  # nosec
             [self.python_exe, "-m", "venv", str(venv_path)], check=True
         )
         print("✓ Virtual environment created")
@@ -66,7 +67,8 @@ class WindowsInstaller:
         else:
             pip_exe = self.base_dir / "venv" / "bin" / "pip"
 
-        subprocess.run(  # nosec: B603
+        # Use list instead of shell=True for safety
+        subprocess.run(  # noqa: S603  # nosec
             [str(pip_exe), "install", "-r", str(requirements_file)], check=True
         )
         print("✓ Dependencies installed")
