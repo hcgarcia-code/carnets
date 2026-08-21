@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alta de Sindicato</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #ffffff; display: flex; min-height: 100vh; justify-content: center; align-items: center; color: #000000; }
+        .caja { background: #ffffff; padding: 40px; border: 2px solid #000000; border-top: 8px solid #cc0000; width: 100%; max-width: 420px; }
+        h2 { text-align: center; color: #000000; margin-top: 0; margin-bottom: 10px; font-size: 24px; text-transform: uppercase; }
+        p.ayuda { text-align: center; font-size: 14px; margin-bottom: 25px; }
+        .campo { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 15px; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 12px; border: 1px solid #000000; box-sizing: border-box; font-size: 16px; }
+        .ayuda-campo { font-size: 13px; color: #444444; margin-top: 6px; }
+        button { width: 100%; background-color: #cc0000; color: #ffffff; border: 2px solid #cc0000; padding: 14px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; }
+        button:hover { background-color: #000000; border-color: #000000; }
+        .error { background-color: #ffffff; color: #cc0000; padding: 10px; border: 2px solid #cc0000; margin-bottom: 15px; font-size: 14px; }
+        .volver { display: block; text-align: center; margin-top: 20px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="caja">
+        <h2>Alta de Sindicato</h2>
+        <p class="ayuda">Un administrador debe aprobar la cuenta antes de que puedas iniciar sesión.</p>
+
+        {% if form.non_field_errors %}
+            <div class="error">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="campo">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<div class="ayuda-campo">{{ field.help_text }}</div>{% endif %}
+                    {% for error in field.errors %}<div class="error">{{ error }}</div>{% endfor %}
+                </div>
+            {% endfor %}
+            <button type="submit">Solicitar alta</button>
+        </form>
+
+        <a class="volver" href="{% url 'login' %}">Ya tengo cuenta: iniciar sesión</a>
+    </div>
+</body>
+</html>

@@ -26,3 +26,6 @@ staticfiles/
 .vscode/
 .idea/
 .DS_Store
+
+# Configuración local de Claude Code (específica de esta máquina)
+.claude/

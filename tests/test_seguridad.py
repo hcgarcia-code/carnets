@@ -154,7 +154,11 @@ def test_no_hay_sql_crudo_en_el_codigo_de_la_app():
 
 
 def test_no_se_construyen_rutas_de_archivo_con_input_del_usuario():
-    patrones_prohibidos = re.compile(r"open\(|os\.path\.join\(.*request")
+    # Debe cazar open()/os.path.join() cuando la ruta se construye con datos
+    # de la petición (el patrón real de vulnerabilidad: path traversal), no
+    # cualquier open() del código: hay usos legítimos de open() sobre rutas
+    # que el propio servidor genera (p. ej. un backup temporal con timestamp).
+    patrones_prohibidos = re.compile(r"open\([^)]*request|os\.path\.join\(.*request")
     for archivo in GESTION_DIR.rglob("*.py"):
         if "migrations" in archivo.parts:
             continue

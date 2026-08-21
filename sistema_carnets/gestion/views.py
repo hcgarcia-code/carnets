@@ -3,15 +3,24 @@ import logging
 import pandas as pd
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ValidationError
+from django.core.cache import cache
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import DatabaseError, transaction
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from simple_history.utils import bulk_create_with_history
 
+from .auditoria import ACCIONES, registrar
+from .forms import RegistroSindicatoForm
 from .models import Afiliado, PerfilSindicato, RegistroSubida
 
 logger = logging.getLogger(__name__)
+
+GRUPO_IMPRENTA = "Imprenta"
+
+INTENTOS_REGISTRO_MAXIMOS = 5
+VENTANA_REGISTRO_SEGUNDOS = 60 * 60
 
 EXCEL_EXTENSIONS_PERMITIDAS = ('.xlsx',)
 TAMANO_MAXIMO_EXCEL_BYTES = 5 * 1024 * 1024  # 5 MB
@@ -37,6 +46,40 @@ CAMPO_A_COLUMNA_EXCEL = {
     'lengua': 'Lengua',
     'estado': 'Estado',
 }
+
+
+# 0. ALTA AUTOSERVICIO DE SINDICATOS
+def registro_sindicato(request):
+    # Pública y sin login: es justo la puerta de entrada para quien todavía no
+    # tiene cuenta. Por eso limitamos intentos por IP —sin login no hay usuario
+    # al que asociar el límite— y por eso el formulario crea la cuenta INACTIVA
+    # (ver RegistroSindicatoForm.save): que cualquiera pueda rellenar este
+    # formulario no debe significar que cualquiera pueda ya subir datos.
+    ip = request.META.get('REMOTE_ADDR', 'desconocida')
+    clave_limite = f"registro_intentos:{ip}"
+
+    if cache.get(clave_limite, 0) >= INTENTOS_REGISTRO_MAXIMOS:
+        return HttpResponse(
+            "Demasiadas solicitudes de alta desde esta conexión. Inténtalo más tarde.",
+            status=429,
+        )
+
+    if request.method == 'POST':
+        cache.set(clave_limite, cache.get(clave_limite, 0) + 1, VENTANA_REGISTRO_SEGUNDOS)
+        form = RegistroSindicatoForm(request.POST)
+        if form.is_valid():
+            usuario = form.save()
+            registrar(ACCIONES.SINDICATO_REGISTRADO, peticion=request, usuario=usuario.username)
+            messages.success(
+                request,
+                "Solicitud recibida. Un administrador debe activar tu cuenta antes "
+                "de que puedas iniciar sesión.",
+            )
+            return redirect('login')
+    else:
+        form = RegistroSindicatoForm()
+
+    return render(request, 'gestion/registro.html', {'form': form})
 
 
 # 1. LA PANTALLA DEL ACUERDO LEGAL
@@ -103,6 +146,12 @@ def archivo_excel_valido(nombre_archivo: str, tamano_bytes: int) -> tuple[bool, 
 # 2. LA PÁGINA DE SUBIDA (AHORA CON BLOQUEADOR)
 @login_required
 def cargar_datos_sindicato(request):
+    # La cuenta de la imprenta (grupo Imprenta, ver panel_imprenta) es de solo
+    # lectura por diseño: si sus credenciales se filtran, el daño se limita a
+    # ver números y sindicatos ya enviados, nunca a poder inyectar afiliados.
+    if request.user.groups.filter(name=GRUPO_IMPRENTA).exists():
+        raise PermissionDenied
+
     # EL BLOQUEADOR LEGAL: Si no ha firmado, lo expulsamos a la pantalla del acuerdo
     perfil, created = PerfilSindicato.objects.get_or_create(usuario=request.user)
     if not perfil.acuerdo_aceptado:
@@ -217,6 +266,18 @@ def cargar_datos_sindicato(request):
                 )
                 return render(request, 'gestion/subir_excel.html')
 
+            # No se registra el nombre del archivo: lo elige quien sube, y es
+            # habitual que lleve dentro el nombre de la persona
+            # ("altas_maria_fernandez.xlsx"). Este registro sale del ámbito
+            # cifrado y se conserva dos años, así que ahí no entran datos
+            # personales. Si hace falta el nombre para una incidencia, está en
+            # RegistroSubida, que se localiza por usuario y fecha.
+            registrar(
+                ACCIONES.AFILIADOS_CARGADOS,
+                peticion=request,
+                cantidad=len(afiliados_validos),
+            )
+
             messages.success(
                 request,
                 f"¡Éxito! Se han procesado y guardado {len(afiliados_validos)} "
@@ -239,3 +300,30 @@ def listar_notificaciones(request):
 
     notificaciones = request.user.notificaciones.all()
     return render(request, 'gestion/notificaciones.html', {'notificaciones': notificaciones})
+
+
+# 4. PANEL DE LA IMPRENTA
+@login_required
+def panel_imprenta(request):
+    # La cuenta de la imprenta se crea a mano (no hay alta pública para ella,
+    # a diferencia de los sindicatos) y se le añade al grupo 'Imprenta' desde
+    # el admin. Sin pertenecer a ese grupo, cualquier otra cuenta autenticada
+    # —incluido un sindicato— tiene acceso denegado.
+    if not request.user.groups.filter(name=GRUPO_IMPRENTA).exists():
+        registrar(ACCIONES.ACCESO_DENEGADO, peticion=request, vista='panel_imprenta')
+        raise PermissionDenied
+
+    # .values() en vez de instancias de Afiliado: así nombre_apellidos y
+    # notas_historicas ni siquiera se leen de la base de datos, y no hay forma
+    # de que una plantilla los muestre por descuido. Solo lo ya marcado como
+    # IMPRESO: antes de que tú decidas enviarlo, la imprenta no debe saber ni
+    # que esos números existen.
+    lote = list(
+        Afiliado.objects.filter(estado_impresion=Afiliado.ESTADO_IMPRESO)
+        .values('sindicato_codigo', 'num_afiliado', 'fecha_envio_imprenta')
+        .order_by('-fecha_envio_imprenta', 'sindicato_codigo'),
+    )
+
+    registrar(ACCIONES.LOTE_IMPRESION_CONSULTADO, peticion=request, cantidad=len(lote))
+
+    return render(request, 'gestion/panel_imprenta.html', {'lote': lote})

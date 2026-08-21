@@ -11,6 +11,12 @@ select = ["E", "F", "W", "S", "B"]
 ignore = ["S101"]
 
 [tool.pytest.ini_options]
+# No buscar manage.py subiendo por el arbol de directorios: pytest-django lo
+# hace por defecto y, si algun directorio ancestro (p. ej. la carpeta personal
+# del usuario) contiene otro manage.py, inserta ESE directorio en sys.path por
+# delante del proyecto y acaba importando una copia ajena de la app "gestion".
+# El proyecto ya se localiza de forma explicita con pythonpath + DJANGO_SETTINGS_MODULE.
+django_find_project = false
 pythonpath = ["sistema_carnets"]
 testpaths = ["tests"]
 DJANGO_SETTINGS_MODULE = "sistema_carnets.settings"

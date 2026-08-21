@@ -1,9 +1,13 @@
 import pandas as pd
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.utils import timezone
 from simple_history.admin import SimpleHistoryAdmin
 
+from .auditoria import ACCIONES, registrar
 from .models import Afiliado, PerfilSindicato, RegistroSubida
 from .services import marcar_como_impresos_y_notificar
 
@@ -22,8 +26,10 @@ def asignar_fecha_hoy(modeladmin, request, queryset):
 @admin.action(description="2. Descargar Excel para Máquina de Carnets")
 def exportar_imprenta(modeladmin, request, queryset):
     datos = []
+    identificadores = []
     # Recorremos los afiliados seleccionados y extraemos sus datos exactos
     for afiliado in queryset:
+        identificadores.append(afiliado.pk)
         datos.append({
             'Confederacion': afiliado.confederacion_territorial,
             'Fed_Local': afiliado.federacion_local,
@@ -51,6 +57,16 @@ def exportar_imprenta(modeladmin, request, queryset):
     # algo falla antes de llegar aquí.
     marcar_como_impresos_y_notificar(queryset)
 
+    # Es la operación más sensible de la aplicación: saca de golpe los datos
+    # personales de muchos afiliados a un archivo descargable. Tiene que quedar
+    # constancia de quién lo hizo y sobre cuántos registros.
+    registrar(
+        ACCIONES.AFILIADOS_EXPORTADOS,
+        peticion=request,
+        cantidad=len(identificadores),
+        ids=identificadores,
+    )
+
     return response
 
 
@@ -63,13 +79,67 @@ class AfiliadoAdmin(SimpleHistoryAdmin):
     )
     # Filtros laterales
     list_filter = ('sindicato_codigo', 'estado', 'lengua', 'estado_impresion')
-    # Buscador superior
+    # Buscador superior. Los campos van cifrados en la BD, así que la búsqueda
+    # no puede hacerla SQL: se resuelve en get_search_results (ver abajo).
     search_fields = ('num_afiliado', 'nombre_apellidos')
     # Estos campos solo deben cambiar a través de la acción de exportación,
     # nunca editados a mano desde el formulario del admin.
     readonly_fields = ('estado_impresion', 'fecha_envio_imprenta')
     # Conectamos las acciones que hemos creado arriba
     actions = [asignar_fecha_hoy, exportar_imprenta]
+
+    # Ver estos datos ya es acceder a información de categoría especial, aunque
+    # no se modifique nada: queda registrado. Se anota DESPUÉS de que la vista
+    # de Django haya comprobado los permisos, porque es ella quien lanza
+    # PermissionDenied. Anotarlo antes haría que un intento rechazado —que no
+    # llega a ver ni un dato— quedase escrito igual que una consulta real, y al
+    # investigar un incidente no habría forma de distinguirlos.
+    def changelist_view(self, request, extra_context=None):
+        try:
+            respuesta = super().changelist_view(request, extra_context)
+        except PermissionDenied:
+            registrar(ACCIONES.ACCESO_DENEGADO, peticion=request, vista='afiliados.listado')
+            raise
+        registrar(ACCIONES.AFILIADOS_CONSULTADOS, peticion=request)
+        return respuesta
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        try:
+            respuesta = super().change_view(request, object_id, form_url, extra_context)
+        except PermissionDenied:
+            registrar(
+                ACCIONES.ACCESO_DENEGADO, peticion=request,
+                vista='afiliado.ficha', ids=[object_id],
+            )
+            raise
+        registrar(ACCIONES.AFILIADO_ABIERTO, peticion=request, ids=[object_id])
+        return respuesta
+
+    def get_search_results(self, request, queryset, search_term):
+        """Busca por nombre o número de afiliado descifrando en memoria.
+
+        El buscador por defecto del admin genera un WHERE ... LIKE sobre la
+        columna, y esas columnas guardan texto cifrado: nunca encontraría nada.
+        Aquí se descifra fila a fila y se compara en Python.
+
+        ponytail: es un recorrido O(n) sobre los afiliados en cada búsqueda.
+        Con el volumen actual (~3.000 afiliados) son unas décimas de segundo y
+        se prefiere eso a añadir estructuras extra. Si la tabla crece a decenas
+        de miles, el siguiente paso es un índice ciego (HMAC determinista del
+        valor normalizado) en una columna aparte, que permite buscar por
+        igualdad exacta sin descifrar ni exponer el contenido.
+        """
+        if not search_term:
+            return queryset, False
+
+        termino = search_term.strip().casefold()
+        coincidencias = [
+            afiliado.pk
+            for afiliado in queryset.only('id', 'num_afiliado', 'nombre_apellidos')
+            if termino in (afiliado.nombre_apellidos or '').casefold()
+            or termino in (afiliado.num_afiliado or '')
+        ]
+        return queryset.filter(pk__in=coincidencias), False
 
 
 admin.site.register(Afiliado, AfiliadoAdmin)
@@ -85,3 +155,30 @@ class RegistroSubidaAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         # Solo se crean automáticamente al subir un Excel, nunca a mano.
         return False
+
+
+@admin.action(description="Aprobar las cuentas de sindicato seleccionadas")
+def aprobar_cuentas(modeladmin, request, queryset):
+    # Solo activa las que de verdad estaban inactivas: evita que el mensaje de
+    # éxito infle el recuento con cuentas que ya estaban aprobadas de antes.
+    activadas = queryset.filter(is_active=False).update(is_active=True)
+    modeladmin.message_user(request, f"{activadas} cuenta(s) activada(s).")
+
+
+admin.site.unregister(User)
+
+
+@admin.register(User)
+class UsuarioAdmin(UserAdmin):
+    # El alta autoservicio (ver forms.RegistroSindicatoForm) crea la cuenta
+    # inactiva a propósito: aquí es donde se revisa y se aprueba. is_active y
+    # el nombre que la propia cuenta declaró al registrarse son justo lo que
+    # hace falta para decidir; el UserAdmin de Django por defecto no muestra
+    # ninguno de los dos en el listado.
+    list_display = (*UserAdmin.list_display, 'is_active', 'sindicato_declarado')
+    list_filter = (*UserAdmin.list_filter, 'is_active')
+    actions = [aprobar_cuentas]
+
+    @admin.display(description="Sindicato/rama declarado al darse de alta")
+    def sindicato_declarado(self, usuario):
+        return getattr(getattr(usuario, 'perfil', None), 'nombre_identificativo', '') or '—'

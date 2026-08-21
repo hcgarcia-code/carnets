@@ -3,9 +3,18 @@ from django.core.validators import RegexValidator
 from django.db import models
 from simple_history.models import HistoricalRecords
 
+from .crypto import CampoTextoCifrado
+
 
 class PerfilSindicato(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
+    # Texto libre que declara quién se está dando de alta ("CGT Rama Metal
+    # Barcelona"). El username por sí solo no basta para que el administrador
+    # sepa a qué sindicato aprobar: es la única pista con la que decide.
+    nombre_identificativo = models.CharField(
+        max_length=255, blank=True,
+        verbose_name="Sindicato o rama que declara ser (para aprobar el alta)",
+    )
     acuerdo_aceptado = models.BooleanField(
         default=False, verbose_name="¿Ha aceptado el acuerdo de protección de datos?",
     )
@@ -45,16 +54,18 @@ class Afiliado(models.Model):
     sindicato_codigo = models.CharField(
         max_length=3, validators=[RegexValidator(r'^\d{3}$', 'Debe ser de 3 dígitos.')],
     )
-    num_afiliado = models.CharField(
+    # Cifrados en reposo: identifican a una persona concreta como afiliada a un
+    # sindicato, que es dato de categoría especial (RGPD Art. 9). Ver crypto.py.
+    num_afiliado = CampoTextoCifrado(
         max_length=6, validators=[RegexValidator(r'^\d{6}$', 'Debe ser de 6 dígitos.')],
     )
 
-    nombre_apellidos = models.CharField(max_length=255)
+    nombre_apellidos = CampoTextoCifrado(max_length=255)
     lengua = models.CharField(max_length=1, choices=LENGUA_CHOICES)
     estado = models.CharField(max_length=50, choices=ESTADO_CHOICES)
 
     fecha_expedicion = models.DateField(null=True, blank=True)
-    notas_historicas = models.TextField(
+    notas_historicas = CampoTextoCifrado(
         blank=True, null=True, help_text="Registro de reemisiones históricas.",
     )
 
@@ -71,7 +82,14 @@ class Afiliado(models.Model):
     history = HistoricalRecords()
 
     def __str__(self):
-        return f"{self.sindicato_codigo} - {self.num_afiliado} - {self.nombre_apellidos}"
+        # Sin nombre ni número de afiliado a propósito. Django guarda str(obj)
+        # en django_admin_log.object_repr cada vez que alguien crea, cambia o
+        # borra un afiliado desde el admin, y esa tabla no está cifrada, no se
+        # purga y viaja en todos los backups: incluir aquí los datos personales
+        # dejaría una copia en claro de justo lo que cifra CampoTextoCifrado.
+        # En pantalla los datos se siguen viendo (list_display y el formulario);
+        # lo que no se hace es dejarlos escritos en la base de datos.
+        return f"Afiliado #{self.pk} (sindicato {self.sindicato_codigo})"
 
     @property
     def fecha_expedicion_mmyy(self):

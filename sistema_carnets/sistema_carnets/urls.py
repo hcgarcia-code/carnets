@@ -14,7 +14,9 @@ urlpatterns = [
         name='login',
     ),
 
+    path('alta/', views.registro_sindicato, name='registro_sindicato'),
     path('acuerdo-legal/', views.acuerdo_legal, name='acuerdo_legal'),
     path('subir-datos/', views.cargar_datos_sindicato, name='subir_excel'),
     path('notificaciones/', views.listar_notificaciones, name='notificaciones'),
+    path('panel-imprenta/', views.panel_imprenta, name='panel_imprenta'),
 ]

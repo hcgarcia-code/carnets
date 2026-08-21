@@ -135,7 +135,23 @@ if [ -f ".env" ]; then
             exit 1
         fi
     done
-    ok ".env contiene las claves obligatorias."
+
+    # Clave de cifrado en reposo: sin ella la app se niega a arrancar, y la
+    # migración que cifra los datos existentes no puede ejecutarse.
+    if ! grep -q "^CARNETS_ENCRYPTION_KEYS=" .env; then
+        fail "Falta 'CARNETS_ENCRYPTION_KEYS' en tu .env: es la clave con la que se cifran"
+        fail "los datos personales de los afiliados. Sin ella la aplicación no arranca."
+        echo
+        echo "  Como los datos todavía están sin cifrar, sirve cualquier clave nueva."
+        echo "  Genera una y añádela al .env con:"
+        echo
+        echo "    echo \"CARNETS_ENCRYPTION_KEYS=inicial1:\$(python3 -c 'import base64,os; print(base64.b64encode(os.urandom(32)).decode())')\" >> $PROJECT_DIR/.env"
+        echo
+        fail "GUÁRDALA A BUEN RECAUDO: si se pierde, los datos cifrados son irrecuperables."
+        fail "Después vuelve a ejecutar este script."
+        exit 1
+    fi
+    ok ".env contiene las claves obligatorias (incluida la de cifrado)."
 else
     log "No existe .env todavía - vamos a crearlo. Se te pedirán los secretos por teclado (no quedan guardados en este script)."
 
@@ -152,10 +168,19 @@ else
         exit 1
     fi
 
+    NUEVA_CLAVE_CIFRADO=$(python3 -c "import base64,os; print(base64.b64encode(os.urandom(32)).decode())")
+    ok "Clave de cifrado en reposo generada."
+
     cat > .env << ENVEOF
 SECRET_KEY=${NUEVO_SECRET_KEY}
 DEBUG=False
 ALLOWED_HOSTS=${DOMINIO},127.0.0.1,localhost
+
+# Clave con la que se cifran los datos personales de los afiliados.
+# SI SE PIERDE, LOS DATOS CIFRADOS SON IRRECUPERABLES: guarda una copia a buen
+# recaudo, fuera de este servidor.
+# Rotación (mínimo trimestral) y paso a un KMS: ver deploy/claves_y_kms.md
+CARNETS_ENCRYPTION_KEYS=inicial1:${NUEVA_CLAVE_CIFRADO}
 
 SECURE_SSL_REDIRECT=True
 SESSION_COOKIE_SECURE=True
@@ -170,7 +195,7 @@ EMAIL_HOST_USER=${EMAIL_USER}
 EMAIL_HOST_PASSWORD=${NUEVA_PASS_EMAIL}
 ENVEOF
     chmod 600 .env
-    unset NUEVO_SECRET_KEY NUEVA_PASS_EMAIL
+    unset NUEVO_SECRET_KEY NUEVA_PASS_EMAIL NUEVA_CLAVE_CIFRADO
     ok ".env creado con permisos 600 (solo tu usuario puede leerlo)."
 fi
 
@@ -199,17 +224,22 @@ if echo "$ESTADO_MIGRACIONES" | grep -q "\[ \] 0001_initial\|\[ \] 0002_alter_af
     exit 1
 fi
 
-if echo "$ESTADO_MIGRACIONES" | grep -q "\[X\] 0005_afiliado_estado_impresion_and_more"; then
-    ok "La migración 0005 ya estaba aplicada - no hay nada nuevo que migrar. Saltando al paso 7."
-    MIGRAR=0
-else
-    ok "Estado de partida correcto: 0001-0004 aplicadas, 0005 pendiente."
+# Se comprueba si queda ALGUNA migración sin aplicar, en vez de mirar una
+# concreta: fijarlo a un número obliga a acordarse de tocar este script cada
+# vez que se añade una migración, y si se olvida, el despliegue las salta en
+# silencio e informa de que todo ha ido bien.
+if echo "$ESTADO_MIGRACIONES" | grep -qE '^\s*\[ \]'; then
+    ok "Hay migraciones pendientes de aplicar:"
+    echo "$ESTADO_MIGRACIONES" | grep -E '^\s*\[ \]' | sed 's/^/      /'
     MIGRAR=1
+else
+    ok "No hay ninguna migración pendiente. Saltando al paso 7."
+    MIGRAR=0
 fi
 
 # ==============================================================================
 if [ "$MIGRAR" = "1" ]; then
-    log "Paso 6: aplicar la migración 0005 (solo añade columnas/tablas nuevas)"
+    log "Paso 6: aplicar las migraciones pendientes"
     # ==============================================================================
     python3 manage.py migrate gestion --noinput
 
@@ -226,6 +256,27 @@ if [ "$MIGRAR" = "1" ]; then
     fi
     ok "Ningún dato existente se ha perdido ni alterado. Migración segura."
     rm -f "$CONTEO_DESPUES"
+
+    # El recuento de filas no detecta un fallo de cifrado: las filas siguen
+    # ahí, pero ilegibles. Se comprueba que un afiliado real se descifra bien
+    # ANTES de recargar la web, que es cuando lo verían los sindicatos.
+    log "Comprobando que los datos personales se descifran correctamente..."
+    if python3 manage.py shell -c "
+from gestion.models import Afiliado
+a = Afiliado.objects.first()
+if a is not None and not a.nombre_apellidos:
+    raise SystemExit('el nombre queda vacio tras descifrar')
+print('descifrado correcto')
+" >/dev/null 2>&1; then
+        ok "Los datos cifrados se leen correctamente."
+    else
+        fail "¡ALERTA! Los datos no se pueden descifrar tras la migración."
+        fail "Causa más probable: CARNETS_ENCRYPTION_KEYS no es la clave con la que se cifraron."
+        cp "$BACKUP_DB" db.sqlite3
+        fail "Backup restaurado (datos en claro, como estaban). NO se ha recargado la web app."
+        fail "Revisa la clave en .env y vuelve a ejecutar el script."
+        exit 1
+    fi
 fi
 rm -f "$CONTEO_ANTES"
 

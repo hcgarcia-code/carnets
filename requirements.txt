@@ -4,6 +4,7 @@ pandas==3.0.5
 openpyxl==3.1.5
 python-dotenv==1.2.2
 django-simple-history==3.13.0
+cryptography==50.0.0
 
 # Herramientas de calidad y seguridad
 pytest==9.1.1
@@ -11,3 +12,6 @@ pytest-django==4.13.0
 httpx==0.28.1
 ruff==0.16.1
 bandit==1.9.4
+# Backups cifrados
+boto3==1.34.*
+hvac==1.2.*

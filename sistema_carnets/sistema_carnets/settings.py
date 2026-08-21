@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -36,6 +37,24 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 # Lista de hosts autorizados, separados por comas en la variable de entorno ALLOWED_HOSTS.
 _allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost')
 ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts_env.split(',') if h.strip()]
+
+
+# --- Cifrado en reposo de los datos personales del afiliado (RGPD Art. 9) ---
+#
+# De dónde salen las claves lo decide el proveedor: la ruta de un invocable que
+# devuelve "id:clave_base64,id:clave_base64" (la primera es la que cifra; las
+# demás solo permiten leer lo guardado antes de la última rotación).
+#
+# Por defecto se leen del .env, que sirve para desarrollo local pero NO para
+# datos reales: en producción deben custodiarse en un KMS/HSM. Cambiar de uno a
+# otro es cambiar esta variable. Implementaciones copiables para AWS KMS, Azure
+# Key Vault y HashiCorp Vault en deploy/claves_y_kms.md.
+CARNETS_KEY_PROVIDER = os.environ.get(
+    'CARNETS_KEY_PROVIDER', 'gestion.crypto.proveedor_desde_entorno',
+)
+
+# Solo lo usa el proveedor por defecto (el del entorno).
+CARNETS_ENCRYPTION_KEYS = os.environ.get('CARNETS_ENCRYPTION_KEYS', '')
 
 
 # Application definition
@@ -88,16 +107,48 @@ WSGI_APPLICATION = 'sistema_carnets.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        # DATABASE_NAME permite apuntar a una BD aislada (p. ej. para las
-        # pruebas dinámicas de tests/test_pentest.py contra un servidor real
-        # sin tocar la base de datos de desarrollo). Por defecto, sin
-        # cambios: db.sqlite3 en la carpeta del proyecto.
-        'NAME': os.environ.get('DATABASE_NAME', str(BASE_DIR / 'db.sqlite3')),
+if os.environ.get('DATABASE_ENGINE', 'sqlite3') == 'postgresql':
+    # PostgreSQL en subred privada. La conexión sale del servidor de
+    # aplicación y cruza la red hasta la base de datos, así que va cifrada
+    # obligatoriamente: 'verify-full' además comprueba que el servidor al otro
+    # lado es realmente el nuestro y no alguien interponiéndose. Bajarlo a
+    # 'require' cifra pero deja la puerta abierta a un intermediario.
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ['DATABASE_NAME'],
+            'USER': os.environ['DATABASE_USER'],
+            'PASSWORD': os.environ['DATABASE_PASSWORD'],
+            'HOST': os.environ['DATABASE_HOST'],
+            'PORT': os.environ.get('DATABASE_PORT', '5432'),
+            'CONN_MAX_AGE': int(os.environ.get('DATABASE_CONN_MAX_AGE', '60')),
+            'OPTIONS': {
+                'sslmode': os.environ.get('DATABASE_SSLMODE', 'verify-full'),
+                'sslrootcert': os.environ.get('DATABASE_SSLROOTCERT', ''),
+            },
+        },
     }
-}
+    # Sin certificado raíz, 'verify-full' no puede validar nada y psycopg
+    # fallaría con un error poco claro: mejor decirlo aquí.
+    if (
+        DATABASES['default']['OPTIONS']['sslmode'].startswith('verify')
+        and not DATABASES['default']['OPTIONS']['sslrootcert']
+    ):
+        raise ImproperlyConfigured(
+            "DATABASE_SSLMODE=verify-* necesita DATABASE_SSLROOTCERT con la ruta "
+            "del certificado raíz que firma el del servidor de base de datos.",
+        )
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            # DATABASE_NAME permite apuntar a una BD aislada (p. ej. para las
+            # pruebas dinámicas de tests/test_pentest.py contra un servidor real
+            # sin tocar la base de datos de desarrollo). Por defecto, sin
+            # cambios: db.sqlite3 en la carpeta del proyecto.
+            'NAME': os.environ.get('DATABASE_NAME', str(BASE_DIR / 'db.sqlite3')),
+        },
+    }
 
 
 # Password validation
@@ -183,6 +234,52 @@ LOGOUT_REDIRECT_URL = 'login'
 
 # Configuración de email. Sin EMAIL_HOST definido, Django usa la consola
 # (backend por defecto para desarrollo local, no envía correos reales).
+# --- Registro de auditoría de accesos a datos personales (RGPD Art. 30) ---
+#
+# Los registros salen ya con formato JSON por el logger 'auditoria' (uno por
+# línea), pensados para que un recolector los envíe a un destino externo de
+# solo-adición. Un archivo en el propio servidor lo puede editar quien tenga
+# acceso a él, así que por sí solo NO sirve como prueba ante una inspección:
+# es el primer escalón, no el destino final. Ver deploy/auditoria_centralizada.md.
+#
+# Con AUDITORIA_LOG_PATH sin definir, los registros solo van a la salida
+# estándar (lo normal en desarrollo y en las pruebas).
+_auditoria_log = os.environ.get('AUDITORIA_LOG_PATH', '')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        # El mensaje ya es un JSON completo: no se le añade nada que rompa el
+        # formato para quien lo procese luego.
+        'crudo': {'format': '%(message)s'},
+    },
+    'handlers': {
+        'consola_auditoria': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'crudo',
+        },
+    },
+    'loggers': {
+        'auditoria': {
+            'handlers': ['consola_auditoria'],
+            'level': 'INFO',
+        },
+    },
+}
+
+if _auditoria_log:
+    Path(_auditoria_log).parent.mkdir(parents=True, exist_ok=True)
+    LOGGING['handlers']['archivo_auditoria'] = {
+        'class': 'logging.handlers.WatchedFileHandler',
+        'filename': _auditoria_log,
+        'formatter': 'crudo',
+        # WatchedFileHandler (y no RotatingFileHandler) para que la rotación la
+        # haga logrotate: así el archivo puede ser de solo-adición (chattr +a)
+        # y ni siquiera el proceso de la aplicación puede reescribir lo ya escrito.
+    }
+    LOGGING['loggers']['auditoria']['handlers'].append('archivo_auditoria')
+
 EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
 if EMAIL_HOST:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
