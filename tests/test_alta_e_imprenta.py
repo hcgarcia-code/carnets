@@ -260,3 +260,41 @@ def test_la_cuenta_de_imprenta_no_puede_subir_afiliados(client):
 
     respuesta = client.get("/subir-datos/")
     assert respuesta.status_code == 403
+
+
+def test_el_login_muestra_el_aviso_de_cuenta_pendiente_tras_darse_de_alta(client):
+    """Tras el alta se redirige al login: el aviso tiene que llegar hasta ahí.
+
+    La vista crea el mensaje "un administrador debe activar tu cuenta", pero
+    quien lo tiene que leer es la plantilla de destino. Si el login no lo
+    pinta, el sindicato recién registrado llega a una pantalla muda, intenta
+    entrar, y recibe "usuario o contraseña incorrectos" —que es falso y le
+    manda a revisar justo lo que no falla— en vez de saber que solo tiene que
+    esperar la aprobación.
+    """
+    respuesta = client.post('/alta/', {
+        'username': 'rama_avisada',
+        'password1': 'Clave-Solida-Sindical-88',
+        'password2': 'Clave-Solida-Sindical-88',
+        'nombre_identificativo': 'CGT Rama Prueba',
+    }, follow=True)
+
+    assert 'administrador' in respuesta.content.decode().lower()
+
+
+def test_el_login_enlaza_al_alta(client):
+    # Sin este enlace no hay forma de llegar al formulario de alta salvo que
+    # alguien te pase la URL a mano, que es justo el trabajo manual que el
+    # autoservicio venía a quitar.
+    respuesta = client.get('/login/')
+    assert '/alta/' in respuesta.content.decode()
+
+
+def test_las_plantillas_no_filtran_marcas_de_comentario(client):
+    # {# ... #} solo comenta una linea: escrito en varias, Django lo imprime
+    # como texto y el comentario interno acaba en pantalla del usuario.
+    for url in ('/login/', '/alta/'):
+        contenido = client.get(url).content.decode()
+        assert '{#' not in contenido and '{%' not in contenido, (
+            f"{url} filtra marcas de plantilla sin procesar"
+        )

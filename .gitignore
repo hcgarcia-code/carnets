@@ -29,3 +29,6 @@ staticfiles/
 
 # Configuración local de Claude Code (específica de esta máquina)
 .claude/
+
+# Excel de ejemplo generado por `manage.py preparar_pruebas`
+afiliados_de_ejemplo.xlsx
