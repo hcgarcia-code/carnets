@@ -15,6 +15,12 @@ class GestionConfig(AppConfig):
     name = 'gestion'
 
     def ready(self):
+        # Registra las comprobaciones de despliegue (gestion/checks.py). Van en
+        # `check --deploy` y no aquí porque solo aplican a producción: un guard
+        # de arranque que mire DEBUG tumbaría también las pruebas, que se
+        # ejecutan con DEBUG=False.
+        from . import checks  # noqa: F401
+
         # Las claves se comprueban al arrancar, no en el primer uso.
         #
         # Sin esto, la aplicación arranca tan campante con la clave vacía o mal

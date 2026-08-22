@@ -284,8 +284,15 @@ rm -f "$CONTEO_ANTES"
 log "Paso 7: estáticos y comprobación final de Django"
 # ==============================================================================
 python3 manage.py collectstatic --noinput
-python3 manage.py check --deploy
-ok "collectstatic y check --deploy completados sin errores."
+
+# --fail-level WARNING: sin esto, `check --deploy` solo aborta con errores, y
+# los avisos de seguridad de Django (W008 sin redirección a HTTPS, W012 y W016
+# con las cookies de sesión y CSRF sin Secure, W004 sin HSTS) son WARNING. Es
+# decir: el despliegue informaba de "completado sin errores" sirviendo el sitio
+# por HTTP con las cookies viajando en claro. Aquí un aviso de seguridad debe
+# parar el despliegue igual que un error.
+python3 manage.py check --deploy --fail-level WARNING
+ok "collectstatic y check --deploy completados sin errores ni avisos."
 
 # ==============================================================================
 log "TODO LISTO. Último paso manual (no se puede automatizar sin más credenciales):"

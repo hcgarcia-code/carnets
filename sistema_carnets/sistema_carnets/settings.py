@@ -151,6 +151,28 @@ else:
     }
 
 
+# Caché
+#
+# Aquí la caché no es un detalle de rendimiento sino un control de seguridad:
+# los limitadores de intentos de login (gestion/auth_views.py) y de alta de
+# sindicatos (gestion/views.py) guardan su contador en ella. Con el backend por
+# defecto de Django —memoria del proceso— cada worker de gunicorn lleva su
+# propia cuenta, así que el límite de 5 intentos pasa a ser 5 por worker y se
+# reinicia en cada recarga: deja de proteger sin que nada falle.
+#
+# En local, con un solo proceso, la memoria vale. En producción hace falta una
+# caché compartida entre workers; lo comprueba gestion/checks.py al ejecutar
+# `manage.py check --deploy`, que es lo que corre el script de despliegue.
+CACHES = {
+    'default': {
+        'BACKEND': os.environ.get(
+            'CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache',
+        ),
+        'LOCATION': os.environ.get('CACHE_LOCATION', ''),
+    },
+}
+
+
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
@@ -206,6 +228,25 @@ CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False') == 'True'
 # Redirige HTTP -> HTTPS. Falso por defecto para poder probar en local sin
 # certificado; en el .env del servidor de producción debe ponerse a True.
 SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False') == 'True'
+
+# Detrás de un proxy que termina el TLS (nginx, el de PythonAnywhere), Django
+# recibe la petición por HTTP y, sin esto, SECURE_SSL_REDIRECT la redirige a
+# HTTPS una y otra vez: bucle de redirecciones y sitio caído. La cabecera dice
+# cómo reconocer que el proxy ya sirvió por HTTPS.
+#
+# Solo debe activarse si el proxy REESCRIBE esa cabecera siempre. Si la deja
+# pasar tal cual viene del cliente, cualquiera puede enviar
+# X-Forwarded-Proto: https y hacer creer a Django que su conexión en claro era
+# segura, con lo que las cookies marcadas como Secure viajarían por HTTP.
+_proxy_ssl = os.environ.get('SECURE_PROXY_SSL_HEADER', '')
+if _proxy_ssl:
+    _cabecera, _, _valor = _proxy_ssl.partition(':')
+    if not _valor:
+        raise ImproperlyConfigured(
+            "SECURE_PROXY_SSL_HEADER debe tener la forma "
+            "'HTTP_X_FORWARDED_PROTO:https' (cabecera:valor esperado).",
+        )
+    SECURE_PROXY_SSL_HEADER = (_cabecera.strip(), _valor.strip())
 
 # HSTS (HTTP Strict Transport Security): indica al navegador que use siempre
 # HTTPS para este dominio. Se deja en 0 (desactivado) por defecto para poder
