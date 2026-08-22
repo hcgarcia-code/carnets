@@ -22,6 +22,7 @@
 | Documento | Qué hacer |
 |---|---|
 | [`auditoria_centralizada.md`](auditoria_centralizada.md) | Logs de acceso, retención, destino externo en la UE |
+| [`waf_y_ddos.md`](waf_y_ddos.md) | nginx, fail2ban y elección de WAF: lo que la aplicación no puede parar sola |
 | [`desplegar_pythonanywhere.sh`](desplegar_pythonanywhere.sh) | Script de despliegue automatizado (si sigues con PythonAnywhere) |
 
 ## 4. Pendiente post-octubre
