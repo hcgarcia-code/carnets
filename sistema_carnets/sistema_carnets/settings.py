@@ -294,7 +294,7 @@ LOGOUT_REDIRECT_URL = 'login'
 #
 # Con AUDITORIA_LOG_PATH sin definir, los registros solo van a la salida
 # estándar (lo normal en desarrollo y en las pruebas).
-_auditoria_log = os.environ.get('AUDITORIA_LOG_PATH', '')
+AUDITORIA_LOG_PATH = os.environ.get('AUDITORIA_LOG_PATH', '')
 
 LOGGING = {
     'version': 1,
@@ -318,11 +318,11 @@ LOGGING = {
     },
 }
 
-if _auditoria_log:
-    Path(_auditoria_log).parent.mkdir(parents=True, exist_ok=True)
+if AUDITORIA_LOG_PATH:
+    Path(AUDITORIA_LOG_PATH).parent.mkdir(parents=True, exist_ok=True)
     LOGGING['handlers']['archivo_auditoria'] = {
         'class': 'logging.handlers.WatchedFileHandler',
-        'filename': _auditoria_log,
+        'filename': AUDITORIA_LOG_PATH,
         'formatter': 'crudo',
         # WatchedFileHandler (y no RotatingFileHandler) para que la rotación la
         # haga logrotate: así el archivo puede ser de solo-adición (chattr +a)
