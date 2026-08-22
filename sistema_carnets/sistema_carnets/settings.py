@@ -67,6 +67,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'simple_history',
+    # Segundo factor del admin. La cuenta de administrador es la unica que ve
+    # los datos personales descifrados, asi que una contrasena robada entregaria
+    # el archivo entero de afiliacion; ver gestion/admin.py.
+    'django_otp',
+    'django_otp.plugins.otp_totp',
     'gestion',
 ]
 
@@ -79,6 +84,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # Justo despues del de autenticacion, que es de quien depende: anade
+    # request.user.is_verified() para saber si ademas de identificarse ha
+    # pasado el segundo factor.
+    'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',

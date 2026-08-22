@@ -5,11 +5,27 @@ from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.utils import timezone
+from django_otp.admin import OTPAdminSite
 from simple_history.admin import SimpleHistoryAdmin
 
 from .auditoria import ACCIONES, registrar
 from .models import Afiliado, PerfilSindicato, RegistroSubida
 from .services import marcar_como_impresos_y_notificar
+
+# El admin exige segundo factor. Es el unico sitio donde los datos personales
+# se descifran y se ven en claro: el panel de la imprenta consulta con
+# `.values()` sin los nombres, el registro de auditoria no los escribe y la
+# base de datos los guarda cifrados. Todo eso se sostiene sobre la contrasena
+# del administrador, asi que si se filtra, se entrega el archivo entero de
+# afiliacion sindical (dato de categoria especial, RGPD Art. 9).
+#
+# Se reemplaza la clase del sitio ya existente en vez de crear uno nuevo para
+# no tener que reescribir el register() de cada modelo ni la ruta de urls.py.
+#
+# Para darse de alta: `manage.py activar_2fa <usuario>`. Sin ejecutarlo antes,
+# el admin queda inaccesible (el comando funciona desde la consola del
+# servidor, asi que no es un bloqueo del que no se pueda salir).
+admin.site.__class__ = OTPAdminSite
 
 
 # --- ACCIÓN 1: Poner fecha a los carnets ---

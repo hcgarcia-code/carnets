@@ -5,6 +5,8 @@ openpyxl==3.1.5
 python-dotenv==1.2.2
 django-simple-history==3.13.0
 cryptography==50.0.0
+# Segundo factor del admin (unica cuenta que descifra datos personales)
+django-otp==1.7.0
 
 # Herramientas de calidad y seguridad
 pytest==9.1.1

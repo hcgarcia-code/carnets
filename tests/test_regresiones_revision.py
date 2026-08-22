@@ -72,10 +72,10 @@ def test_el_texto_del_afiliado_no_revela_datos_personales():
     assert NUM_AFILIADO_REAL not in texto
 
 
-def test_el_log_del_admin_no_guarda_datos_personales_en_claro(client):
+def test_el_log_del_admin_no_guarda_datos_personales_en_claro(client, entrar_en_el_admin):
     jefa = User.objects.create_superuser("jefa", "j@x.es", "clave-larga-123")
     afiliado = _crear_afiliado(jefa)
-    client.force_login(jefa)
+    entrar_en_el_admin(client, jefa)
 
     client.post(f"/admin/gestion/afiliado/{afiliado.pk}/change/", {
         "sindicato_usuario": jefa.pk, "confederacion_territorial": "01",
@@ -127,14 +127,14 @@ def test_con_claves_la_comprobacion_de_arranque_pasa():
 
 # --- 4. Se auditaba el acceso antes de comprobar permisos ---
 
-def test_un_acceso_denegado_no_se_registra_como_consulta(client, auditoria):
+def test_un_acceso_denegado_no_se_registra_como_consulta(client, auditoria, entrar_en_el_admin):
     # Usuario de staff SIN permiso sobre Afiliado: entra al admin pero se le
     # deniega la vista. No puede quedar anotado igual que quien sí la vio.
     miron = User.objects.create_user(
         "miron", password="clave-larga-123", is_staff=True,  # noqa: S106
     )
     _crear_afiliado(miron)
-    client.force_login(miron)
+    entrar_en_el_admin(client, miron)
 
     client.get("/admin/gestion/afiliado/")
 
@@ -217,10 +217,10 @@ def test_el_nombre_del_archivo_no_llega_al_registro(client, auditoria):
 
 # --- 7. ids salía como texto en unas acciones y como entero en otras ---
 
-def test_los_identificadores_se_registran_siempre_igual(client, auditoria):
+def test_los_identificadores_se_registran_siempre_igual(client, auditoria, entrar_en_el_admin):
     jefa = User.objects.create_superuser("jefa", "j@x.es", "clave-larga-123")
     afiliado = _crear_afiliado(jefa)
-    client.force_login(jefa)
+    entrar_en_el_admin(client, jefa)
 
     client.get(f"/admin/gestion/afiliado/{afiliado.pk}/change/")
 

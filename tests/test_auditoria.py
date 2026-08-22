@@ -135,10 +135,12 @@ def test_exportar_a_imprenta_queda_registrado(auditoria):
     assert exportaciones[0]["usuario"] == usuario.username
 
 
-def test_consultar_la_lista_de_afiliados_en_el_admin_queda_registrado(client, auditoria):
+def test_consultar_la_lista_de_afiliados_en_el_admin_queda_registrado(
+    client, auditoria, entrar_en_el_admin,
+):
     admin = _crear_usuario("jefa", is_staff=True, is_superuser=True)
     _crear_afiliado(admin)
-    client.force_login(admin)
+    entrar_en_el_admin(client, admin)
 
     client.get("/admin/gestion/afiliado/")
 
