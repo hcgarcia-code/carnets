@@ -80,6 +80,8 @@ MIDDLEWARE = [
     # Rechaza pronto (413) peticiones cuyo Content-Length declarado sea
     # excesivo, antes de que el resto del stack llegue a leer el cuerpo.
     'gestion.middleware.LimiteTamanoPeticionMiddleware',
+    # Content-Security-Policy en todas las respuestas. Ver middleware.py.
+    'gestion.middleware.CabeceraCSPMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
