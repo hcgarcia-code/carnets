@@ -29,7 +29,9 @@ admin.site.__class__ = OTPAdminSite
 
 
 # --- ACCIÓN 1: Poner fecha a los carnets ---
-@admin.action(description="1. Asignar fecha de expedición (Día de hoy)")
+# permissions=["change"]: sin esto Django ofrece la accion a cualquier cuenta
+# de staff que llegue al listado, aunque solo tenga permiso de ver.
+@admin.action(description="1. Asignar fecha de expedición (Día de hoy)", permissions=["change"])
 def asignar_fecha_hoy(modeladmin, request, queryset):
     # Toma todos los afiliados que hayas seleccionado y les pone la fecha actual
     filas_actualizadas = queryset.update(fecha_expedicion=timezone.now().date())
@@ -39,7 +41,9 @@ def asignar_fecha_hoy(modeladmin, request, queryset):
 
 
 # --- ACCIÓN 2: Generar Excel para la máquina ---
-@admin.action(description="2. Descargar Excel para Máquina de Carnets")
+# La mas sensible de las tres: saca a un archivo descargable los datos
+# personales descifrados de los afiliados seleccionados.
+@admin.action(description="2. Descargar Excel para Máquina de Carnets", permissions=["change"])
 def exportar_imprenta(modeladmin, request, queryset):
     datos = []
     identificadores = []
@@ -173,7 +177,9 @@ class RegistroSubidaAdmin(admin.ModelAdmin):
         return False
 
 
-@admin.action(description="Aprobar las cuentas de sindicato seleccionadas")
+# Aprobar salta el control manual de altas, que es lo unico que impide que
+# una cuenta sin revisar empiece a subir datos de afiliacion.
+@admin.action(description="Aprobar las cuentas de sindicato seleccionadas", permissions=["change"])
 def aprobar_cuentas(modeladmin, request, queryset):
     # Solo activa las que de verdad estaban inactivas: evita que el mensaje de
     # éxito infle el recuento con cuentas que ya estaban aprobadas de antes.
@@ -192,7 +198,9 @@ class UsuarioAdmin(UserAdmin):
     # hace falta para decidir; el UserAdmin de Django por defecto no muestra
     # ninguno de los dos en el listado.
     list_display = (*UserAdmin.list_display, 'is_active', 'sindicato_declarado')
-    list_filter = (*UserAdmin.list_filter, 'is_active')
+    # is_active ya viene en UserAdmin.list_filter; anadirlo lo dejaba dos veces
+    # (Django no deduplica) y el panel lateral pintaba "Por activo" duplicado.
+    list_filter = UserAdmin.list_filter
     actions = [aprobar_cuentas]
 
     @admin.display(description="Sindicato/rama declarado al darse de alta")
