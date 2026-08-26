@@ -62,6 +62,25 @@ Por eso el reparto es:
 El comando **sí sabe** importar afiliados si algún día hace falta; simplemente
 no es la vía elegida ahora.
 
+### Ensayo sobre el volcado real (26-08-2026)
+
+Ejecutado contra una base de datos aislada, con el `beta.json` de producción:
+
+```
+54 cuentas · 54 perfiles (37 con el acuerdo ya firmado) · 3511 afiliados
+407 afiliados descartados · 7 segundos · 0 registros en claro en disco
+```
+
+Dos cosas que confirma el ensayo:
+
+- **Los 344 de lengua inválida están dentro de los 407 de estado corrupto.** Son
+  las mismas filas, no 751 distintas: coherente con un desplazamiento de
+  columnas en un solo bloque del Excel. Al limpiar la tabla es un único
+  problema. Conviene mirar dos o tres de esas filas a ojo antes de imprimirlas:
+  si `estado` se corrió, puede haber más columnas corridas en ellas.
+- **La fecha de alta original se conserva** (la más antigua salió 22-07-2026, no
+  la de la importación).
+
 ---
 
 ## Paso 1 — Sacar el volcado del beta
