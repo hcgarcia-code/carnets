@@ -1,10 +1,10 @@
-# CONTRATO DE ENCARGADO DEL TRATAMIENTO
+# CONTRATO DE SUBENCARGADO DEL TRATAMIENTO
 
 ## Impresión de carnets de afiliación sindical
 
-**Artículo 28 del Reglamento (UE) 2016/679 (RGPD)**
+**Artículo 28.4 del Reglamento (UE) 2016/679 (RGPD)**
 
-**Borrador · versión 1.0 · 2026-08-26**
+**Borrador · versión 2.0 · 2026-08-26**
 
 ---
 
@@ -12,7 +12,13 @@
 >
 > **Este es un borrador de trabajo, no un contrato listo para firmar.** Lo ha redactado el equipo técnico para que la asesoría jurídica de CGT parta de algo concreto en lugar de una página en blanco, y para dejar constancia de qué datos salen realmente del sistema y por qué vía —información que la parte técnica conoce y la jurídica necesita—.
 >
-> **No lo firmes sin revisión legal.** Un contrato de encargado mal redactado es peor que no tenerlo: aparenta cobertura donde no la hay, y esa apariencia es exactamente lo que se desmonta en una inspección.
+> **Es un contrato de SUBENCARGO, no de encargo.** La v1.0 lo planteaba como contrato entre CGT como responsable y la imprenta como encargada. No es así: los datos los recaban los sindicatos de rama y provincia, que son los **responsables**; CGT Confederal es **encargada** por cuenta de ellos; y la imprenta es por tanto **subencargada** (Art. 28.4). La diferencia no es nominal:
+>
+> - **CGT Confederal no puede firmarlo por sí sola.** Necesita autorización de los sindicatos responsables (Art. 28.2), que se articula mediante la cláusula SÉPTIMA del contrato `CONTRATO_Encargado_Confederal.md`. **Firmar este contrato antes que aquellos deja el subencargo sin cobertura.**
+> - **CGT Confederal responde plenamente** ante los sindicatos del cumplimiento por la imprenta (Art. 28.4). No puede derivar la responsabilidad hacia ella.
+> - Las obligaciones impuestas aquí **no pueden ser menos protectoras** que las del contrato del primer eslabón.
+>
+> **No lo firmes sin revisión legal.** Un contrato mal redactado es peor que no tenerlo: aparenta cobertura donde no la hay, y esa apariencia es lo primero que se desmonta en una inspección.
 >
 > Los campos entre corchetes deben cumplimentarse. Las cláusulas marcadas **[VERIFICAR]** dependen de hechos que el equipo técnico no puede confirmar por sí solo.
 
@@ -20,21 +26,25 @@
 
 ## REUNIDOS
 
-**De una parte**, CGT (Confederación General del Trabajo), con NIF [—] y domicilio en [—], representada por [—] en calidad de [—], en adelante **el RESPONSABLE**.
+**De una parte**, CGT Confederal, con NIF [—] y domicilio en [—], representada por [—] en calidad de [—], que actúa en su condición de **encargada del tratamiento** por cuenta de los sindicatos de rama y de provincia relacionados en el Anexo III, en adelante **el ENCARGADO**.
 
-**De otra parte**, [razón social de la empresa de impresión], con NIF [—] y domicilio en [—], representada por [—] en calidad de [—], en adelante **el ENCARGADO**.
+**De otra parte**, [razón social de la empresa de impresión], con NIF [—] y domicilio en [—], representada por [—] en calidad de [—], en adelante **el SUBENCARGADO**.
 
 Ambas partes se reconocen capacidad legal suficiente y
 
 ## EXPONEN
 
-**I.** Que el RESPONSABLE gestiona un registro de personas afiliadas y emite carnets acreditativos de dicha afiliación. Los datos tratados a tal fin constituyen **categoría especial** conforme al Art. 9.1 del RGPD, por revelar afiliación sindical.
+**I.** Que los sindicatos relacionados en el Anexo III, en su condición de **responsables del tratamiento**, mantienen el registro de sus personas afiliadas y han encomendado al ENCARGADO la confección de los carnets acreditativos de dicha afiliación. Los datos tratados a tal fin constituyen **categoría especial** conforme al Art. 9.1 del RGPD, por revelar afiliación sindical.
 
-**II.** Que el RESPONSABLE precisa encomendar a un tercero la impresión física de dichos carnets, para lo cual resulta imprescindible comunicarle determinados datos personales en formato legible.
+**II.** Que la ejecución de dicho encargo requiere la impresión física de los carnets, para lo cual resulta imprescindible comunicar determinados datos personales en formato legible.
 
-**III.** Que el ENCARGADO dispone de los medios técnicos y organizativos para prestar dicho servicio y ofrece garantías suficientes de aplicar medidas apropiadas conforme al Art. 28.1 del RGPD.
+**III.** Que el ENCARGADO **ha obtenido de los responsables la autorización** exigida por el Art. 28.2 para recurrir a un subencargado a tal fin.
 
-**IV.** Que ambas partes reconocen que el amparo jurídico del tratamiento descansa en el Art. 9.2.d del RGPD, que exige que los datos **no se comuniquen a terceros sin consentimiento del interesado**, y que la condición del ENCARGADO como tal —y no como tercero con finalidad propia— es lo que permite la remisión de los datos. Este contrato es el instrumento que acredita esa condición.
+**IV.** Que el SUBENCARGADO dispone de los medios técnicos y organizativos para prestar el servicio y ofrece garantías suficientes de aplicar medidas apropiadas conforme al Art. 28.1 del RGPD.
+
+**V.** Que ambas partes reconocen que el amparo jurídico del tratamiento descansa en el Art. 9.2.d del RGPD, que exige que los datos **no se comuniquen a terceros sin consentimiento del interesado**, y que la condición del SUBENCARGADO como tal —y no como tercero con finalidad propia— es lo que permite la remisión de los datos. Este contrato es el instrumento que acredita esa condición.
+
+**VI.** Que el ENCARGADO responde plenamente ante los responsables del cumplimiento de este contrato por el SUBENCARGADO (Art. 28.4).
 
 Y en su virtud, acuerdan las siguientes
 
@@ -44,13 +54,13 @@ Y en su virtud, acuerdan las siguientes
 
 ### PRIMERA — Objeto
 
-El ENCARGADO tratará por cuenta del RESPONSABLE los datos personales necesarios para la **impresión física de carnets de afiliación sindical** y su entrega al RESPONSABLE.
+El SUBENCARGADO tratará por cuenta del ENCARGADO los datos personales necesarios para la **impresión física de carnets de afiliación sindical** y su entrega al ENCARGADO.
 
-El ENCARGADO **no adquiere titularidad alguna** sobre los datos.
+El SUBENCARGADO **no adquiere titularidad alguna** sobre los datos.
 
 ### SEGUNDA — Datos objeto de tratamiento
 
-El RESPONSABLE remitirá, por cada lote de impresión, exclusivamente los siguientes datos:
+El ENCARGADO remitirá, por cada lote de impresión, exclusivamente los siguientes datos:
 
 | Dato | Finalidad de su inclusión |
 |---|---|
@@ -60,9 +70,9 @@ El RESPONSABLE remitirá, por cada lote de impresión, exclusivamente los siguie
 | Lengua | Determina el idioma de emisión |
 | Fecha de expedición | Impresión en el carnet |
 
-**No se remitirán** documentos de identidad, datos de contacto, datos bancarios ni ningún otro dato no enumerado. Si el ENCARGADO recibiera datos adicionales por error, lo comunicará de inmediato y los suprimirá.
+**No se remitirán** documentos de identidad, datos de contacto, datos bancarios ni ningún otro dato no enumerado. Si el SUBENCARGADO recibiera datos adicionales por error, lo comunicará de inmediato y los suprimirá.
 
-Adicionalmente, el ENCARGADO dispone de acceso a un panel de consulta del sistema del RESPONSABLE, limitado al código de sindicato y nº de afiliado de los lotes ya remitidos, y sin acceso a nombres. Dicho acceso se rige igualmente por este contrato.
+Adicionalmente, el SUBENCARGADO dispone de acceso a un panel de consulta del sistema del ENCARGADO, limitado al código de sindicato y nº de afiliado de los lotes ya remitidos, y sin acceso a nombres. Dicho acceso se rige igualmente por este contrato.
 
 ### TERCERA — Duración
 
@@ -70,9 +80,9 @@ Vigencia de [—] desde su firma, prorrogable por acuerdo expreso. Las obligacio
 
 ### CUARTA — Obligación de seguir instrucciones
 
-El ENCARGADO tratará los datos **únicamente** conforme a las instrucciones documentadas del RESPONSABLE, incluidas las relativas a transferencias internacionales.
+El SUBENCARGADO tratará los datos **únicamente** conforme a las instrucciones documentadas del ENCARGADO, incluidas las relativas a transferencias internacionales.
 
-En particular, el ENCARGADO **no podrá**:
+En particular, el SUBENCARGADO **no podrá**:
 
 a) Emplear los datos para finalidad propia o distinta de la impresión encomendada.
 b) Comunicarlos, cederlos ni permitir su acceso a terceros, salvo lo previsto en la cláusula SÉPTIMA.
@@ -80,24 +90,24 @@ c) Conservarlos más allá de lo establecido en la cláusula DÉCIMA.
 d) Elaborar perfiles, estadísticas o cualquier otro tratamiento derivado.
 e) Cruzarlos con otros ficheros de que disponga.
 
-Si el ENCARGADO considera que una instrucción infringe la normativa de protección de datos, lo comunicará de inmediato al RESPONSABLE (Art. 28.3, párrafo segundo).
+Si el SUBENCARGADO considera que una instrucción infringe la normativa de protección de datos, lo comunicará de inmediato al ENCARGADO (Art. 28.3, párrafo segundo).
 
 ### QUINTA — Confidencialidad
 
-El ENCARGADO garantiza que **toda persona autorizada** para tratar estos datos se ha comprometido expresamente por escrito a respetar su confidencialidad, con carácter indefinido y subsistente tras la terminación de su relación laboral.
+El SUBENCARGADO garantiza que **toda persona autorizada** para tratar estos datos se ha comprometido expresamente por escrito a respetar su confidencialidad, con carácter indefinido y subsistente tras la terminación de su relación laboral.
 
-El ENCARGADO limitará el acceso al personal estrictamente necesario para la impresión y mantendrá una relación actualizada de dichas personas, a disposición del RESPONSABLE.
+El SUBENCARGADO limitará el acceso al personal estrictamente necesario para la impresión y mantendrá una relación actualizada de dichas personas, a disposición del ENCARGADO.
 
 **Advertencia expresa sobre la naturaleza de estos datos**: la divulgación de la afiliación sindical de una persona puede exponerla a represalias en su ámbito laboral. No se trata de un dato comercial ordinario, y ambas partes reconocen que su tratamiento exige diligencia reforzada.
 
 ### SEXTA — Medidas de seguridad (Art. 32)
 
-El ENCARGADO aplicará, como mínimo:
+El SUBENCARGADO aplicará, como mínimo:
 
 1. **Recepción cifrada.** Los archivos se recibirán exclusivamente por el canal cifrado acordado. **Queda expresamente excluido el correo electrónico ordinario como vía de entrega**, por dejar copias en servidores intermedios y buzones fuera del control de ambas partes.
 2. **Cifrado en reposo** de los archivos recibidos mientras permanezcan en sus sistemas.
 3. **Control de acceso** individualizado y nominativo. Prohibidas las cuentas compartidas.
-4. **Registro de accesos** a los archivos, conservado durante al menos un año y disponible para el RESPONSABLE.
+4. **Registro de accesos** a los archivos, conservado durante al menos un año y disponible para el ENCARGADO.
 5. **Destrucción segura** de cualquier soporte físico intermedio: pruebas de impresión, carnets defectuosos, mermas y descartes. Los carnets defectuosos **no se desecharán como residuo ordinario**.
 6. **Seguridad física** del área de producción durante el tratamiento de estos lotes.
 7. **No conservación en dispositivos personales** ni servicios de almacenamiento en la nube no acordados.
@@ -105,27 +115,29 @@ El ENCARGADO aplicará, como mínimo:
 
 ### SÉPTIMA — Subcontratación
 
-El ENCARGADO **no podrá subcontratar** ninguna parte del tratamiento sin autorización **previa, específica y por escrito** del RESPONSABLE.
+El SUBENCARGADO **no podrá subcontratar** ninguna parte del tratamiento sin autorización **previa, específica y por escrito** del ENCARGADO.
 
-Si se autorizara, el subencargado quedará vinculado por obligaciones idénticas a las de este contrato, mediante contrato escrito, respondiendo el ENCARGADO plenamente ante el RESPONSABLE del cumplimiento por aquel.
+Si se autorizara, el **subencargado ulterior** quedará vinculado por obligaciones no menos protectoras que las de este contrato, mediante contrato escrito, respondiendo el SUBENCARGADO plenamente ante el ENCARGADO del cumplimiento por aquel.
 
-**[VERIFICAR]**: si el ENCARGADO ya subcontrata alguna fase (laminado, personalización, mensajería, almacenamiento), debe declararlo **antes de la firma** y relacionarse en anexo. La mensajería que transporta carnets impresos con nombres visibles es subencargado, aunque no se perciba como tal.
+> El ENCARGADO no puede conceder esta autorización por sí solo: al ser él mismo encargado, precisa a su vez el consentimiento de los sindicatos responsables (Art. 28.2). Toda solicitud del SUBENCARGADO en este sentido quedará condicionada a ello.
 
-### OCTAVA — Asistencia al Responsable
+**[VERIFICAR]**: si el SUBENCARGADO ya subcontrata alguna fase (laminado, personalización, mensajería, almacenamiento), debe declararlo **antes de la firma** y relacionarse en el Anexo II. La mensajería que transporta carnets impresos con nombres visibles es un subencargado ulterior, aunque no se perciba como tal.
 
-El ENCARGADO asistirá al RESPONSABLE:
+### OCTAVA — Asistencia
 
-a) En la atención de los derechos de los interesados (Arts. 15 a 22). Si un afiliado se dirigiera directamente al ENCARGADO, este **no atenderá la solicitud** y la trasladará al RESPONSABLE sin dilación.
+El SUBENCARGADO asistirá al ENCARGADO para que este, a su vez, pueda cumplir su deber de asistencia a los sindicatos responsables:
+
+a) **En la atención de los derechos de los interesados** (Arts. 15 a 22), que corresponden a los sindicatos responsables y no a ninguna de las partes de este contrato. Si una persona afiliada se dirigiera directamente al SUBENCARGADO, este **no atenderá la solicitud**: la trasladará al ENCARGADO sin dilación, y este a su vez al sindicato responsable.
 b) En el cumplimiento de los Arts. 32 a 36, incluidas evaluaciones de impacto y consultas previas.
-c) Poniendo a disposición del RESPONSABLE toda la información necesaria para demostrar el cumplimiento del Art. 28.
+c) Poniendo a disposición del ENCARGADO toda la información necesaria para demostrar el cumplimiento del Art. 28, **incluida la que este deba trasladar a los sindicatos responsables** o a un auditor designado por ellos.
 
 ### NOVENA — Notificación de violaciones de seguridad
 
-El ENCARGADO notificará al RESPONSABLE **sin dilación indebida y, en todo caso, dentro de las 24 horas** siguientes a tener conocimiento de cualquier violación de seguridad que afecte a estos datos.
+El SUBENCARGADO notificará al ENCARGADO **sin dilación indebida y, en todo caso, dentro de las 12 horas** siguientes a tener conocimiento de cualquier violación de seguridad que afecte a estos datos.
 
-> El plazo de 24 horas es inferior al que el RGPD impone al ENCARGADO por deliberación de las partes: el RESPONSABLE dispone de 72 horas para notificar a la autoridad de control **desde que tiene constancia**, y necesita margen para valorar el alcance antes de que expire.
+> **Por qué 12 horas y no 72.** Quien debe notificar a la autoridad de control es el **sindicato responsable**, y dispone para ello de 72 horas desde que tiene constancia. Pero la noticia ha de recorrer antes dos eslabones —subencargado → encargado → responsable—, y cada tramo consume plazo del único que cuenta legalmente. El contrato del primer eslabón obliga al ENCARGADO a avisar al sindicato en 24 horas; para que ese compromiso sea cumplible, este tramo ha de ser más breve.
 
-La notificación incluirá naturaleza de la violación, categorías y número aproximado de interesados y de registros afectados, consecuencias probables y medidas adoptadas.
+La notificación incluirá naturaleza de la violación, categorías y número aproximado de interesados y de registros afectados, **qué sindicatos resultan afectados** —dato imprescindible para que el ENCARGADO sepa a quién avisar—, consecuencias probables y medidas adoptadas.
 
 Se notificará **igualmente** cuando el alcance no se conozca todavía. El desconocimiento no justifica el retraso.
 
@@ -133,31 +145,31 @@ Son notificables, entre otros: extravío o sustracción de archivos o soportes; 
 
 ### DÉCIMA — Supresión al finalizar el encargo
 
-Concluida la impresión de cada lote y entregados los carnets, el ENCARGADO **suprimirá** los archivos recibidos y cualquier copia, incluidas las de sus sistemas de respaldo conforme a su ciclo de rotación, en un plazo máximo de **[30] días naturales**.
+Concluida la impresión de cada lote y entregados los carnets, el SUBENCARGADO **suprimirá** los archivos recibidos y cualquier copia, incluidas las de sus sistemas de respaldo conforme a su ciclo de rotación, en un plazo máximo de **[30] días naturales**.
 
-El ENCARGADO **expedirá certificado escrito de supresión** por cada lote, que remitirá al RESPONSABLE.
+El SUBENCARGADO **expedirá certificado escrito de supresión** por cada lote, que remitirá al ENCARGADO.
 
-A la extinción del contrato, el ENCARGADO suprimirá la totalidad de los datos y certificará dicha supresión. Únicamente podrá conservar aquello que le imponga una obligación legal, indicando cuál y por cuánto tiempo, y manteniéndolo bloqueado.
+A la extinción del contrato, el SUBENCARGADO suprimirá la totalidad de los datos y certificará dicha supresión. Únicamente podrá conservar aquello que le imponga una obligación legal, indicando cuál y por cuánto tiempo, y manteniéndolo bloqueado.
 
 ### UNDÉCIMA — Auditoría
 
-El RESPONSABLE podrá verificar el cumplimiento de este contrato mediante auditorías o inspecciones, por sí o por auditor designado, previo aviso de [15] días naturales, salvo que medie sospecha fundada de incumplimiento, en cuyo caso el aviso podrá reducirse a [48] horas.
+El ENCARGADO podrá verificar el cumplimiento de este contrato mediante auditorías o inspecciones, por sí o por auditor designado, previo aviso de [15] días naturales, salvo que medie sospecha fundada de incumplimiento, en cuyo caso el aviso podrá reducirse a [48] horas.
 
-El ENCARGADO facilitará el acceso a instalaciones, sistemas y documentación necesarios.
+El SUBENCARGADO facilitará el acceso a instalaciones, sistemas y documentación necesarios.
 
 ### DUODÉCIMA — Ubicación de los datos y transferencias
 
 El tratamiento se realizará **íntegramente dentro del Espacio Económico Europeo**.
 
-El ENCARGADO no transferirá los datos fuera del EEE, ni permitirá el acceso remoto desde fuera del EEE, sin autorización previa y por escrito del RESPONSABLE.
+El SUBENCARGADO no transferirá los datos fuera del EEE, ni permitirá el acceso remoto desde fuera del EEE, sin autorización previa y por escrito del ENCARGADO.
 
-**[VERIFICAR]**: el acceso remoto para soporte técnico desde fuera del EEE constituye transferencia internacional aunque los datos no se copien. Si el ENCARGADO recurre a soporte externalizado, debe declararlo antes de la firma.
+**[VERIFICAR]**: el acceso remoto para soporte técnico desde fuera del EEE constituye transferencia internacional aunque los datos no se copien. Si el SUBENCARGADO recurre a soporte externalizado, debe declararlo antes de la firma.
 
 ### DECIMOTERCERA — Responsabilidad
 
-El ENCARGADO responderá de los daños y perjuicios causados por el incumplimiento de este contrato o de las obligaciones que el RGPD le impone directamente.
+El SUBENCARGADO responderá de los daños y perjuicios causados por el incumplimiento de este contrato o de las obligaciones que el RGPD le impone directamente.
 
-Si el ENCARGADO tratara los datos determinando por su cuenta los fines y medios, será considerado **responsable del tratamiento** respecto de dicho tratamiento (Art. 28.10), con las consecuencias inherentes.
+Si el SUBENCARGADO tratara los datos determinando por su cuenta los fines y medios, será considerado **responsable del tratamiento** respecto de dicho tratamiento (Art. 28.10), con las consecuencias inherentes.
 
 ### DECIMOCUARTA — Legislación y jurisdicción
 
@@ -169,7 +181,7 @@ Las partes se someten a los Juzgados y Tribunales de [—].
 
 En [—], a [—] de [—] de [—].
 
-| **EL RESPONSABLE** | **EL ENCARGADO** |
+| **EL ENCARGADO** | **EL SUBENCARGADO** |
 |---|---|
 | CGT | [razón social] |
 | | |
@@ -192,10 +204,22 @@ En [—], a [—] de [—] de [—].
 
 ---
 
-## ANEXO II — Subencargados autorizados
+## ANEXO II — Subencargados ulteriores autorizados
 
-*Relación de subencargados existentes en la fecha de firma. Si no hay ninguno, hágase constar expresamente «Ninguno».*
+*Relación de subcontratistas del SUBENCARGADO existentes en la fecha de firma. Si no hay ninguno, hágase constar expresamente «Ninguno» — no dejar en blanco.*
 
-| Subencargado | NIF | Fase del tratamiento | Ubicación |
+| Subencargado ulterior | NIF | Fase del tratamiento | Ubicación |
 |---|---|---|---|
 | | | | |
+
+---
+
+## ANEXO III — Sindicatos responsables por cuenta de los cuales actúa el ENCARGADO
+
+*Sindicatos que han suscrito contrato de encargo con CGT Confederal y han autorizado el recurso a este SUBENCARGADO. Debe mantenerse actualizado: el tratamiento de datos de un sindicato que no figure aquí carece de cobertura.*
+
+| Sindicato | NIF | Fecha del contrato de encargo | Fecha de la autorización |
+|---|---|---|---|
+| | | | |
+
+> ⚠️ **Este anexo no puede quedar vacío en la fecha de firma.** Si ningún sindicato ha suscrito aún su contrato de encargo, el ENCARGADO carece de autorización para subcontratar y este contrato no debe firmarse todavía. El orden correcto es: primero los contratos del primer eslabón, después este.

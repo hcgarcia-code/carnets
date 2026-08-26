@@ -82,16 +82,36 @@ Esta carpeta contiene la documentación completa del sistema. Hay tres documento
 
 Los tres manuales de arriba explican **cómo funciona** el sistema. Estos cuatro acreditan **que su uso es lícito**, y son los que hay que poder enseñar si la Agencia Española de Protección de Datos lo pide.
 
-| Documento | Qué es | Estado |
-|---|---|---|
-| [`EIPD_Evaluacion_Impacto_Proteccion_Datos.md`](EIPD_Evaluacion_Impacto_Proteccion_Datos.md) | Evaluación de impacto (Art. 35). Obligatoria por tratarse de datos de categoría especial | v1.1 · **sin firmar** |
-| [`RAT_Registro_Actividades_Tratamiento.md`](RAT_Registro_Actividades_Tratamiento.md) | Registro de actividades (Art. 30). Obligatorio; la exención para organizaciones pequeñas no aplica aquí | Borrador |
-| [`CONTRATO_Encargado_Imprenta.md`](CONTRATO_Encargado_Imprenta.md) | Contrato con la empresa de impresión (Art. 28.3) | Borrador · **bloqueante** |
-| [`INFORMACION_Afiliados_Art13-14.md`](INFORMACION_Afiliados_Art13-14.md) | Texto informativo que se entrega a las personas afiliadas | Borrador |
+### Quién es quién
 
-**Los tres borradores necesitan revisión de la asesoría jurídica de CGT antes de adoptarse o firmarse.** Están redactados con apoyo técnico para no partir de una página en blanco y para dejar constancia exacta de qué datos salen del sistema y por qué vía; las calificaciones jurídicas que contienen son propuestas, no asesoramiento.
+Esto determina todo lo demás, y las primeras versiones de estos documentos lo tenían mal:
 
-**El más urgente es el contrato con la imprenta.** Es la única vía por la que los datos personales salen sin cifrar del sistema, y de él depende el encaje legal del tratamiento completo — no solo el de esa entrega. Ver §7.3 de la EIPD.
+```
+Persona afiliada → SINDICATO de rama/provincia → CGT CONFEDERAL → IMPRENTA
+                     (RESPONSABLE)                 (ENCARGADA)     (SUBENCARGADA)
+                     recaba los datos          solo confecciona     solo imprime
+                                                   el carnet
+```
+
+Los datos **no los recaba CGT Confederal**. Los recaban los sindicatos, que tienen personalidad jurídica propia y son los responsables del tratamiento. Confederal los recibe después, con una finalidad única y acotada.
+
+### Los documentos
+
+| Documento | Qué es | Quién lo asume | Estado |
+|---|---|---|---|
+| [`EIPD_...`](EIPD_Evaluacion_Impacto_Proteccion_Datos.md) | Evaluación de impacto (Art. 35). Obligatoria por tratarse de datos de categoría especial | La elabora Confederal; **la adopta cada sindicato** | v1.2 · sin firmar |
+| [`RAT_...`](RAT_Registro_Actividades_Tratamiento.md) | Registros de actividades. **Son dos**: uno de responsable por sindicato (Art. 30.1) y uno de encargada en Confederal (Art. 30.2) | Ambos | v2.0 · borrador |
+| [`CONTRATO_Encargado_Confederal.md`](CONTRATO_Encargado_Confederal.md) | Contrato sindicato → Confederal (Art. 28.3) | Cada sindicato y Confederal | Borrador · **bloqueante** |
+| [`CONTRATO_Encargado_Imprenta.md`](CONTRATO_Encargado_Imprenta.md) | Contrato Confederal → imprenta (Art. 28.4) | Confederal y la imprenta | Borrador · **bloqueante** |
+| [`INFORMACION_Afiliados_Art13.md`](INFORMACION_Afiliados_Art13.md) | Texto que se entrega al afiliarse. Lo redacta Confederal, **lo entrega el sindicato** | Cada sindicato | Borrador |
+
+### Orden de firma
+
+**Primero los contratos sindicato → Confederal, después el de la imprenta.** No es preferencia: al ser Confederal una encargada, no puede subcontratar a la imprenta sin autorización previa de los sindicatos (Art. 28.2). Firmar el de la imprenta primero deja ese eslabón sin cobertura.
+
+**Todos los borradores necesitan revisión de la asesoría jurídica antes de adoptarse o firmarse.** Están redactados con apoyo técnico para no partir de una página en blanco y para dejar constancia exacta de qué datos salen del sistema y por qué vía; las calificaciones jurídicas que contienen son propuestas, no asesoramiento.
+
+**Por qué esto no es papeleo.** La licitud del tratamiento se apoya en el Art. 9.2.d del RGPD, que ampara al sindicato *siempre que los datos no se comuniquen a terceros*. Un encargado no es un tercero — pero solo si hay contrato que lo acredite. Sin él, cada traslado es una comunicación a un tercero y decae el amparo **del tratamiento entero**, no solo de ese tramo. Ver §7.3 de la EIPD.
 
 ---
 
@@ -101,11 +121,28 @@ Los tres manuales de arriba explican **cómo funciona** el sistema. Estos cuatro
 Carnets definitivo/
 ├── DOCUMENTACION.md  ← Estás aquí
 ├── CLAUDE.md  [instrucciones del proyecto]
-├── README.md  [introducción al proyecto]
 ├── requirements.txt
-├── pyproject.toml
-├── pytest.ini
-├── setup_local.md  [guía de ambiente local]
+├── pyproject.toml  [config de pytest, ruff y bandit]
+│
+├── EIPD_Evaluacion_Impacto_Proteccion_Datos.md   ┐
+├── RAT_Registro_Actividades_Tratamiento.md       │ documentos
+├── CONTRATO_Encargado_Confederal.md              │ de cumplimiento
+├── CONTRATO_Encargado_Imprenta.md                │ (RGPD)
+├── INFORMACION_Afiliados_Art13.md                ┘
+├── DOCUMENTO_TECNICO.md
+├── MANUAL_ADMINISTRADOR.md
+├── MANUAL_USUARIO.md
+│
+├── tests/  [la suite vive en la raíz, no dentro de la app]
+│   ├── conftest.py  [fixtures: cache_limpia, entrar_en_el_admin]
+│   └── test_*.py
+│
+├── deploy/  [ver deploy/README.md para el índice]
+│   ├── tareas_programadas.md  [las tres entradas de cron]
+│   ├── claves_y_kms.md · RESTRICCION_UE.md
+│   ├── scaleway_setup.md · postgresql_vpc.md
+│   ├── backups_cifrados_s3.md · auditoria_centralizada.md
+│   └── waf_y_ddos.md
 │
 └── sistema_carnets/
     ├── manage.py
@@ -113,34 +150,35 @@ Carnets definitivo/
     │
     ├── sistema_carnets/  [configuración Django]
     │   ├── settings.py
-    │   ├── urls.py
-    │   ├── wsgi.py
-    │   └── asgi.py
+    │   └── urls.py, wsgi.py, asgi.py
     │
     └── gestion/  [aplicación principal]
-        ├── models.py  [Afiliado, PerfilSindicato, ...]
+        ├── models.py  [Afiliado, PerfilSindicato, RegistroSubida...]
         ├── views.py  [registro, subida, panel_imprenta]
-        ├── forms.py
+        ├── forms.py · services.py
         ├── crypto.py  [AES-256-GCM, CampoTextoCifrado]
-        ├── auditoria.py  [logging de acciones]
-        ├── admin.py  [customización django-admin]
-        ├── tests/
-        │   ├── test_*.py
-        │   └── conftest.py  [cache_limpia fixture]
+        ├── auditoria.py  [registro de accesos]
+        ├── middleware.py  [CSP, límite de tamaño]
+        ├── auth_views.py  [login con límite de intentos]
+        ├── checks.py  [comprobaciones de despliegue]
+        ├── admin.py  [admin con segundo factor]
         │
         ├── management/commands/
-        │   └── preparar_pruebas.py  [setup de pruebas]
+        │   ├── activar_2fa.py
+        │   ├── expurgar_afiliados.py  [plazo de conservación]
+        │   ├── revisar_auditoria.py
+        │   ├── backup_a_s3_cifrado.py
+        │   ├── reencriptar_afiliados.py  [rotación de claves]
+        │   └── preparar_pruebas.py
         │
         ├── templates/gestion/
-        │   ├── login.html
-        │   ├── registro.html
-        │   ├── acuerdo_legal.html
-        │   ├── subir_excel.html
-        │   ├── notificaciones.html
+        │   ├── login.html · registro.html · acuerdo_legal.html
+        │   ├── subir_excel.html · notificaciones.html
         │   └── panel_imprenta.html
         │
-        └── static/gestion/
-            └── styles.css
+        └── static/documentos/
+            ├── plantilla_sindicatos.xls
+            └── texto_afiliacion.pdf
 ```
 
 ---

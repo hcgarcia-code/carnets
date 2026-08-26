@@ -2,11 +2,41 @@
 ## Sistema de Altas y Gestión de Carnets de Afiliación Sindical
 
 **Conforme a**: Reglamento (UE) 2016/679 (RGPD), Art. 35  
-**Versión**: 1.1  
+**Versión**: 1.2  
 **Fecha**: 2026-08-26 (v1.0: 2026-08-21)  
-**Titular de los datos**: CGT (Confederación General del Trabajo)  
-**Responsable del tratamiento**: [Nombre del responsable legal]  
-**Encargados del tratamiento**: empresa de impresión de carnets · proveedor de alojamiento (ver §7.3)  
+**Responsables del tratamiento**: los sindicatos de rama y de provincia, cada uno respecto de sus personas afiliadas  
+**Encargado del tratamiento**: CGT Confederal, exclusivamente para la confección del carnet  
+**Subencargados**: empresa de impresión · proveedor de alojamiento · proveedor de custodia de claves  
+
+**Elaborada por** CGT Confederal en su condición de encargado, en cumplimiento del deber de asistencia del Art. 28.3.f, **para su adopción por cada sindicato responsable**.
+
+---
+
+## NOTA PRELIMINAR: QUIÉN ES QUIÉN
+
+Esta EIPD, en sus versiones 1.0 y 1.1, atribuía a CGT Confederal la condición de responsable del tratamiento. **Es incorrecto**, y la corrección afecta a la estructura entera del cumplimiento, no a un párrafo.
+
+**Los datos no los recaba CGT Confederal.** Los recaban los **sindicatos de rama y de provincia**, que son entidades con personalidad jurídica propia, en el momento de la afiliación y en el marco de la relación asociativa que cada persona mantiene con su sindicato. Esos sindicatos los trasladan a CGT Confederal **con una finalidad única y acotada: la confección del carnet**.
+
+De ahí se sigue el reparto de papeles:
+
+| Quién | Papel | Por qué |
+|---|---|---|
+| **Sindicato de rama o provincia** | **Responsable del tratamiento** (Art. 4.7) | Recaba los datos, mantiene la relación asociativa con la persona afiliada y decide el porqué del tratamiento |
+| **CGT Confederal** | **Encargado del tratamiento** (Art. 4.8) | Trata los datos **por cuenta** de los sindicatos y solo para confeccionar el carnet. No los recaba, no decide la finalidad y no puede darles otro uso |
+| **Empresa de impresión** | **Subencargada** (Art. 28.4) | Contratada por CGT Confederal para ejecutar parte del encargo |
+| **Proveedores de alojamiento y de claves** | **Subencargados** (Art. 28.4) | Igual |
+
+**Consecuencias prácticas de esta calificación**, que recorren todo el documento:
+
+1. **Quien informa a la persona afiliada es su sindicato**, no CGT Confederal, y aplica el **Art. 13** (datos obtenidos del propio interesado), no el Art. 14. Corrige lo que decía la v1.1.
+2. **Los derechos se ejercen ante el sindicato.** Si una persona se dirige a CGT Confederal, esta no puede resolver por sí misma: debe trasladar la solicitud a su sindicato y asistirle (Art. 28.3.e).
+3. **Hace falta contrato entre cada sindicato y CGT Confederal** (Art. 28.3). Sin él, el traslado de datos del sindicato a Confederal carece de cobertura.
+4. **La imprenta es subencargada, no encargada.** Su contratación exige **autorización de los sindicatos responsables** (Art. 28.2), no basta la decisión de Confederal.
+5. **CGT Confederal lleva registro de encargado** (Art. 30.2), de contenido distinto y más reducido. **Cada sindicato lleva el suyo de responsable** (Art. 30.1).
+6. **La EIPD la debe adoptar cada responsable.** Confederal la elabora y la pone a su disposición, que es lo razonable cuando un mismo servicio sirve a muchos responsables y sería absurdo repetir la evaluación técnica una vez por sindicato. Pero la evaluación no se tiene por hecha hasta que cada sindicato la asume.
+
+> **Esta calificación es una propuesta técnica fundada en cómo funciona realmente el sistema, no un dictamen.** Existe una lectura alternativa —**corresponsabilidad** del Art. 26— si se concluyera que sindicatos y Confederal deciden conjuntamente fines y medios. La calificación que aquí se sostiene se apoya en que la finalidad la determina la relación asociativa entre la persona y su sindicato, y en que CGT Confederal no puede dar a los datos ningún uso propio. **Corresponde a la asesoría jurídica de CGT confirmarla o rectificarla antes de firmar nada**, porque de ella dependen los documentos que hay que suscribir.
 
 ---
 
@@ -14,11 +44,13 @@
 
 Esta EIPD evalúa el tratamiento de **datos de afiliación sindical** (categoría especial por Art. 9 RGPD) en el Sistema de Carnets. El tratamiento es **necesario** para la gestión de afiliación y emisión de carnets sindicales, e incluye medidas de seguridad técnicas y organizativas proporcionales al riesgo.
 
-**Qué cambia en la v1.1**: la v1.0 describía el cifrado en reposo, el KMS, los backups cifrados, el segundo factor y la auditoría automatizada como medidas *planificadas* para una fase v2.0. **Todas están implementadas y verificadas** (§4.1), igual que el expurgado automático por vencimiento del plazo de conservación, que la v1.0 daba por documentado pero no ejecutable. Esta revisión reclasifica esas medidas y corrige tres puntos donde la v1.0 describía el sistema de forma inexacta: la base legal aplicable a los afiliados (§2.1), el papel de la empresa de impresión como encargada del tratamiento (§7.3) y el campo del que depende el cómputo del plazo de conservación (§6.2).
+**Qué cambia en la v1.2**: corrige el reparto de papeles entre los sindicatos y CGT Confederal (ver Nota Preliminar), del que dependen qué documentos hay que suscribir, quién informa a las personas afiliadas y ante quién ejercen sus derechos.
+
+**Qué cambió en la v1.1**: la v1.0 describía el cifrado en reposo, el KMS, los backups cifrados, el segundo factor y la auditoría automatizada como medidas *planificadas* para una fase v2.0. **Todas están implementadas y verificadas** (§4.1), igual que el expurgado automático por vencimiento del plazo de conservación, que la v1.0 daba por documentado pero no ejecutable. Corrigió además la base legal (§2.1) y el campo del que depende el cómputo del plazo (§6.2).
 
 **Conclusión**: Con las medidas técnicas implementadas (cifrado en reposo y en tránsito, gestión de claves en KMS, doble factor en el punto donde se descifra, auditoría de accesos, validación de entrada, limitación de intentos y expurgado automático) y las medidas organizativas descritas en esta EIPD, los riesgos técnicos se reducen a un nivel aceptable.
 
-**Recomendación**: Proceder con el tratamiento **una vez suscrito el contrato de encargado del tratamiento con la empresa de impresión** (§7.3), que es hoy el riesgo residual más alto y el único de naturaleza estrictamente jurídica. Ver §10.2.
+**Recomendación**: Proceder con el tratamiento una vez suscritos **los dos contratos que hoy faltan** —el que vincula a cada sindicato con CGT Confederal, y el que vincula a Confederal con la empresa de impresión (§7.3)—, y una vez que los sindicatos entreguen a sus personas afiliadas la información del Art. 13 (§5.8). Los riesgos residuales altos son los tres, y ninguno es de naturaleza técnica. Ver §10.2.
 
 ---
 
@@ -60,11 +92,35 @@ El Sistema de Carnets es una aplicación web que gestiona solicitudes de afiliac
 **Total de registros**: ~3.024 afiliados (estimado, actualizándose mensualmente)  
 **Categoría de datos**: Art. 9 RGPD (afiliación sindical es categoría especial)
 
-### 1.3 Categorías de Interesados
-1. **Afiliados**: trabajadores/as titulares del carnet. **Son los interesados cuyos datos son de categoría especial**, y los únicos que no interactúan con el sistema: sus datos los introduce su sindicato mediante un archivo Excel. Esto tiene consecuencias sobre cómo se les informa y cómo ejercen sus derechos (§2.1 y §5).
-2. **Administradores sindicales**: usuarios que suben las listas y consultan sus propios afiliados.
-3. **Equipo de CGT**: administración del sistema. Es el único perfil que ve los datos personales descifrados.
-4. **Empresa de impresión**: accede a un panel de solo lectura con el código de sindicato y el nº de afiliado de los lotes ya enviados, y recibe de CGT un archivo con los datos necesarios para imprimir. **Es encargada del tratamiento** (§7.3).
+### 1.3 Categorías de Interesados y Recorrido del Dato
+
+**Interesados**: las personas afiliadas a los sindicatos de rama y de provincia confederados en CGT. Son los únicos interesados cuyos datos son de categoría especial, y los únicos que **no interactúan con este sistema**.
+
+**Recorrido del dato**, que es lo que explica el reparto de papeles:
+
+```
+  Persona afiliada
+        │  se afilia y facilita sus datos a su sindicato
+        ▼
+  Sindicato de rama / provincia          ← RESPONSABLE
+        │  los sube al sistema, solo para que le confeccionen el carnet
+        ▼
+  CGT Confederal                          ← ENCARGADO
+        │  agrupa los lotes y remite lo necesario para imprimir
+        ▼
+  Empresa de impresión                    ← SUBENCARGADA
+        │  imprime y devuelve los carnets
+        ▼
+  Sindicato → persona afiliada
+```
+
+El dato **nace en el sindicato y vuelve al sindicato**. CGT Confederal es un tramo intermedio con una finalidad única.
+
+**Quiénes usan el sistema** (no confundir con los interesados):
+
+1. **Personal de los sindicatos**: sube las listas y consulta exclusivamente sus propias personas afiliadas. Actúa por cuenta del responsable.
+2. **Administración de CGT Confederal**: gestiona el servicio. Es el único perfil que ve los datos descifrados, y por eso es el único al que se le exige segundo factor.
+3. **Personal de la empresa de impresión**: accede a un panel de solo lectura con el código de sindicato y el nº de afiliado de los lotes ya remitidos. **No ve nombres** y no ve nada que aún no se le haya enviado.
 
 ### 1.4 Duración del Tratamiento
 - **Ciclo corto**: solicitud → validación → imprenta → entrega (~1-2 meses)
@@ -76,13 +132,15 @@ El Sistema de Carnets es una aplicación web que gestiona solicitudes de afiliac
 
 ### 2.1 Legitimidad (Art. 6)
 
-> **Corrección respecto de la v1.0.** La v1.0 invocaba el **Art. 6.1.a (consentimiento del interesado)** y lo justificaba con «firma digital del acuerdo RGPD antes de subir datos». Eso describe mal lo que hace el sistema: el acuerdo que se acepta en la aplicación —con registro de fecha e IP— lo acepta **el sindicato** que sube el archivo, y es un compromiso de confidencialidad sobre el uso de la herramienta. **El afiliado no interviene en el sistema y el sistema no recoge, ni almacena, ni puede acreditar su consentimiento.** Apoyar la licitud del tratamiento en un consentimiento que no existe deja el tratamiento sin base legal si alguien lo revisa.
+> **Quién fija la base legal.** La determina **cada sindicato responsable**, no CGT Confederal. Un encargado no tiene base jurídica propia: opera al amparo de la del responsable. Lo que sigue es la base que, a juicio de quien elabora esta EIPD, ampara el tratamiento, y que cada sindicato debe hacer suya al adoptarla.
+
+> **Corrección respecto de la v1.0.** La v1.0 invocaba el **Art. 6.1.a (consentimiento del interesado)** y lo justificaba con «firma digital del acuerdo RGPD antes de subir datos». Eso describe mal lo que hace el sistema: el acuerdo que se acepta en la aplicación —con registro de fecha e IP— lo acepta **el sindicato** que sube el archivo, y es un compromiso sobre el uso de la herramienta. **La persona afiliada no interviene en el sistema y este no recoge, ni almacena, ni puede acreditar su consentimiento.** Apoyar la licitud en un consentimiento que no existe deja el tratamiento sin base si alguien lo revisa.
 
 El tratamiento se apoya en:
-- **Art. 6.1.b RGPD**: ejecución de la relación asociativa entre la persona afiliada y su organización sindical, de la que la emisión del carnet es una prestación característica.
+- **Art. 6.1.b RGPD**: ejecución de la relación asociativa entre la persona afiliada y su sindicato, de la que la emisión del carnet es una prestación característica.
 - **Art. 6.1.c RGPD**, con carácter complementario: cumplimiento de las obligaciones de registro derivadas de la normativa sindical y de la propia normativa de protección de datos.
 
-La afiliación se produce fuera del sistema, en el sindicato local. Este sistema no es el punto de captación del dato: es el que lo procesa para emitir el carnet. La base legal la sostiene la relación asociativa previa, no el acto de subir un Excel.
+La afiliación se produce en el sindicato, no aquí. Este sistema no es el punto de captación del dato: es donde se procesa para confeccionar el carnet. La base legal la sostiene la relación asociativa previa entre la persona y su sindicato, no el acto de subir un archivo.
 
 ### 2.2 Excepción de Datos de Categoría Especial (Art. 9.2.d)
 
@@ -90,10 +148,12 @@ La afiliación se produce fuera del sistema, en el sindicato local. Este sistema
 
 El tratamiento de datos de afiliación sindical está permitido por el **Art. 9.2.d RGPD**: tratamiento efectuado en el ámbito de sus actividades legítimas, y con las debidas garantías, por un organismo sin ánimo de lucro de finalidad sindical, siempre que se refiera exclusivamente a sus miembros actuales o antiguos y que los datos **no se comuniquen a terceros sin consentimiento**.
 
-Esta última condición es la que gobierna el diseño del sistema y merece subrayarse:
+Esta última condición es la que gobierna el diseño del sistema y merece subrayarse, porque **la cadena tiene ahora dos eslabones y ambos han de sostenerse**:
 
-- La cesión a la **empresa de impresión** no es una comunicación a un tercero en el sentido del precepto, porque actúa como **encargada del tratamiento** por cuenta de CGT y no por cuenta propia. Esa condición es precisamente lo que hay que documentar en un contrato del Art. 28.3 — sin él, la cesión sí sería una comunicación a un tercero, y entonces el tratamiento perdería el amparo del 9.2.d (§7.3 y §10.2).
-- La limitación «miembros actuales o antiguos» refuerza el plazo de conservación del §6: pasado el plazo razonable tras la baja, la excepción deja de dar cobertura.
+- El traslado del sindicato a **CGT Confederal** no es comunicación a un tercero: Confederal actúa como **encargada** por cuenta del sindicato, sin finalidad propia. Esa condición se acredita con el contrato del Art. 28.3 entre ambos, hoy inexistente.
+- La remisión de Confederal a la **empresa de impresión** tampoco lo es, por la misma razón, siendo aquella **subencargada** (Art. 28.4). Requiere contrato y, además, autorización de los sindicatos responsables (Art. 28.2).
+- **Si falla cualquiera de los dos contratos**, el eslabón correspondiente pasa a ser una comunicación a un tercero sin consentimiento y el tratamiento pierde el amparo del 9.2.d **en su conjunto**, no solo en ese tramo. Es la razón por la que ambos figuran como bloqueantes en §10.2.
+- La limitación «miembros actuales o antiguos» refuerza el plazo de conservación del §6: pasado un plazo razonable tras la baja, la excepción deja de dar cobertura.
 
 Las «debidas garantías» que el precepto exige son las medidas de la sección 4.
 
@@ -250,9 +310,11 @@ Ver §7.3, donde se detallan junto con el estado de cada contrato.
 
 ## 5. DERECHOS DE LOS INTERESADOS (Art. 12-22 RGPD)
 
-> **Advertencia sobre el alcance de esta sección.** Los procedimientos que siguen son **organizativos**: se atienden por CGT de forma manual, con el apoyo del administrador del sistema. La aplicación **no tiene** un portal de autoservicio para afiliados, ni formulario de solicitud, ni generación automática de expedientes. La v1.0 podía dar a entender lo contrario al decir «el sistema permite».
+> **Ante quién se ejercen.** Ante **el sindicato** al que la persona está afiliada, que es el responsable del tratamiento. CGT Confederal no puede resolver una solicitud por sí misma: si la recibe, debe trasladarla al sindicato correspondiente sin dilación y prestarle la asistencia técnica que necesite (Art. 28.3.e) —típicamente, localizar el registro, extraer los datos o ejecutar una supresión—. Atenderla directamente sería actuar como responsable, papel que no le corresponde.
 >
-> Que sean manuales no los hace insuficientes: con el volumen actual de afiliados y la frecuencia esperada de solicitudes, un procedimiento manual bien definido cumple el Art. 12. Lo que sí exige es que **exista un canal publicado y una persona responsable de atenderlo dentro del plazo de un mes**. Ese canal debe figurar en el texto informativo que se entrega al afiliado (§5.8).
+> **Advertencia sobre el alcance de esta sección.** Los procedimientos que siguen son **organizativos y manuales**. La aplicación no tiene portal de autoservicio, ni formulario de solicitud, ni generación automática de expedientes. La v1.0 podía dar a entender lo contrario al decir «el sistema permite».
+>
+> Que sean manuales no los hace insuficientes: con el volumen actual y la frecuencia esperada de solicitudes, un procedimiento manual bien definido cumple el Art. 12. Lo que exige es que **cada sindicato publique un canal y designe a alguien que lo atienda dentro del plazo de un mes**. Ese canal debe figurar en el texto informativo que el sindicato entrega en el momento de la afiliación (§5.8).
 
 ### 5.1 Derecho de Acceso (Art. 15)
 **Implementación**: El sistema permite que cada afiliado (via su sindicato local) acceda a sus datos
@@ -288,13 +350,17 @@ Ver §7.3, donde se detallan junto con el estado de cada contrato.
 
 ### 5.8 Información al Interesado (Art. 13 y 14) — **pendiente**
 
-Es el derecho peor cubierto hoy, y conviene decirlo sin rodeos: **el afiliado no recibe ninguna información desde este sistema**. Sus datos entran mediante un archivo que sube su sindicato; él no ve ninguna pantalla, no acepta nada y no se le comunica nada. El texto que sí se muestra en la aplicación es un acuerdo de confidencialidad dirigido al sindicato (§2.1).
+> **Corrección respecto de la v1.1.** La v1.1 sostenía que aplicaba el **Art. 14**, por entender que los datos no se obtenían del propio interesado. Era consecuencia de situar mal el punto de captación. **Los datos sí se obtienen del interesado**: se los facilita a su sindicato al afiliarse. Aplica por tanto el **Art. 13**, y el momento de informar es **ese mismo**, no «en un plazo razonable».
 
-Como los datos no se obtienen del propio interesado, aplica el **Art. 14**: la información debe facilitarse en un plazo razonable, y en todo caso antes de la primera comunicación a un tercero —que aquí es el envío a la imprenta—.
+**Obligado a informar: el sindicato**, que es quien recaba y quien es responsable. No CGT Confederal, que no tiene contacto con la persona afiliada ni forma de alcanzarla.
 
-Esto no lo resuelve el software: lo resuelve CGT entregando un texto informativo en el momento de la afiliación, junto con el resto de documentación de alta. Debe incluir identidad y contacto del responsable, del delegado de protección de datos si se designa, la finalidad y la base jurídica (Art. 6.1.b y 9.2.d), las categorías de datos, los destinatarios —**incluida la empresa de impresión**—, el plazo de conservación, los derechos y su canal de ejercicio, y el derecho a reclamar ante la AEPD.
+**Situación actual**: no consta que se entregue información alguna en el momento del alta. El texto que muestra la aplicación es un acuerdo dirigido al sindicato usuario (§2.1), no a la persona afiliada.
 
-**Acción**: incorporar el texto informativo a la documentación de alta que manejan los sindicatos locales, y dejar constancia de su entrega.
+**Contenido exigible** (Art. 13.1 y 13.2): identidad y contacto del **sindicato** como responsable; del delegado de protección de datos si se designa; finalidad y base jurídica (Arts. 6.1.b y 9.2.d); categorías de datos; **destinatarios —CGT Confederal como encargada y la empresa de impresión como subencargada—**; plazo de conservación; derechos y canal de ejercicio; y derecho a reclamar ante la AEPD.
+
+**Acción**: CGT Confederal facilita a los sindicatos un modelo listo para usar (`INFORMACION_Afiliados_Art13.md`); cada sindicato lo adapta con sus propios datos, lo incorpora a su impreso de alta y deja constancia de la entrega. Para quienes ya están afiliados, comunicación por el canal habitual del sindicato.
+
+Que Confederal proporcione el modelo no traslada la obligación: **cumple quien lo entrega**.
 
 ---
 
@@ -347,26 +413,35 @@ Esto no lo resuelve el software: lo resuelve CGT entregando un texto informativo
 - La v1.0 asumía PythonAnywhere, con sede en Reino Unido. Tras el Brexit eso constituye transferencia internacional y habría exigido apoyarse en la decisión de adecuación del Reino Unido y vigilar su renovación. Migrar a un proveedor de la UE cierra la cuestión sin depender de decisiones que pueden decaer.
 - Si en el futuro se contrata cualquier servicio fuera de la UE, hay que revisar esta sección antes, no después.
 
-### 7.3 Encargados del Tratamiento (Art. 28)
+### 7.3 Cadena de Encargo (Arts. 28.2, 28.3 y 28.4)
 
-| Encargado | A qué datos accede | Contrato Art. 28.3 | Estado |
+| Eslabón | Papel | Instrumento necesario | Estado |
 |---|---|---|---|
-| **Empresa de impresión** | Nombre y apellidos, nº de afiliado, códigos de estructura, lengua y fecha de expedición de los lotes que se le envían | **Obligatorio** | ⚠️ **PENDIENTE — ver abajo** |
-| **Proveedor de alojamiento** (Scaleway / OVHcloud) | Alojamiento de la aplicación y la base de datos; en reposo, los datos personales están cifrados y las claves no residen en su infraestructura de cómputo | Obligatorio | Pendiente de suscripción |
-| **Proveedor de KMS** (Vault autogestionado o servicio) | Custodia de las claves de cifrado. Si es un servicio gestionado, ha de estar en la UE | Obligatorio si es servicio gestionado | Según modalidad elegida |
-| **Correo SMTP** | Direcciones de los administradores; las notificaciones no incluyen datos de afiliados | Interno de CGT: no es encargado | No aplica |
+| Sindicato → **CGT Confederal** | Responsable → Encargado | Contrato Art. 28.3 | ⚠️ **PENDIENTE — bloqueante** |
+| Confederal → **Empresa de impresión** | Encargado → Subencargada | Contrato Art. 28.4 + **autorización de los sindicatos** (Art. 28.2) | ⚠️ **PENDIENTE — bloqueante** |
+| Confederal → **Proveedor de alojamiento** | Encargado → Subencargado | Contrato + autorización | Pendiente |
+| Confederal → **Custodia de claves** | Encargado → Subencargado | Contrato + autorización, si es servicio gestionado | Según modalidad |
+| Correo SMTP interno de CGT | — | No hay tratamiento de datos de afiliados | No aplica |
 
-#### La empresa de impresión: el punto débil de esta EIPD
+> **Sobre la autorización de subencargados (Art. 28.2).** Un encargado no puede subcontratar por su cuenta. CGT Confederal necesita **autorización de los sindicatos responsables** para recurrir a la imprenta y a los proveedores de infraestructura. La vía practicable, dado el número de sindicatos, es una **autorización general** incorporada al propio contrato del primer eslabón, con la relación de subencargados en anexo y el compromiso de comunicar cualquier alta o cambio con antelación suficiente para que un sindicato pueda oponerse. Sin esa cláusula, cada nuevo proveedor exigiría recabar firmas una por una.
 
-Es el hallazgo principal de esta revisión y el motivo de que la recomendación del resumen ejecutivo esté condicionada.
+#### Los dos contratos que faltan
 
-**Qué recibe realmente.** La acción «Descargar Excel para Máquina de Carnets» genera un archivo con los datos **descifrados** —incluidos nombre y apellidos completos— de los afiliados seleccionados, que se entrega a la empresa de impresión. Es la operación más sensible del sistema: es el único punto por el que los datos de categoría especial salen del ámbito cifrado y del control técnico de CGT. A partir de ahí, ninguna de las medidas de la sección 4 sigue protegiéndolos.
+Son el hallazgo principal de esta revisión y el motivo de que la recomendación del resumen ejecutivo esté condicionada.
 
-Adicionalmente, la empresa dispone de una cuenta con un panel de solo lectura donde ve el código de sindicato y el nº de afiliado de los lotes ya enviados. Ese panel **no muestra nombres**, y no muestra nada de lo que aún no se le ha enviado.
+**Primer eslabón: sindicatos → CGT Confederal.** Hoy los sindicatos trasladan a Confederal datos de categoría especial de sus personas afiliadas sin ningún instrumento que documente en qué condición los recibe, para qué puede usarlos, cuánto puede conservarlos ni qué debe hacer al terminar. Es la carencia más básica de las dos, y la que menos se nota, porque todo ocurre dentro de la casa.
 
-**Por qué el contrato no es un formalismo.** La licitud de todo el tratamiento descansa en el Art. 9.2.d, que ampara al sindicato *siempre que los datos no se comuniquen a terceros sin consentimiento del interesado*. Una imprenta que actúa como **encargada** —bajo instrucciones documentadas de CGT, sin finalidad propia— no es un tercero a estos efectos. Sin contrato que lo acredite, la entrega del archivo es una comunicación a un tercero, y el amparo del 9.2.d decae **para el tratamiento en su conjunto**, no solo para esa entrega.
+**Segundo eslabón: CGT Confederal → empresa de impresión.** Descrito a continuación.
 
-**Lo que el contrato debe fijar como mínimo** (Art. 28.3): objeto, duración y finalidad; prohibición de usar los datos para fin propio o cederlos; deber de confidencialidad del personal; medidas de seguridad concretas para el archivo recibido; régimen de subcontratación; asistencia a CGT ante ejercicios de derechos y ante brechas; **supresión certificada de los archivos al terminar cada encargo**; y sometimiento a auditoría.
+**Qué recibe realmente.** La acción «Descargar Excel para Máquina de Carnets» genera un archivo con los datos **descifrados** —incluidos nombre y apellidos completos— de las personas afiliadas seleccionadas, que se entrega a la empresa de impresión. Es la operación más sensible del sistema: el único punto por el que los datos de categoría especial salen del ámbito cifrado y del control técnico. A partir de ahí, ninguna de las medidas de la sección 4 sigue protegiéndolos.
+
+Adicionalmente, la empresa dispone de una cuenta con un panel de solo lectura donde ve el código de sindicato y el nº de afiliado de los lotes ya remitidos. Ese panel **no muestra nombres**, y no muestra nada de lo que aún no se le ha enviado.
+
+**Por qué el contrato no es un formalismo.** La licitud descansa en el Art. 9.2.d, que ampara al sindicato *siempre que los datos no se comuniquen a terceros sin consentimiento del interesado*. Una imprenta que actúa como **subencargada** —bajo instrucciones documentadas, sin finalidad propia— no es un tercero a estos efectos. Sin contrato que lo acredite, la entrega es una comunicación a un tercero y el amparo del 9.2.d decae **para el tratamiento en su conjunto**.
+
+**Y el contrato no basta por sí solo**: al ser subencargo, requiere además la autorización de los sindicatos responsables. Un contrato impecable entre Confederal y la imprenta, sin esa autorización, sigue dejando el eslabón sin cobertura.
+
+**Lo que el contrato debe fijar como mínimo** (Art. 28.3): objeto, duración y finalidad; prohibición de usar los datos para fin propio o cederlos; deber de confidencialidad del personal; medidas de seguridad concretas para el archivo recibido; régimen de subcontratación ulterior; asistencia ante ejercicios de derechos y ante brechas; **supresión certificada de los archivos al terminar cada encargo**; y sometimiento a auditoría.
 
 **Medida compensatoria inmediata**, mientras el contrato se tramita: acordar por escrito un canal de entrega cifrado y un plazo máximo de borrado. Enviar el archivo por correo electrónico ordinario deja copias en servidores intermedios y en buzones fuera de todo control, indefinidamente.
 
@@ -401,12 +476,14 @@ Ahora bien, esa conclusión presupone resolver los puntos bloqueantes del §10.2
 | Acceso horizontal (IDOR) | Bajo | Bajo | ✓ |
 | Fuerza bruta | Medio | Bajo | ✓ |
 | Conservación indefinida | ALTO | Bajo | ✓ |
-| **Fuga por la exportación a imprenta** | Alto (no evaluado) | **ALTO** | ✗ **No aceptable sin contrato (§7.3)** |
+| **Cadena de encargo sin formalizar** | No evaluado | **ALTO** | ✗ **No aceptable: faltan los dos contratos (§7.3)** |
+| **Fuga por la exportación a imprenta** | Alto (no evaluado) | **ALTO** | ✗ **No aceptable sin contrato y autorización (§7.3)** |
+| **Personas afiliadas sin informar** | No evaluado | **ALTO** | ✗ **No aceptable: incumple el Art. 13 (§5.8)** |
 | **Manipulación del registro de auditoría** | Medio | **Medio** | Condicionado al envío externo |
 | **Pérdida de datos** | Medio | **Medio** | Condicionado a probar una restauración |
 | Denegación de servicio | Medio | Medio | Aceptable: mitigación en infraestructura |
 
-**Los tres riesgos que no bajan a «bajo» tienen algo en común**: ninguno se resuelve escribiendo código. Uno necesita una firma, otro una configuración en el servidor de producción y el tercero, ejecutar una restauración de prueba y anotar el resultado. Es donde debe ir el esfuerzo ahora, y conviene no confundir el trabajo técnico ya hecho con conformidad completa.
+**Los riesgos que no bajan a «bajo» tienen algo en común**: ninguno se resuelve escribiendo código. Tres necesitan firmas, uno una configuración en el servidor, otro ejecutar una restauración de prueba y anotar el resultado, y otro que los sindicatos entreguen un papel a quien se afilia. Es donde debe ir el esfuerzo ahora, y conviene no confundir el trabajo técnico ya hecho con conformidad completa: **un sistema técnicamente sólido cuya cadena de encargo no está documentada no está conforme**, por bien cifrado que esté.
 
 ### 9.2 Proporcionalidad de las Medidas
 
@@ -431,20 +508,29 @@ Las tres medidas pendientes tienen coste bajo o nulo: un contrato, una configura
 | **Plazo de conservación (Art. 5.1.e)** | Documentado pero inaplicable | ✓ Implementado y ejecutable |
 | **Capacidad de restaurar (Art. 32.1.c)** | ✗ | ✓ Backups cifrados · ⚠️ **sin restauración probada** |
 | **Verificación periódica (Art. 32.1.d)** | ✗ | ✓ Pruebas, SAST y auditoría de dependencias en cada cambio |
-| **Información al interesado (Art. 13/14)** | ✗ (no detectado) | ✗ **Pendiente** (§5.8) |
-| **Contrato con encargados (Art. 28)** | ✗ (imprenta no identificada) | ✗ **Pendiente y prioritario** (§7.3) |
-| **Registro de actividades (Art. 30.1)** | ✗ (no detectado) | ✗ **Pendiente** — documento independiente |
+| **Reparto de papeles (Arts. 4.7, 4.8, 28)** | ✗ Incorrecto | ✓ Corregido (Nota Preliminar) |
+| **Información al interesado (Art. 13)** | ✗ (no detectado) | ✗ **Pendiente — obligación de los sindicatos** (§5.8) |
+| **Contrato sindicatos → Confederal (Art. 28.3)** | ✗ (no detectado) | ✗ **Pendiente y bloqueante** (§7.3) |
+| **Contrato y autorización de la imprenta (Arts. 28.2 y 28.4)** | ✗ (no identificada) | ✗ **Pendiente y bloqueante** (§7.3) |
+| **Registro de actividades (Arts. 30.1 y 30.2)** | ✗ (no detectado) | ✗ **Pendiente** — uno por sindicato y otro de Confederal |
 
-**Veredicto**: las medidas **técnicas** del Art. 32 están cubiertas y verificadas de forma continua. Lo que falta es **documental y organizativo**, y es lo que impide declarar conformidad completa. Un sistema técnicamente sólido cuyo encargado principal no tiene contrato no está conforme; y el orden en que se resuelva no cambia esa conclusión.
+**Veredicto**: las medidas **técnicas** del Art. 32 están cubiertas y verificadas de forma continua. Lo que falta es **documental y organizativo**, y es lo que impide declarar conformidad. El orden en que se resuelva no cambia esa conclusión.
 
 ### 10.2 Recomendaciones Prioritarias
 
 #### Bloqueante antes de producción
-1. **Suscribir el contrato de encargado del tratamiento con la empresa de impresión** (§7.3). Es lo único que sostiene el encaje del Art. 9.2.d, del que depende la licitud del tratamiento completo.
-2. **Acordar por escrito el canal de entrega del archivo de impresión** y el plazo de borrado, aunque el contrato tarde.
-3. **Entregar el texto informativo del Art. 14 a los afiliados** a través de los sindicatos locales (§5.8).
-4. **Elaborar el Registro de Actividades de Tratamiento** (Art. 30.1). Es obligatorio: la exención para organizaciones de menos de 250 empleados no aplica cuando se tratan datos del Art. 9.
-5. **Firmar esta EIPD.** Un borrador con los firmantes sin cumplimentar no acredita haber realizado la evaluación que el Art. 35 exige.
+
+**A cargo de CGT Confederal:**
+1. **Suscribir el contrato de encargado con cada sindicato** (Art. 28.3), incluyendo la autorización general de subencargados. Es el instrumento que da cobertura al traslado de datos que hoy ya ocurre.
+2. **Suscribir el contrato de subencargo con la empresa de impresión** (Art. 28.4) y recabar la autorización de los sindicatos (Art. 28.2).
+3. **Acordar por escrito el canal cifrado de entrega** del archivo de impresión y el plazo de borrado, aunque el contrato tarde. Es la medida compensatoria de coste inmediato.
+4. **Elaborar su registro de encargado** (Art. 30.2).
+5. **Poner esta EIPD a disposición de los sindicatos** para su adopción, en cumplimiento del Art. 28.3.f.
+
+**A cargo de cada sindicato:**
+6. **Entregar la información del Art. 13** a sus personas afiliadas (§5.8), usando el modelo facilitado.
+7. **Llevar su registro de actividades** (Art. 30.1). Es obligatorio: la exención para organizaciones de menos de 250 empleados no aplica cuando se tratan datos del Art. 9.
+8. **Adoptar y firmar esta EIPD.** Un borrador sin firmar no acredita haber realizado la evaluación que exige el Art. 35, y la obligación es del responsable.
 
 #### Antes de dar el despliegue por terminado
 6. **Programar las tres tareas periódicas** (§4.3). Sin ellas, tres controles descritos en esta EIPD no se ejecutan nunca.
@@ -460,11 +546,27 @@ Las tres medidas pendientes tienen coste bajo o nulo: un contrato, una configura
 
 ### 10.3 Firmantes
 
+**Por CGT Confederal**, que la elabora en su condición de encargado del tratamiento:
+
 | Rol | Nombre | Firma | Fecha |
 |---|---|---|---|
-| Responsable de Protección de Datos (DPO) | [Nombre] | _____ | 2026-08-21 |
-| Responsable del Tratamiento (CGT) | [Nombre] | _____ | 2026-08-21 |
-| Responsable Técnico (CTO/Dev Lead) | [Nombre] | _____ | 2026-08-21 |
+| Responsable técnico del sistema | [Nombre] | _____ | |
+| Delegado de Protección de Datos, si se designa | [Nombre] | _____ | |
+| Por la Confederación | [Nombre] | _____ | |
+
+**Adopción por el sindicato responsable.** La evaluación no se tiene por realizada respecto de un sindicato hasta que este la adopta. Cada sindicato que utilice el servicio cumplimenta y conserva:
+
+| Concepto | Dato |
+|---|---|
+| Sindicato | [denominación y NIF] |
+| Persona que la adopta en su nombre | [nombre y cargo] |
+| Fecha de adopción | |
+| Firma | _____ |
+| Base legal que hace suya | Arts. 6.1.b y 9.2.d (§2), salvo indicación distinta |
+| Plazo de conservación que fija | [ ] años desde la baja (por defecto 3, §6.1) |
+| Canal de ejercicio de derechos que publica | [correo y dirección postal] |
+
+> Los dos últimos campos no son trámite: **el plazo de conservación y el canal de derechos los decide el responsable**, no el software ni Confederal. El sistema viene configurado a tres años porque hay que configurarlo a algo, no porque esa sea una decisión ya tomada por nadie con competencia para tomarla.
 
 ---
 
@@ -476,6 +578,7 @@ Cada revisión de esta EIPD se registrará aquí:
 | Versión | Fecha | Cambios | Autor |
 |---|---|---|---|
 | 1.0 | 2026-08-21 | EIPD inicial, estado v1.0 + roadmap v2.0 | [Autor] |
+| 1.2 | 2026-08-26 | **Corregido el reparto de papeles.** Las versiones anteriores atribuían a CGT Confederal la condición de responsable del tratamiento. Los datos los recaban los sindicatos de rama y provincia, entidades con personalidad jurídica propia, y los trasladan a Confederal solo para la confección del carnet: los sindicatos son **responsables**, Confederal es **encargada** y la imprenta pasa de encargada a **subencargada**. De ahí se sigue que hacen falta dos contratos y no uno, que la imprenta requiere además autorización de los sindicatos (Art. 28.2), que quien informa a la persona afiliada es su sindicato y por el **Art. 13** y no el 14 (§5.8), que los derechos se ejercen ante el sindicato (§5), y que el registro de actividades se desdobla en uno de responsable por sindicato (Art. 30.1) y uno de encargado en Confederal (Art. 30.2) | [Autor] |
 | 1.1 | 2026-08-26 | Reclasificadas como implementadas las medidas que la v1.0 daba por planificadas (cifrado en reposo, KMS, segundo factor, backups cifrados, verificación continua). Implementado el expurgado por vencimiento del plazo, que la v1.0 describía sobre un campo inexistente. Corregida la base legal (§2.1: no hay consentimiento del afiliado; §2.2: la excepción es el Art. 9.2.d, no el 9.2.c). Identificada la empresa de impresión como encargada del tratamiento y su contrato como pendiente y bloqueante (§7.3). Añadida la obligación de información del Art. 14 como pendiente (§5.8). Actualizado el alojamiento previsto de PythonAnywhere (RU) a proveedor de la UE | [Autor] |
 
 ### Anexo B: Referencias Legales
