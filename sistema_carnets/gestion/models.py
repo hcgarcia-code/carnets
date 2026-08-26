@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from django.db import models
+from django.utils import timezone
 from simple_history.models import HistoricalRecords
 
 from .crypto import CampoTextoCifrado
@@ -79,7 +80,44 @@ class Afiliado(models.Model):
         null=True, blank=True, verbose_name="Fecha de envío a imprenta",
     )
     fecha_creacion = models.DateTimeField(auto_now_add=True, null=True)
+    # Desde cuándo corre el plazo de conservación (RGPD Art. 5.1.e). La EIPD
+    # fija tres años desde la baja, pero hasta ahora `estado` cambiaba a BAJA
+    # sin dejar constancia de cuándo: no había fecha desde la que contar y el
+    # plazo era inaplicable. Lo sella _sellar_baja(); ver expurgar_afiliados.
+    fecha_baja = models.DateTimeField(
+        null=True, blank=True, verbose_name="Fecha de baja",
+        help_text="Se rellena sola al pasar a BAJA. Desde aquí corre el plazo de conservación.",
+    )
     history = HistoricalRecords()
+
+    def _sellar_baja(self):
+        """Pone o quita la fecha de baja según el estado.
+
+        Se llama desde `clean()` y desde `save()`, y hacen falta las dos: por
+        `save()` pasan el admin y los scripts, pero la carga de Excel construye
+        los afiliados y los persiste con `bulk_create_with_history`, que no
+        llama a `save()`. Lo que sí llama esa vía es `full_clean()`, de ahí
+        `clean()`. Cubrir solo una dejaba media aplicación sin plazo.
+
+        No se toca la fecha si ya la hay: cualquier edición posterior de un
+        afiliado de baja (corregir la lengua, por ejemplo) reiniciaría el reloj
+        y el plazo no vencería jamás.
+        """
+        if self.estado == 'BAJA':
+            if self.fecha_baja is None:
+                self.fecha_baja = timezone.now()
+        else:
+            # Una reafiliación reinicia el plazo: conservar la fecha de la baja
+            # anterior acabaría anonimizando a alguien afiliado ahora mismo.
+            self.fecha_baja = None
+
+    def clean(self):
+        super().clean()
+        self._sellar_baja()
+
+    def save(self, *args, **kwargs):
+        self._sellar_baja()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         # Sin nombre ni número de afiliado a propósito. Django guarda str(obj)

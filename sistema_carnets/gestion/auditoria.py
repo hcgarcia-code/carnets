@@ -61,6 +61,11 @@ class ACCIONES:
     AFILIADO_ABIERTO = "afiliado.abierto"
     AFILIADOS_EXPORTADOS = "afiliados.exportados"
     AFILIADOS_CARGADOS = "afiliados.cargados"
+    # Anonimización por vencimiento del plazo de conservación. Es el único
+    # rastro que queda: después de expurgar no hay dato que enseñar, así que
+    # este registro es la prueba de haber cumplido el plazo (y de no haberse
+    # adelantado a él).
+    AFILIADOS_EXPURGADOS = "afiliados.expurgados"
     ACCESO_DENEGADO = "acceso.denegado"
     SINDICATO_REGISTRADO = "sindicato.registrado"
     LOTE_IMPRESION_CONSULTADO = "lote_impresion.consultado"

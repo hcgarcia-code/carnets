@@ -104,7 +104,11 @@ class AfiliadoAdmin(SimpleHistoryAdmin):
     search_fields = ('num_afiliado', 'nombre_apellidos')
     # Estos campos solo deben cambiar a través de la acción de exportación,
     # nunca editados a mano desde el formulario del admin.
-    readonly_fields = ('estado_impresion', 'fecha_envio_imprenta')
+    # fecha_baja va aquí por un motivo distinto: la rellena sola el modelo al
+    # pasar a BAJA y es el reloj desde el que cuenta el plazo de conservación
+    # (ver expurgar_afiliados). Editable a mano, un dedazo en el año adelanta
+    # una anonimización que es irreversible.
+    readonly_fields = ('estado_impresion', 'fecha_envio_imprenta', 'fecha_baja')
     # Conectamos las acciones que hemos creado arriba
     actions = [asignar_fecha_hoy, exportar_imprenta]
 
