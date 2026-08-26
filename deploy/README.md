@@ -21,6 +21,7 @@
 
 | Documento | Qué hacer |
 |---|---|
+| [`PUESTA_EN_MARCHA.md`](PUESTA_EN_MARCHA.md) | **Empieza aquí.** Los 16 pasos para levantar el sistema sustituyendo al beta, con qué debe salir en cada uno |
 | [`migrar_desde_beta.md`](migrar_desde_beta.md) | Traer las cuentas y los afiliados del despliegue beta sin que nadie repita el alta |
 | [`tareas_programadas.md`](tareas_programadas.md) | Las tres entradas de cron sin las que la auditoría, los backups y el plazo de conservación no se ejecutan nunca |
 | [`auditoria_centralizada.md`](auditoria_centralizada.md) | Logs de acceso, retención, destino externo en la UE |
