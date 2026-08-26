@@ -78,6 +78,23 @@ Esta carpeta contiene la documentación completa del sistema. Hay tres documento
 
 ---
 
+## ⚖️ Documentos de cumplimiento (RGPD)
+
+Los tres manuales de arriba explican **cómo funciona** el sistema. Estos cuatro acreditan **que su uso es lícito**, y son los que hay que poder enseñar si la Agencia Española de Protección de Datos lo pide.
+
+| Documento | Qué es | Estado |
+|---|---|---|
+| [`EIPD_Evaluacion_Impacto_Proteccion_Datos.md`](EIPD_Evaluacion_Impacto_Proteccion_Datos.md) | Evaluación de impacto (Art. 35). Obligatoria por tratarse de datos de categoría especial | v1.1 · **sin firmar** |
+| [`RAT_Registro_Actividades_Tratamiento.md`](RAT_Registro_Actividades_Tratamiento.md) | Registro de actividades (Art. 30). Obligatorio; la exención para organizaciones pequeñas no aplica aquí | Borrador |
+| [`CONTRATO_Encargado_Imprenta.md`](CONTRATO_Encargado_Imprenta.md) | Contrato con la empresa de impresión (Art. 28.3) | Borrador · **bloqueante** |
+| [`INFORMACION_Afiliados_Art13-14.md`](INFORMACION_Afiliados_Art13-14.md) | Texto informativo que se entrega a las personas afiliadas | Borrador |
+
+**Los tres borradores necesitan revisión de la asesoría jurídica de CGT antes de adoptarse o firmarse.** Están redactados con apoyo técnico para no partir de una página en blanco y para dejar constancia exacta de qué datos salen del sistema y por qué vía; las calificaciones jurídicas que contienen son propuestas, no asesoramiento.
+
+**El más urgente es el contrato con la imprenta.** Es la única vía por la que los datos personales salen sin cifrar del sistema, y de él depende el encaje legal del tratamiento completo — no solo el de esa entrega. Ver §7.3 de la EIPD.
+
+---
+
 ## 🗂️ Estructura Local de Archivos
 
 ```
