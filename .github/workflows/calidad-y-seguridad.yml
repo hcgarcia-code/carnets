@@ -58,6 +58,15 @@ jobs:
       - name: Auditoria de seguridad (bandit)
         run: bandit -r . -c pyproject.toml
 
+      - name: Vulnerabilidades en dependencias (pip-audit)
+        # bandit mira NUESTRO codigo; esto mira el de los demas, que es la mayor
+        # parte de lo que se despliega. Django, pandas y openpyxl publican CVEs
+        # sin que nada cambie en este repositorio: sin esta comprobacion, la
+        # unica forma de enterarse es leer las listas de correo.
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt --strict
+
       - name: Comprobacion de despliegue
         # Con la configuracion que tendria un servidor real. Verifica que no se
         # ha colado nada que impida desplegar de forma segura: HTTPS, cookies
