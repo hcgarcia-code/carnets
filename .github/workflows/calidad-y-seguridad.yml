@@ -46,12 +46,11 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Pruebas
-        # Se excluye tests/test_pentest.py: 16 de sus 20 pruebas fallan de
-        # forma estable y sin diagnosticar, desde antes de que existiera este
-        # workflow (comprobado sobre el arbol limpio). Incluirlas dejaria CI en
-        # rojo permanente, que en la practica equivale a no tener CI: se acaba
-        # ignorando el aspa. Volver a incluirlas en cuanto se arreglen.
-        run: pytest tests/ -q --ignore=tests/test_pentest.py
+        # La suite completa, incluido tests/test_pentest.py, que levanta un
+        # servidor real y lo ataca por HTTP. Estuvo excluido mientras 16 de sus
+        # 20 pruebas fallaban; la causa era el propio arnes (un pipe sin drenar
+        # que bloqueaba al servidor), no la aplicacion.
+        run: pytest tests/ -q
 
       - name: Calidad (ruff)
         run: ruff check .
