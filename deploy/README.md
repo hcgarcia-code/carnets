@@ -21,6 +21,7 @@
 
 | Documento | Qué hacer |
 |---|---|
+| [`migrar_desde_beta.md`](migrar_desde_beta.md) | Traer las cuentas y los afiliados del despliegue beta sin que nadie repita el alta |
 | [`tareas_programadas.md`](tareas_programadas.md) | Las tres entradas de cron sin las que la auditoría, los backups y el plazo de conservación no se ejecutan nunca |
 | [`auditoria_centralizada.md`](auditoria_centralizada.md) | Logs de acceso, retención, destino externo en la UE |
 | [`waf_y_ddos.md`](waf_y_ddos.md) | nginx, fail2ban y elección de WAF: lo que la aplicación no puede parar sola |
