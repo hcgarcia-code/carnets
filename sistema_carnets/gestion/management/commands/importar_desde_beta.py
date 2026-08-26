@@ -177,6 +177,8 @@ class Command(BaseCommand):
 
     def _importar_perfiles(self, filas, usuarios):
         creados = 0
+        con_perfil = set()
+
         for fila in filas:
             campos = fila.get("fields", {})
             usuario = usuarios.get(campos.get("usuario"))
@@ -188,12 +190,47 @@ class Command(BaseCommand):
                 if campos.get(alias):
                     valores["persona_contacto"] = campos[alias]
                     break
+            valores.update(self._identidad_desde_la_cuenta(usuario, valores))
 
             _, creado = PerfilSindicato.objects.update_or_create(
                 usuario=usuario, defaults=valores,
             )
+            con_perfil.add(usuario.pk)
             creados += 1 if creado else 0
+
+        # En el volcado real hay 56 cuentas y solo 39 perfiles. Las 17 restantes
+        # se quedarian sin nombre de sindicato ni persona, y el administrador no
+        # tendria con que decidir a quien aprueba. Se les crea el perfil con lo
+        # que se sepa; el acuerdo queda sin firmar, que es lo correcto si no
+        # consta que lo firmaran.
+        for usuario in usuarios.values():
+            if usuario.pk in con_perfil:
+                continue
+            _, creado = PerfilSindicato.objects.update_or_create(
+                usuario=usuario, defaults=self._identidad_desde_la_cuenta(usuario, {}),
+            )
+            con_perfil.add(usuario.pk)
+            creados += 1 if creado else 0
+
         return creados
+
+    def _identidad_desde_la_cuenta(self, usuario, ya_puestos):
+        """Recupera el sindicato y la persona de contacto desde la cuenta.
+
+        El `perfilsindicato` del beta no guarda ninguno de los dos, pese a que
+        su formulario de alta pedia ambos: acabaron en `first_name` y
+        `last_name` de `auth.user`. Sin recuperarlos de ahi, los perfiles
+        migrados quedan anonimos.
+
+        Si algun dia se comprueba que el beta los guardaba al reves, este es el
+        unico sitio que hay que cambiar.
+        """
+        valores = {}
+        if not ya_puestos.get("nombre_identificativo") and usuario.first_name:
+            valores["nombre_identificativo"] = usuario.first_name
+        if not ya_puestos.get("persona_contacto") and usuario.last_name:
+            valores["persona_contacto"] = usuario.last_name
+        return valores
 
     # --- Afiliados ---
 
@@ -201,6 +238,12 @@ class Command(BaseCommand):
         creados = 0
         fallidos = []
         sin_sindicato = 0
+        # `fecha_creacion` es auto_now_add: al guardar, Django ignora el valor
+        # que traiga el volcado y pone el de hoy. Se repone despues con un
+        # bulk_update, que no aplica auto_now_add. Sin esto, los afiliados
+        # figurarian como dados de alta el dia de la migracion y se perderia la
+        # antiguedad de cada persona en su sindicato, que no se recupera.
+        a_reponer_fecha = []
 
         # La deduplicacion no puede hacerse con `filter(num_afiliado=...)`:
         # `CampoTextoCifrado` prohibe expresamente consultar por su contenido
@@ -244,6 +287,13 @@ class Command(BaseCommand):
             afiliado.save()
             vistos.add(huella)
             creados += 1
+
+            if campos.get("fecha_creacion"):
+                afiliado.fecha_creacion = campos["fecha_creacion"]
+                a_reponer_fecha.append(afiliado)
+
+        if a_reponer_fecha:
+            Afiliado.objects.bulk_update(a_reponer_fecha, ["fecha_creacion"], batch_size=500)
 
         return creados, fallidos, sin_sindicato
 

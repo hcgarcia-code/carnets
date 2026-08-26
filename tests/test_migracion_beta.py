@@ -370,3 +370,52 @@ def test_la_importacion_queda_auditada(archivo_volcado, caplog):
     registros = " ".join(r.getMessage() for r in caplog.records)
     assert "afiliados.cargados" in registros
     assert NOMBRE_AFILIADO not in registros, "el registro no lleva datos personales"
+
+
+@pytest.mark.django_db
+def test_una_lengua_invalida_se_rechaza(archivo_volcado):
+    """El volcado real trae 344 afiliados con lenguas inexistentes y 407 con un
+    codigo de federacion en `estado`. No se corrigen aqui: el comando no
+    inventa datos. Esas filas se limpian en el Excel antes de subirlas."""
+    ruta = archivo_volcado(_volcado(
+        usuarios=[_usuario_beta()], afiliados=[_afiliado_beta(lengua="J")],
+    ))
+
+    _importar(ruta)
+
+    assert Afiliado.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_se_conserva_la_fecha_de_alta_original(archivo_volcado):
+    """`fecha_creacion` es `auto_now_add`, asi que al guardar se pondria la de
+    hoy y todos los afiliados figurarian como dados de alta el dia de la
+    migracion. Es la antiguedad de cada persona en el sindicato: no se
+    recupera despues."""
+    ruta = archivo_volcado(_volcado(
+        usuarios=[_usuario_beta()],
+        afiliados=[_afiliado_beta(fecha_creacion="2024-03-15T09:00:00Z")],
+    ))
+
+    _importar(ruta)
+
+    assert _buscar(NUM_AFILIADO).fecha_creacion.year == 2024
+
+
+@pytest.mark.django_db
+def test_el_sindicato_y_la_persona_llegan_desde_la_cuenta(archivo_volcado):
+    """El `perfilsindicato` del beta NO guarda ni el nombre del sindicato ni
+    quien lo solicito, aunque su formulario de alta pedia ambos: acabaron en
+    `first_name` y `last_name` de la cuenta. Sin recogerlos de ahi, los 39
+    perfiles migrados quedarian anonimos y el administrador no sabria quien es
+    quien."""
+    volcado = _volcado(usuarios=[_usuario_beta()], perfiles=[_perfil_beta()])
+    volcado[0]["fields"]["first_name"] = "SOV Madrid"
+    volcado[0]["fields"]["last_name"] = "Ana Ejemplo"
+    ruta = archivo_volcado(volcado)
+
+    _importar(ruta)
+
+    perfil = PerfilSindicato.objects.get(usuario__username="sov_madrid")
+    assert perfil.nombre_identificativo == "SOV Madrid"
+    assert perfil.persona_contacto == "Ana Ejemplo"

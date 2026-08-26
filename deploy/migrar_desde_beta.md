@@ -37,13 +37,46 @@ La ruta de recuperación de contraseña sí se mantuvo idéntica
 
 ---
 
+## Plan acordado: las cuentas por comando, los afiliados a mano
+
+El volcado real trae **56 cuentas, 39 perfiles y 3918 afiliados**, y esos
+afiliados vienen sucios:
+
+| Problema | Filas | Qué es |
+|---|---|---|
+| `estado` corrupto | 407 (10,4%) | Trae `"202` o `"201` —un código de federación— en vez de ALTA/BAJA |
+| `lengua` inválida | 344 (8,8%) | 18 letras que no existen; el modelo solo admite `A` y `C`. Parece una celda de Excel arrastrada que reprodujo el alfabeto |
+
+**El comando no los corrige.** Rechaza esas filas y lo dice. Inventar un estado
+o una lengua significaría emitir carnets en el idioma equivocado o dar de alta
+a quien estaba de baja, y sin que nadie se entere.
+
+Por eso el reparto es:
+
+- **Las cuentas, con este comando.** Es lo que no se puede rehacer a mano: 54
+  contraseñas que nadie debe tener que cambiar y 39 acuerdos ya firmados.
+- **Los afiliados, por el Excel de siempre.** Se descarga la tabla, se limpia
+  en Excel, se manda a imprimir, y se sube por `/subir-datos/` como cualquier
+  otra carga. La ruta normal ya valida fila a fila y avisa de lo que no cuadra.
+
+El comando **sí sabe** importar afiliados si algún día hace falta; simplemente
+no es la vía elegida ahora.
+
+---
+
 ## Paso 1 — Sacar el volcado del beta
 
 En una consola bash de PythonAnywhere, dentro del directorio del proyecto beta:
 
 ```bash
-python manage.py dumpdata auth.User gestion.PerfilSindicato gestion.Afiliado --indent 2 > beta.json
+workon entorno_sindicato
+PYTHONPATH=/home/carnetscgt python manage.py dumpdata auth.User gestion.PerfilSindicato gestion.Afiliado --indent 2 -o beta.json
 ```
+
+Dos cosas concretas de ese servidor, ambas necesarias:
+
+- **`workon entorno_sindicato`**: la consola bash usa el Python del sistema, donde no está `django-simple-history`. La web sí corre en ese virtualenv.
+- **`PYTHONPATH=/home/carnetscgt`**: el proyecto tiene estructura plana —`settings.py` junto a `manage.py`, y el propio directorio es el paquete `sistema_carnets`—, así que su padre tiene que estar en el path. El WSGI de PythonAnywhere lo añade; bash no.
 
 Descarga `beta.json` desde el panel de archivos de PythonAnywhere.
 
