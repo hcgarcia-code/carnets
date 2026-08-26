@@ -1,4 +1,4 @@
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, PasswordResetView
 from django.core.cache import cache
 from django.http import HttpResponse
 
@@ -6,6 +6,12 @@ from .auditoria import ACCIONES, registrar
 
 INTENTOS_MAXIMOS = 5
 VENTANA_BLOQUEO_SEGUNDOS = 5 * 60
+
+# Más holgado que el del login porque aquí cada intento cuesta un correo, no una
+# comprobación de contraseña: el daño no es adivinar la clave sino inundar el
+# buzón de un sindicato con reposiciones que él no ha pedido.
+PETICIONES_RECUPERACION_MAXIMAS = 5
+VENTANA_RECUPERACION_SEGUNDOS = 15 * 60
 
 
 def _clave_intentos(request, username: str) -> str:
@@ -56,4 +62,47 @@ class LoginConLimiteDeIntentos(LoginView):
         clave = _clave_intentos(self.request, username)
         cache.delete(clave)
         registrar(ACCIONES.LOGIN_CORRECTO, peticion=self.request, usuario=username)
+        return super().form_valid(form)
+
+
+class RecuperarPasswordConLimite(PasswordResetView):
+    """Reposición de contraseña por correo, acotada.
+
+    Django ya resuelve bien las dos partes delicadas y no hay que tocarlas:
+    responde igual exista o no la dirección (si no, este formulario sería un
+    comprobador público de qué sindicatos están dados de alta), y solo
+    considera cuentas con `is_active`, de modo que un alta pendiente de
+    aprobación no puede activarse por esta vía.
+
+    Lo que falta añadir es el límite: sin él, cualquiera puede pedir mil
+    reposiciones para la dirección de un sindicato y dejarle el buzón
+    inservible, que es justo cuando más falta le hace leerlo.
+
+    El límite va por IP y no por dirección de correo a propósito: contarlo por
+    dirección permitiría a un atacante bloquear a una víctima concreta sin más
+    que agotar su cupo.
+    """
+
+    def _clave(self, request) -> str:
+        ip = request.META.get("REMOTE_ADDR", "desconocida")
+        return f"recuperacion_intentos:{ip}"
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.method == "POST":
+            clave = self._clave(request)
+            if cache.get(clave, 0) >= PETICIONES_RECUPERACION_MAXIMAS:
+                registrar(ACCIONES.REPOSICION_BLOQUEADA, peticion=request)
+                return HttpResponse(
+                    "Demasiadas solicitudes de recuperación desde esta conexión. "
+                    "Inténtalo de nuevo más tarde.",
+                    status=429,
+                )
+            cache.set(clave, cache.get(clave, 0) + 1, VENTANA_RECUPERACION_SEGUNDOS)
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        # No se registra la dirección: es dato de contacto de una persona y el
+        # registro de auditoría está construido para no contener datos
+        # personales. Basta con saber que se pidió, desde dónde y cuándo.
+        registrar(ACCIONES.REPOSICION_SOLICITADA, peticion=self.request)
         return super().form_valid(form)

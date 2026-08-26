@@ -16,6 +16,13 @@ class PerfilSindicato(models.Model):
         max_length=255, blank=True,
         verbose_name="Sindicato o rama que declara ser (para aprobar el alta)",
     )
+    # Quién está detrás de la cuenta. El beta lo recogía y aquí se había
+    # perdido: sin esto, ante una cuenta dudosa solo queda un nombre de usuario
+    # y el nombre del sindicato, que cualquiera puede escribir.
+    persona_contacto = models.CharField(
+        max_length=255, blank=True,
+        verbose_name="Persona que solicita el alta",
+    )
     acuerdo_aceptado = models.BooleanField(
         default=False, verbose_name="¿Ha aceptado el acuerdo de protección de datos?",
     )

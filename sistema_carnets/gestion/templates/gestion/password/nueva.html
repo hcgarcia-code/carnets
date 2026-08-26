@@ -1,0 +1,31 @@
+{% extends "gestion/password/base.html" %}
+
+{% block titulo %}Nueva contraseña{% endblock %}
+{% block encabezado %}Nueva contraseña{% endblock %}
+
+{% block contenido %}
+    {% if validlink %}
+        <form method="post">
+            {% csrf_token %}
+            {% if form.errors %}
+                <div class="error">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                    {% for campo in form %}{% for error in campo.errors %}{{ error }}<br>{% endfor %}{% endfor %}
+                </div>
+            {% endif %}
+            <div class="campo">
+                <label for="{{ form.new_password1.id_for_label }}">Contraseña nueva</label>
+                {{ form.new_password1 }}
+            </div>
+            <div class="campo">
+                <label for="{{ form.new_password2.id_for_label }}">Repítela</label>
+                {{ form.new_password2 }}
+            </div>
+            <button type="submit">Guardar contraseña</button>
+        </form>
+    {% else %}
+        <p>Este enlace ya no sirve: o ha caducado, o ya se usó para cambiar la
+        contraseña.</p>
+        <p><a href="{% url 'password_reset' %}">Pedir uno nuevo</a></p>
+    {% endif %}
+{% endblock %}

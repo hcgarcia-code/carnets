@@ -1,0 +1,24 @@
+{% extends "gestion/password/base.html" %}
+
+{% block titulo %}Recuperar contraseña{% endblock %}
+{% block encabezado %}Recuperar contraseña{% endblock %}
+
+{% block contenido %}
+    <p>Escribe el correo con el que se dio de alta tu cuenta. Te enviaremos un
+    enlace para poner una contraseña nueva.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {% if form.errors %}
+            <div class="error">Revisa la dirección: no parece un correo válido.</div>
+        {% endif %}
+        <div class="campo">
+            <label for="{{ form.email.id_for_label }}">Correo electrónico</label>
+            {{ form.email }}
+        </div>
+        <button type="submit">Enviar enlace</button>
+    </form>
+
+    <p class="ayuda">Si tu cuenta todavía está pendiente de aprobación, no
+    recibirás el correo: escribe al administrador.</p>
+{% endblock %}

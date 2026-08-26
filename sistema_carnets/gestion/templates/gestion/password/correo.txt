@@ -1,0 +1,18 @@
+{% autoescape off %}Hola:
+
+Alguien ha pedido reponer la contraseña de la cuenta "{{ user.get_username }}"
+en el sistema de carnets de CGT.
+
+Para poner una contraseña nueva, entra aquí:
+
+{{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uidb64=uid token=token %}
+
+El enlace caduca en unas horas y solo sirve una vez.
+
+Si no has pedido tú este cambio, no hagas nada: la contraseña actual sigue
+funcionando y nadie ha entrado en tu cuenta. Si te llegan varios correos como
+este que tú no has pedido, avisa al administrador.
+
+--
+Sistema de carnets de CGT
+{% endautoescape %}

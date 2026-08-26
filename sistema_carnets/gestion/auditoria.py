@@ -72,6 +72,13 @@ class ACCIONES:
     LOGIN_CORRECTO = "login.correcto"
     LOGIN_FALLIDO = "login.fallido"
     LOGIN_BLOQUEADO = "login.bloqueado"
+    # Una reposición de credencial se hace sin conocer la anterior: si alguien
+    # controla el buzón de un sindicato, es su vía de entrada. Tiene que dejar
+    # rastro igual que un acceso.
+    # (Los nombres evitan el prefijo PASSWORD_ a propósito: bandit y ruff lo
+    # leen como una contraseña escrita en el código y marcan S105.)
+    REPOSICION_SOLICITADA = "reposicion.solicitada"
+    REPOSICION_BLOQUEADA = "reposicion.bloqueada"
 
 
 def _ip_de(peticion) -> str:

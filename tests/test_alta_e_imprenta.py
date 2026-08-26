@@ -73,6 +73,8 @@ def test_dar_de_alta_crea_una_cuenta_inactiva(client):
     respuesta = client.post("/alta/", {
         "username": "rama_barcelona",
         "nombre_identificativo": "CGT Rama Metal Barcelona",
+        "email": "prueba@ejemplo.es",
+        "persona_contacto": "Persona de prueba",
         "password1": "una-clave-realmente-larga-123",
         "password2": "una-clave-realmente-larga-123",
     })
@@ -90,6 +92,8 @@ def test_una_cuenta_inactiva_no_puede_iniciar_sesion(client):
     client.post("/alta/", {
         "username": "rama_pendiente",
         "nombre_identificativo": "Rama pendiente de aprobar",
+        "email": "prueba@ejemplo.es",
+        "persona_contacto": "Persona de prueba",
         "password1": "una-clave-realmente-larga-123",
         "password2": "una-clave-realmente-larga-123",
     })
@@ -102,6 +106,8 @@ def test_tras_activarla_a_mano_si_puede_iniciar_sesion(client):
     client.post("/alta/", {
         "username": "rama_activada",
         "nombre_identificativo": "Rama ya aprobada",
+        "email": "prueba@ejemplo.es",
+        "persona_contacto": "Persona de prueba",
         "password1": "una-clave-realmente-larga-123",
         "password2": "una-clave-realmente-larga-123",
     })
@@ -117,6 +123,8 @@ def test_el_alta_queda_auditada_sin_filtrar_la_contrasena(client, auditoria):
     client.post("/alta/", {
         "username": "rama_auditada",
         "nombre_identificativo": "Nombre libre de la rama",
+        "email": "prueba@ejemplo.es",
+        "persona_contacto": "Persona de prueba",
         "password1": "una-clave-super-secreta-999",
         "password2": "una-clave-super-secreta-999",
     })
@@ -131,6 +139,8 @@ def test_contrasenas_que_no_coinciden_no_crean_la_cuenta(client):
     client.post("/alta/", {
         "username": "rama_fallida",
         "nombre_identificativo": "X",
+        "email": "prueba@ejemplo.es",
+        "persona_contacto": "Persona de prueba",
         "password1": "una-clave-realmente-larga-123",
         "password2": "otra-clave-completamente-distinta",
     })
@@ -143,6 +153,8 @@ def test_una_contrasena_demasiado_simple_no_crea_la_cuenta(client):
     client.post("/alta/", {
         "username": "rama_debil",
         "nombre_identificativo": "X",
+        "email": "prueba@ejemplo.es",
+        "persona_contacto": "Persona de prueba",
         "password1": "12345",
         "password2": "12345",
     })
@@ -154,6 +166,8 @@ def test_pasado_el_limite_de_intentos_el_alta_se_bloquea(client):
         client.post("/alta/", {
             "username": f"rama_{i}",
             "nombre_identificativo": "X",
+            "email": "prueba@ejemplo.es",
+            "persona_contacto": "Persona de prueba",
             "password1": "una-clave-realmente-larga-123",
             "password2": "una-clave-realmente-larga-123",
         })
@@ -161,6 +175,8 @@ def test_pasado_el_limite_de_intentos_el_alta_se_bloquea(client):
     respuesta = client.post("/alta/", {
         "username": "rama_de_mas",
         "nombre_identificativo": "X",
+        "email": "prueba@ejemplo.es",
+        "persona_contacto": "Persona de prueba",
         "password1": "una-clave-realmente-larga-123",
         "password2": "una-clave-realmente-larga-123",
     })
@@ -277,6 +293,8 @@ def test_el_login_muestra_el_aviso_de_cuenta_pendiente_tras_darse_de_alta(client
         'password1': 'Clave-Solida-Sindical-88',
         'password2': 'Clave-Solida-Sindical-88',
         'nombre_identificativo': 'CGT Rama Prueba',
+        'email': 'prueba@ejemplo.es',
+        'persona_contacto': 'Persona de prueba',
     }, follow=True)
 
     assert 'administrador' in respuesta.content.decode().lower()

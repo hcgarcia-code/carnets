@@ -1,8 +1,9 @@
 from django.contrib import admin
-from django.urls import path
+from django.contrib.auth import views as auth_views
+from django.urls import path, reverse_lazy
 
 from gestion import views
-from gestion.auth_views import LoginConLimiteDeIntentos
+from gestion.auth_views import LoginConLimiteDeIntentos, RecuperarPasswordConLimite
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -12,6 +13,42 @@ urlpatterns = [
         'login/',
         LoginConLimiteDeIntentos.as_view(template_name='gestion/login.html'),
         name='login',
+    ),
+
+    # Reposición de contraseña. La ruta conserva el nombre que ya tenía el
+    # despliegue beta ('/recuperar-password/') para no romper los enlaces que
+    # los sindicatos puedan tener guardados.
+    path(
+        'recuperar-password/',
+        RecuperarPasswordConLimite.as_view(
+            template_name='gestion/password/solicitar.html',
+            email_template_name='gestion/password/correo.txt',
+            subject_template_name='gestion/password/asunto.txt',
+            success_url=reverse_lazy('password_reset_done'),
+        ),
+        name='password_reset',
+    ),
+    path(
+        'recuperar-password/enviado/',
+        auth_views.PasswordResetDoneView.as_view(
+            template_name='gestion/password/enviado.html',
+        ),
+        name='password_reset_done',
+    ),
+    path(
+        'recuperar-password/<uidb64>/<token>/',
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name='gestion/password/nueva.html',
+            success_url=reverse_lazy('password_reset_complete'),
+        ),
+        name='password_reset_confirm',
+    ),
+    path(
+        'recuperar-password/hecho/',
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name='gestion/password/hecho.html',
+        ),
+        name='password_reset_complete',
     ),
 
     path('alta/', views.registro_sindicato, name='registro_sindicato'),
