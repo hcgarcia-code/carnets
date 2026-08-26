@@ -408,10 +408,15 @@ def test_el_sindicato_y_la_persona_llegan_desde_la_cuenta(archivo_volcado):
     quien lo solicito, aunque su formulario de alta pedia ambos: acabaron en
     `first_name` y `last_name` de la cuenta. Sin recogerlos de ahi, los 39
     perfiles migrados quedarian anonimos y el administrador no sabria quien es
-    quien."""
+    quien.
+
+    El reparto va al reves de lo que sugieren los nombres de Django: el
+    sindicato esta en `last_name`. Comprobado sobre el volcado real (39 de 56
+    `last_name` contienen SOV, CGT o federacion, frente a 1 de los
+    `first_name`), y esta prueba lo fija para que nadie lo "arregle"."""
     volcado = _volcado(usuarios=[_usuario_beta()], perfiles=[_perfil_beta()])
-    volcado[0]["fields"]["first_name"] = "SOV Madrid"
-    volcado[0]["fields"]["last_name"] = "Ana Ejemplo"
+    volcado[0]["fields"]["last_name"] = "SOV Madrid"
+    volcado[0]["fields"]["first_name"] = "Ana Ejemplo"
     ruta = archivo_volcado(volcado)
 
     _importar(ruta)

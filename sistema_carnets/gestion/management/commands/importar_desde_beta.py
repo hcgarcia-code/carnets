@@ -222,14 +222,17 @@ class Command(BaseCommand):
         `last_name` de `auth.user`. Sin recuperarlos de ahi, los perfiles
         migrados quedan anonimos.
 
-        Si algun dia se comprueba que el beta los guardaba al reves, este es el
-        unico sitio que hay que cambiar.
+        **El reparto va al reves de lo que sugieren los nombres de Django**:
+        el sindicato esta en `last_name` y la persona en `first_name`.
+        Comprobado sobre el volcado real: 39 de 56 `last_name` contienen SOV,
+        CGT, federacion o similar --justo los 39 que tienen perfil--, frente a
+        1 de los `first_name`.
         """
         valores = {}
-        if not ya_puestos.get("nombre_identificativo") and usuario.first_name:
-            valores["nombre_identificativo"] = usuario.first_name
-        if not ya_puestos.get("persona_contacto") and usuario.last_name:
-            valores["persona_contacto"] = usuario.last_name
+        if not ya_puestos.get("nombre_identificativo") and usuario.last_name:
+            valores["nombre_identificativo"] = usuario.last_name
+        if not ya_puestos.get("persona_contacto") and usuario.first_name:
+            valores["persona_contacto"] = usuario.first_name
         return valores
 
     # --- Afiliados ---
