@@ -62,7 +62,7 @@ entran y no encuentran a sus afiliados.
 3. Configurar el correo
 4. Importar en el 2.0        ← con el 2.0 todavía en prueba-carnetscgt
 5. Comprobar
-6. Recrear la web sobre 3.12 ← esto es el corte (y una caída de minutos)
+6. Poner la web sobre 3.12   ← el corte; con suerte, sin caída
 7. Avisar a los sindicatos
 8. Borrar el volcado y la base del beta
 ```
@@ -192,15 +192,32 @@ paso 5).
 
 ---
 
-## Paso 6 — Recrear la aplicación web
+## Paso 6 — Poner la web sobre Python 3.12
 
-**El beta corre sobre Python 3.10 y el 2.0 sobre 3.12**, y PythonAnywhere fija
-la versión de Python **al crear** la aplicación web: no hay forma de cambiarla
-después. Una web de 3.10 no puede usar un virtualenv de 3.12.
+El beta corre sobre **Python 3.10** y el 2.0 sobre **3.12** (el virtualenv
+`carnets` es 3.12.8). Las dos versiones tienen que coincidir: una web de 3.10 no
+puede usar un virtualenv de 3.12.
 
-Bajar el 2.0 a 3.10 tampoco es camino: `pandas 3.0.5` exige Python >=3.11.
+Bajar el 2.0 a 3.10 no es camino: `pandas 3.0.5` exige Python >=3.11.
 
-Así que hay que borrar la aplicación web y crearla de nuevo sobre 3.12.
+### Primero, prueba a cambiarla sin borrar
+
+Si la pestaña Web ofrece cambiar la versión de Python de la aplicación, **úsalo**:
+es reversible, no tiene caída y te ahorra todo lo demás.
+
+1. Cambia la versión a **3.12**
+2. En **Virtualenv**, pon `/home/carnetscgt/.virtualenvs/carnets`
+3. **Source code** y **Working directory**: `/home/carnetscgt/carnets`
+4. Revisa el **WSGI**: tiene que ser el del 2.0, con `PYTHONPATH=/home/carnetscgt`
+5. **Static files**: `/static/` → `/home/carnetscgt/carnets/sistema_carnets/staticfiles`
+6. `grep ALLOWED_HOSTS ~/carnets/.env` — que incluya la dirección
+7. `python sistema_carnets/manage.py collectstatic --noinput`
+8. **Reload**, y entra
+
+Si la web sirve, ya está. **Si da `ModuleNotFoundError` tras el Reload**, es que
+la versión de la web y la del virtualenv no coinciden: entonces sí toca recrear.
+
+### Si no se puede cambiar: borrar y recrear
 
 > **Borrar una aplicación web en PythonAnywhere NO borra tus archivos.** El
 > código del beta, su base de datos y sus virtualenvs se quedan donde están; lo
@@ -220,7 +237,7 @@ Apunta también el resto de la configuración de `prueba-carnetscgt`:
 |---|---|
 | **Source code** | `/home/carnetscgt/carnets` |
 | **Working directory** | `/home/carnetscgt/carnets` |
-| **Virtualenv** | `entorno_sindicato` |
+| **Virtualenv** | `/home/carnetscgt/.virtualenvs/carnets` (Python 3.12) |
 | **Static files** | `/static/` → `/home/carnetscgt/carnets/sistema_carnets/staticfiles` |
 
 ### Los pasos
@@ -321,12 +338,12 @@ ellos el sistema funciona, pero no vigila, no respalda y no caduca nada.
 |---|---|
 | `400 Bad Request` en todo | Falta la dirección nueva en `ALLOWED_HOSTS` |
 | Sale sin estilos, o el logo roto | No se corrió `collectstatic`, o la fila de *Static files* apunta mal |
-| `ModuleNotFoundError` | Falta `PYTHONPATH=/home/carnetscgt` en el WSGI, o no está activado `entorno_sindicato` |
+| `ModuleNotFoundError` | Falta `PYTHONPATH=/home/carnetscgt` en el WSGI, o no está activado el virtualenv `carnets` |
 | `ImproperlyConfigured` al arrancar | `AUDITORIA_LOG_PATH` apunta a una ruta que no existe; el mensaje dice qué variable es |
 | El correo de contraseña no llega | `DEFAULT_FROM_EMAIL` sin configurar (lo detecta `check --deploy`) |
 | Un sindicato no puede entrar | Su cuenta no se importó: mira los avisos del paso 4 |
 | Los sindicatos ven el sistema vacío | Se recreó la web antes de importar |
-| `ModuleNotFoundError` tras recrear la web | Se creó sobre Python 3.10, o el virtualenv no es `entorno_sindicato` |
+| `ModuleNotFoundError` tras recrear la web | Se creó sobre Python 3.10, o el virtualenv no es `carnets` (que es 3.12) |
 
 **La vuelta atrás es recrear la web apuntando al beta**, sobre Python 3.10 y con
 su WSGI —cópiate ese archivo antes de borrar nada—. Mientras no borres su base

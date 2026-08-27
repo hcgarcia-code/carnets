@@ -88,13 +88,13 @@ Dos cosas que confirma el ensayo:
 En una consola bash de PythonAnywhere, dentro del directorio del proyecto beta:
 
 ```bash
-workon entorno_sindicato
+workon carnets
 PYTHONPATH=/home/carnetscgt python manage.py dumpdata auth.User gestion.PerfilSindicato gestion.Afiliado --indent 2 -o beta.json
 ```
 
 Dos cosas concretas de ese servidor, ambas necesarias:
 
-- **`workon entorno_sindicato`**: la consola bash usa el Python del sistema, donde no está `django-simple-history`. La web sí corre en ese virtualenv.
+- **`workon carnets`**: la consola bash usa el Python del sistema, donde no está `django-simple-history`. La web sí corre en ese virtualenv.
 - **`PYTHONPATH=/home/carnetscgt`**: el proyecto tiene estructura plana —`settings.py` junto a `manage.py`, y el propio directorio es el paquete `sistema_carnets`—, así que su padre tiene que estar en el path. El WSGI de PythonAnywhere lo añade; bash no.
 
 Descarga `beta.json` desde el panel de archivos de PythonAnywhere.
@@ -132,6 +132,40 @@ Todo ocurre dentro de una transacción: o entra completo, o no entra nada.
 **Se puede ejecutar varias veces.** No duplica cuentas ni afiliados, y no pisa
 la contraseña de una cuenta que ya exista aquí. Si la primera pasada se corta o
 descarta filas, corrige y repite.
+
+---
+
+## Paso 3.bis — Recuperar las filas rechazadas
+
+El importador descarta las filas que no pasan la validación, y hace bien: **el
+dato correcto no está en el volcado**. De un `estado` que dice `"202` no se
+deduce si esa persona está de alta o de baja.
+
+Si decides fijarlo por asunción, hay un comando que lo hace dejando constancia:
+
+```bash
+python sistema_carnets/manage.py sanear_volcado_beta beta.json     --salida beta_saneado.json --dry-run          # primero, para ver a quién afecta
+
+python sistema_carnets/manage.py sanear_volcado_beta beta.json     --salida beta_saneado.json
+
+python sistema_carnets/manage.py importar_desde_beta beta_saneado.json --dry-run
+python sistema_carnets/manage.py importar_desde_beta beta_saneado.json
+```
+
+Por defecto asume `ALTA` y lengua `A`; se cambian con `--estado` y `--lengua`.
+
+**Reimportar es seguro**: `importar_desde_beta` descarta los afiliados que ya
+existan para el mismo sindicato y número, así que sobre el volcado saneado
+entero solo entran las filas que faltaban. No hay que deshacer nada.
+
+> **Guarda la salida del comando junto al volcado original.** Estás fijando por
+> asunción el estado de afiliación de cientos de personas: dentro de un año hará
+> falta poder decir cuántas fueron y con qué criterio. El comando escribe en un
+> archivo nuevo y se niega a pisar uno existente justo por eso.
+>
+> Y ten presente el sentido del error: asumir `ALTA` significa que a quien se
+> hubiera dado de baja se le emite carnet igual. Si en algún momento empiezan a
+> llegar bajas, esas fichas hay que repasarlas.
 
 ---
 

@@ -827,6 +827,7 @@ Todos se ejecutan desde la raíz, con el entorno activado:
 | `activar_2fa` | Da de alta el segundo factor de una cuenta de admin (§2.2) | Sin esto no se entra al admin |
 | `backup_a_s3_cifrado` | Copia de seguridad cifrada a Object Storage | Ver `deploy/backups_cifrados_s3.md` |
 | `importar_desde_beta` | Trae cuentas y afiliados del despliegue beta | Solo para la migración inicial; ver abajo |
+| `sanear_volcado_beta` | Fija por **asunción** el estado y la lengua ilegibles del volcado | No recupera el dato: lo inventa según un criterio. Guarda su salida |
 | `preparar_pruebas` | Monta un entorno de pruebas completo | **Se niega a correr con `DEBUG=False`** o sobre una base con afiliados |
 | `avisar_version_2` | Avisa por correo a los sindicatos del paso a la 2.0 | **En seco por defecto**: sin `--enviar` no manda nada. No lleva control de "ya enviado" |
 
