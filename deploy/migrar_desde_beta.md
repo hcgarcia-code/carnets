@@ -88,14 +88,16 @@ Dos cosas que confirma el ensayo:
 En una consola bash de PythonAnywhere, dentro del directorio del proyecto beta:
 
 ```bash
-workon carnets
+workon entorno_sindicato
 PYTHONPATH=/home/carnetscgt python manage.py dumpdata auth.User gestion.PerfilSindicato gestion.Afiliado --indent 2 -o beta.json
 ```
 
 Dos cosas concretas de ese servidor, ambas necesarias:
 
-- **`workon carnets`**: la consola bash usa el Python del sistema, donde no está `django-simple-history`. La web sí corre en ese virtualenv.
+- **`workon entorno_sindicato`**: el virtualenv **del proyecto beta**, distinto del `carnets` del 2.0. La consola bash usa por defecto el Python del sistema, donde no está `django-simple-history`; el beta lo necesita porque su propio `Afiliado` ya llevaba historial de versiones antes de que existiera el resto de lo que trajo el 2.0 (cifrado, auditoría de accesos, segundo factor).
 - **`PYTHONPATH=/home/carnetscgt`**: el proyecto tiene estructura plana —`settings.py` junto a `manage.py`, y el propio directorio es el paquete `sistema_carnets`—, así que su padre tiene que estar en el path. El WSGI de PythonAnywhere lo añade; bash no.
+
+> **Confirma que este virtualenv existe antes de usarlo** (`workon` sin argumentos lista los que hay). Si aquí dice algo distinto de `entorno_sindicato`, usa el que sea: es el venv con el que se desplegó el beta, no necesariamente este nombre exacto.
 
 Descarga `beta.json` desde el panel de archivos de PythonAnywhere.
 
