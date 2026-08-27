@@ -1,19 +1,28 @@
-{% extends "gestion/password/base.html" %}
+{% extends "gestion/base.html" %}
 
-{% block titulo %}Correo enviado{% endblock %}
-{% block encabezado %}Revisa tu correo{% endblock %}
+{% block titulo %}Correo enviado — Sistema de Carnets{% endblock %}
 
 {% block contenido %}
-    {% comment %}
-        Este texto dice deliberadamente "si existe una cuenta", en condicional.
-        Confirmar que la dirección está registrada convertiría esta pantalla en
-        un comprobador público de qué sindicatos usan el sistema, accesible sin
-        autenticarse. Django responde igual en ambos casos por el mismo motivo;
-        el texto tiene que acompañar a esa decisión y no delatarla.
-    {% endcomment %}
-    <p>Si existe una cuenta con esa dirección, acabamos de enviarle un enlace
-    para poner una contraseña nueva.</p>
+<main class="centrado">
+    <div class="vidrio panel">
+        <h1 class="titulo" style="font-size: 1.8rem;">Revisa tu correo</h1>
 
-    <p>El enlace caduca en unas horas. Si no te llega, mira en la carpeta de
-    correo no deseado.</p>
+        {% comment %}
+            Este texto dice deliberadamente "si existe una cuenta", en
+            condicional. Confirmar que la dirección está registrada convertiría
+            esta pantalla en un comprobador público de qué sindicatos usan el
+            sistema, accesible sin autenticarse. Django responde igual en ambos
+            casos por el mismo motivo; el texto tiene que acompañar a esa
+            decisión y no delatarla.
+        {% endcomment %}
+        <p class="entradilla">Si existe una cuenta con esa dirección, acabamos de
+        enviarle un enlace para poner una contraseña nueva.</p>
+        <p class="nota">El enlace caduca en unas horas. Si no te llega, mira en la
+        carpeta de correo no deseado.</p>
+
+        <div class="enlaces">
+            <a href="{% url 'login' %}">Volver al acceso</a>
+        </div>
+    </div>
+</main>
 {% endblock %}

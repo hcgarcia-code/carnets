@@ -1,0 +1,75 @@
+{% load static %}<!DOCTYPE html>
+{% comment %}
+Plantilla base de todas las pantallas del proyecto.
+
+Antes cada plantilla repetía su propia cabecera y su propio bloque <style> con
+el mismo CSS: ocho copias que había que recordar al cambiar un color, y de las
+que siempre se olvidaba alguna. Todo eso vive ahora aquí y en carnets.css.
+
+El admin de Django queda fuera a propósito: trae sus propias plantillas y
+sobrescribir su CSS es frágil, se rompe al actualizar Django y no aporta nada
+—lo usa una sola persona—.
+
+Bloques disponibles:
+  titulo     — el <title> de la pestaña
+  barra      — la barra superior (por defecto: marca + enlace de ayuda)
+  contenido  — obligatorio
+  pie        — el pie legal (por defecto: el aviso del RGPD)
+{% endcomment %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Sistema de Carnets — CGT{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'gestion/carnets.css' %}">
+</head>
+<body>
+
+    {% comment %}
+        Las formas del fondo son lo que hace visible el vidrio: sobre blanco
+        plano, un panel translúcido es indistinguible del blanco. Van fijas y
+        sin capturar clics (ver .fondo en carnets.css).
+    {% endcomment %}
+    <div class="fondo" aria-hidden="true">
+        <span class="f1"></span>
+        <span class="f2"></span>
+        <span class="f3"></span>
+        <span class="f4"></span>
+    </div>
+
+    {% block barra %}
+    <nav class="barra">
+        <a class="marca" href="{% url 'portada' %}">
+            <img class="marca__logo" src="{% static 'gestion/logo-cgt.png' %}" alt="CGT">
+            <span class="marca__sep"></span>
+            <span class="marca__nombre">Sistema de carnets</span>
+        </a>
+        {% comment %}
+            Sin enlace de "salir": el proyecto no tiene ruta de cierre de
+            sesión. Añadirla es trabajo aparte, no de esta hoja de estilos.
+        {% endcomment %}
+        <div class="barra__acciones">
+            {% if user.is_authenticated %}
+                <a href="{% url 'notificaciones' %}">Notificaciones</a>
+            {% else %}
+                <a class="boton boton--principal boton--compacto" href="{% url 'login' %}">Entrar</a>
+            {% endif %}
+        </div>
+    </nav>
+    {% endblock %}
+
+    {% block contenido %}{% endblock %}
+
+    {% block pie %}
+    <footer class="pie">
+        <p>
+            Los datos de afiliación tratados aquí están protegidos conforme al
+            Reglamento General de Protección de Datos. Para ejercer tus derechos,
+            dirígete al sindicato al que estés afiliado o afiliada.
+        </p>
+        <span class="marcas"><i></i><i></i></span>
+    </footer>
+    {% endblock %}
+
+</body>
+</html>

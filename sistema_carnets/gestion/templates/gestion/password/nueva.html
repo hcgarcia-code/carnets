@@ -1,31 +1,38 @@
-{% extends "gestion/password/base.html" %}
+{% extends "gestion/base.html" %}
 
-{% block titulo %}Nueva contraseña{% endblock %}
-{% block encabezado %}Nueva contraseña{% endblock %}
+{% block titulo %}Nueva contraseña — Sistema de Carnets{% endblock %}
 
 {% block contenido %}
-    {% if validlink %}
-        <form method="post">
-            {% csrf_token %}
-            {% if form.errors %}
-                <div class="error">
-                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
-                    {% for campo in form %}{% for error in campo.errors %}{{ error }}<br>{% endfor %}{% endfor %}
+<main class="centrado">
+    <div class="vidrio panel">
+        <h1 class="titulo" style="font-size: 1.8rem;">Nueva contraseña</h1>
+
+        {% if validlink %}
+            <form class="formulario" method="post" style="margin-top: 20px;">
+                {% csrf_token %}
+                {% if form.errors %}
+                    <div class="aviso aviso--error">
+                        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                        {% for campo in form %}{% for error in campo.errors %}{{ error }} {% endfor %}{% endfor %}
+                    </div>
+                {% endif %}
+                <div class="campo">
+                    <label for="{{ form.new_password1.id_for_label }}">Contraseña nueva</label>
+                    {{ form.new_password1 }}
                 </div>
-            {% endif %}
-            <div class="campo">
-                <label for="{{ form.new_password1.id_for_label }}">Contraseña nueva</label>
-                {{ form.new_password1 }}
+                <div class="campo">
+                    <label for="{{ form.new_password2.id_for_label }}">Repítela</label>
+                    {{ form.new_password2 }}
+                </div>
+                <button class="boton boton--principal" type="submit">Guardar contraseña</button>
+            </form>
+        {% else %}
+            <p class="entradilla">Este enlace ya no sirve: o ha caducado, o ya se usó
+            para cambiar la contraseña.</p>
+            <div class="enlaces">
+                <a href="{% url 'password_reset' %}">Pedir uno nuevo</a>
             </div>
-            <div class="campo">
-                <label for="{{ form.new_password2.id_for_label }}">Repítela</label>
-                {{ form.new_password2 }}
-            </div>
-            <button type="submit">Guardar contraseña</button>
-        </form>
-    {% else %}
-        <p>Este enlace ya no sirve: o ha caducado, o ya se usó para cambiar la
-        contraseña.</p>
-        <p><a href="{% url 'password_reset' %}">Pedir uno nuevo</a></p>
-    {% endif %}
+        {% endif %}
+    </div>
+</main>
 {% endblock %}

@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Instrument+Sans:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: #ffffff; font-family: "Instrument Sans", "Helvetica Neue", Helvetica, sans-serif; }
+    a { color: #cc0000; text-decoration: none; }
+    a:hover { color: #0d0d0d; }
+    * { box-sizing: border-box; }
+    input { font-family: inherit; font-size: 16px; color: #0d0d0d; background: rgba(255,255,255,0.55); border: 1px solid rgba(13,13,13,0.22); border-radius: 10px; padding: 14px 15px; width: 100%; min-height: 50px; }
+    input:focus { outline: 2px solid #cc0000; outline-offset: -1px; border-color: #cc0000; background: #ffffff; }
+    label { font-size: 12px; font-weight: 600; letter-spacing: 0.11em; color: #4a4340; text-transform: uppercase; }
+  </style>
+</helmet>
+
+<div style="width: 1280px; height: 860px; background: #ffffff; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+
+  <div style="position: absolute; width: 700px; height: 580px; left: -160px; top: -140px; background: #cc0000; opacity: 0.28; border-radius: 54% 46% 38% 62% / 48% 52% 48% 52%; filter: blur(80px);"></div>
+  <div style="position: absolute; width: 540px; height: 460px; right: -110px; bottom: -140px; background: #0d0d0d; opacity: 0.15; border-radius: 42% 58% 60% 40% / 56% 44% 56% 44%; filter: blur(88px);"></div>
+  <div style="position: absolute; width: 480px; height: 400px; right: 12%; top: 120px; background: #cc0000; opacity: 0.13; border-radius: 60% 40% 46% 54% / 40% 56% 44% 60%; filter: blur(80px);"></div>
+
+  <nav style="position: relative; margin: 22px 40px 0; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.46); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,0.66); border-radius: 16px; box-shadow: 0 8px 32px 0 rgba(13,13,13,0.11);">
+    <a href="/" style="display: flex; align-items: center; gap: 13px; color: #0d0d0d;">
+      <img src="logo-cgt.png" alt="CGT" style="height: 34px; width: auto; display: block; flex: none;" />
+      <span style="width: 1px; height: 18px; background: rgba(13,13,13,0.20);"></span>
+      <span style="font-size: 12.5px; letter-spacing: 0.11em; color: #4a4340; text-transform: uppercase;">Sistema de carnets</span>
+    </a>
+    <a href="/ayuda/" style="font-size: 14.5px; font-weight: 500; color: #2b2523;">Ayuda</a>
+  </nav>
+
+  <main style="position: relative; flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 30px;">
+
+    <div style="width: 470px; background: rgba(255,255,255,0.50); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); border: 1px solid rgba(255,255,255,0.70); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(13,13,13,0.16); padding: 40px 40px 34px; display: flex; flex-direction: column; gap: 22px;">
+
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.19em; color: #6f6663; text-transform: uppercase;">Acceso sindicatos</span>
+        <h1 style="font-family: Archivo, sans-serif; font-weight: 900; font-size: 36px; line-height: 1.02; letter-spacing: -0.03em; color: #0d0d0d; margin: 0; text-transform: uppercase;">Entrar</h1>
+      </div>
+
+      <!-- Aviso: mismo vidrio, tintado en rojo. En el sistema real este bloque
+           aparece tras darse de alta ("cuenta pendiente de aprobación"). -->
+      <div style="display: flex; align-items: flex-start; gap: 11px; padding: 13px 15px; border-radius: 12px; background: rgba(204,0,0,0.09); border: 1px solid rgba(204,0,0,0.28);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a30000" stroke-width="2.1" stroke-linecap="square" style="margin-top: 1px; flex: none;"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.5; color: #8c0000;">Un administrador debe aprobar tu cuenta antes de que puedas entrar.</p>
+      </div>
+
+      <form style="display: flex; flex-direction: column; gap: 18px;">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label for="usuario">Nombre de usuario</label>
+          <input id="usuario" name="username" type="text" />
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label for="clave">Contraseña</label>
+          <input id="clave" name="password" type="password" />
+        </div>
+        <button type="submit" style="background: rgba(204,0,0,0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.30); border-radius: 14px; box-shadow: 0 6px 20px 0 rgba(204,0,0,0.24); color: #ffffff; font-family: Archivo, sans-serif; font-weight: 700; font-size: 15.5px; padding: 15px 24px; min-height: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 11px;">
+          Iniciar sesión
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px solid rgba(13,13,13,0.12);">
+        <a href="/recuperar-password/" style="font-size: 14.5px; color: #cc0000;">¿Has olvidado tu contraseña?</a>
+        <a href="/alta/" style="font-size: 14.5px; color: #2b2523;">¿Tu sindicato aún no tiene cuenta? <strong style="color: #cc0000;">Solicitar alta</strong></a>
+      </div>
+
+    </div>
+  </main>
+
+  <footer style="position: relative; margin: 0 40px 22px; padding: 15px 24px; display: flex; align-items: center; justify-content: space-between; gap: 32px; background: rgba(255,255,255,0.40); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.62); border-radius: 16px; box-shadow: 0 8px 32px 0 rgba(13,13,13,0.09);">
+    <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #4a4340;">Datos protegidos conforme al RGPD. Para ejercer tus derechos, dirígete a tu sindicato.</p>
+    <div style="display: flex; align-items: center; gap: 7px; flex: none;">
+      <div style="width: 9px; height: 9px; border-radius: 3px; background: #cc0000;"></div>
+      <div style="width: 9px; height: 9px; border-radius: 3px; background: #0d0d0d;"></div>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1280,"height":860}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

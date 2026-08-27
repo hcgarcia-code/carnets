@@ -1,57 +1,43 @@
-{% comment %}
-Portada pública: la ve cualquiera que escriba la dirección, sin sesión. Por eso
-no contiene más que los dos caminos de entrada. Nada de nombres de sindicatos
-ni recuentos: eso convertiría la dirección en un listado de quién está afiliado
-a CGT, accesible sin autenticarse. Hay una prueba que lo comprueba.
+{% extends "gestion/base.html" %}
 
-Estilos en línea como en el resto de plantillas del proyecto: no hay hoja común
-y la política de seguridad admite `style-src 'unsafe-inline'` pero no scripts.
-{% endcomment %}<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Carnets — CGT</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #ffffff; color: #000000; display: flex; min-height: 100vh; justify-content: center; align-items: center; }
-        .caja { background: #ffffff; padding: 40px; border: 2px solid #000000; border-top: 8px solid #cc0000; width: 100%; max-width: 520px; margin: 20px; }
-        h1 { color: #000000; margin: 0 0 6px; font-size: 26px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .subtitulo { margin: 0 0 28px; font-size: 15px; color: #333333; }
-        .opcion { border: 1px solid #000000; padding: 18px 20px; margin-bottom: 14px; }
-        .opcion h2 { margin: 0 0 6px; font-size: 17px; color: #000000; }
-        .opcion p { margin: 0 0 14px; font-size: 14px; color: #333333; line-height: 1.5; }
-        .boton { display: inline-block; background-color: #cc0000; color: #ffffff; border: 2px solid #cc0000; padding: 11px 22px; text-decoration: none; font-size: 15px; font-weight: bold; }
-        .boton:hover { background-color: #000000; border-color: #000000; }
-        .boton.secundario { background-color: #ffffff; color: #000000; border-color: #000000; }
-        .boton.secundario:hover { background-color: #000000; color: #ffffff; }
-        .pie { margin-top: 26px; padding-top: 18px; border-top: 1px solid #cccccc; font-size: 13px; color: #555555; line-height: 1.6; }
-        a:focus-visible, .boton:focus-visible { outline: 3px solid #cc0000; outline-offset: 2px; }
-    </style>
-</head>
-<body>
+{% block titulo %}Sistema de Carnets — CGT{% endblock %}
 
-    <main class="caja">
-        <h1>Sistema de Carnets</h1>
-        <p class="subtitulo">Confederación General del Trabajo</p>
+{% block contenido %}
+<main class="envoltorio">
 
-        <div class="opcion">
-            <h2>Ya tienes cuenta</h2>
-            <p>Entra para subir la lista de afiliados de tu sindicato y consultar el estado de los carnets.</p>
-            <a class="boton" href="{% url 'login' %}">Entrar</a>
-        </div>
+    <header class="seccion">
+        <h1 class="titular">Sistema de <em>carnets</em></h1>
+        <p class="subtitulo">Altas de afiliación y emisión de carnets para los
+        sindicatos de CGT. Los datos viajan cifrados y cada acceso queda registrado.</p>
+    </header>
 
-        <div class="opcion">
-            <h2>Tu sindicato aún no tiene cuenta</h2>
-            <p>Solicita el alta. Un administrador la revisa y la aprueba antes de que puedas acceder.</p>
-            <a class="boton secundario" href="{% url 'registro_sindicato' %}">Solicitar alta</a>
-        </div>
+    <div class="rejilla">
 
-        <p class="pie">
-            Los datos de afiliación que se tratan aquí están protegidos conforme al
-            Reglamento General de Protección de Datos. Para ejercer tus derechos sobre
-            ellos, dirígete al sindicato al que estés afiliado o afiliada.
-        </p>
-    </main>
+        <section class="vidrio tarjeta">
+            <span class="etiqueta">Sindicatos</span>
+            <h2 class="titulo">Ya tienes cuenta</h2>
+            <p class="entradilla">Sube la lista de afiliados de tu sindicato y
+            consulta el estado de los carnets.</p>
+            <a class="boton boton--principal boton--ancho" href="{% url 'login' %}">Entrar</a>
+        </section>
 
-</body>
-</html>
+        <section class="vidrio tarjeta">
+            <span class="etiqueta">Alta</span>
+            <h2 class="titulo">Tu sindicato aún no la tiene</h2>
+            <p class="entradilla">Solicita el alta. Un administrador la revisa y
+            la aprueba antes de que puedas acceder.</p>
+            <a class="boton boton--claro boton--ancho" href="{% url 'registro_sindicato' %}">Solicitar alta</a>
+        </section>
+
+        <section class="vidrio tarjeta">
+            <span class="etiqueta">Ayuda</span>
+            <h2 class="titulo">¿Algo no funciona?</h2>
+            <p class="entradilla">Escribe a
+            <a href="mailto:soporte-carnets@cgt.org.es">soporte-carnets@cgt.org.es</a>
+            o llama al <strong>918 055 047</strong>.</p>
+            <a class="boton boton--claro boton--tenue boton--ancho" href="mailto:soporte-carnets@cgt.org.es">Escribir a soporte</a>
+        </section>
+
+    </div>
+</main>
+{% endblock %}

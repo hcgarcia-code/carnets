@@ -1,46 +1,32 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subir Datos de Afiliación</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px 20px; background-color: #ffffff; color: #000000; }
-        .contenedor { background: #ffffff; padding: 40px; border: 2px solid #000000; border-top: 8px solid #cc0000; max-width: 550px; margin: auto; }
-        h2 { color: #000000; margin-top: 0; font-size: 24px; border-bottom: 2px solid #000000; padding-bottom: 10px; text-transform: uppercase; }
-        p { font-size: 16px; line-height: 1.5; margin-bottom: 25px; }
-        .mensajes { padding: 15px; margin-bottom: 25px; font-weight: bold; font-size: 15px; }
-        .exito { background-color: #ffffff; color: #008000; border: 2px solid #008000; }
-        .error { background-color: #ffffff; color: #cc0000; border: 2px solid #cc0000; }
-        input[type="file"] { font-size: 16px; padding: 10px 0; width: 100%; cursor: pointer; }
-        button[type="submit"] { background-color: #cc0000; color: #ffffff; border: 2px solid #cc0000; padding: 14px 24px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; transition: all 0.2s ease; }
-        button[type="submit"]:hover { background-color: #000000; border-color: #000000; }
-        .btn-salir { background-color: #000000; color: #ffffff; border: 2px solid #000000; padding: 10px 15px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
-        .btn-salir:hover { background-color: #ffffff; color: #000000; }
-    </style>
-</head>
-<body>
+{% extends "gestion/base.html" %}
 
-    <div class="contenedor">
-        <h2>Carga de Datos Sindicales</h2>
-        <p>Sube el archivo Excel con las altas y bajas de afiliación. Asegúrate de usar la plantilla oficial.</p>
+{% block titulo %}Carga de datos — Sistema de Carnets{% endblock %}
+
+{% block contenido %}
+<main class="envoltorio">
+    <div class="vidrio" style="padding: 34px; margin-top: 34px; max-width: 760px;">
+
+        <h1 class="titulo" style="font-size: 1.9rem;">Carga de Datos Sindicales</h1>
+        <p class="entradilla">Sube el archivo Excel con las altas y bajas de
+        afiliación. Asegúrate de usar la plantilla oficial.</p>
 
         {% if messages %}
             {% for message in messages %}
-                <div class="mensajes {% if message.tags == 'success' %}exito{% else %}error{% endif %}">
+                <div class="aviso {% if message.tags != 'success' %}aviso--error{% endif %}" style="margin: 18px 0;">
                     {{ message }}
                 </div>
             {% endfor %}
         {% endif %}
 
-        <form method="POST" enctype="multipart/form-data">
+        <form class="formulario" method="POST" enctype="multipart/form-data" style="margin-top: 20px;">
             {% csrf_token %}
-            <div style="margin-bottom: 20px;">
-                <input type="file" name="archivo_excel" accept=".xlsx" required>
+            <div class="campo">
+                <label for="id_archivo">Archivo de afiliados (.xlsx)</label>
+                <input id="id_archivo" type="file" name="archivo_excel" accept=".xlsx" required>
             </div>
-            <button type="submit">Procesar Archivo</button>
+            <button class="boton boton--principal" type="submit">Procesar Archivo</button>
         </form>
-    </div>
 
-</body>
-</html>
+    </div>
+</main>
+{% endblock %}

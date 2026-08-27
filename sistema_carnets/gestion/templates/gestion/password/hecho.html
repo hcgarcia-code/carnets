@@ -1,9 +1,15 @@
-{% extends "gestion/password/base.html" %}
+{% extends "gestion/base.html" %}
 
-{% block titulo %}Contraseña cambiada{% endblock %}
-{% block encabezado %}Listo{% endblock %}
+{% block titulo %}Contraseña cambiada — Sistema de Carnets{% endblock %}
 
 {% block contenido %}
-    <p>Tu contraseña se ha cambiado. Ya puedes entrar con ella.</p>
-    <p><a href="{% url 'login' %}">Ir al acceso</a></p>
+<main class="centrado">
+    <div class="vidrio panel">
+        <h1 class="titulo" style="font-size: 1.8rem;">Listo</h1>
+        <p class="entradilla">Tu contraseña se ha cambiado. Ya puedes entrar con ella.</p>
+        <div class="enlaces">
+            <a href="{% url 'login' %}">Ir al acceso</a>
+        </div>
+    </div>
+</main>
 {% endblock %}

@@ -1,0 +1,77 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "Portada · vidrio",
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 960
+    },
+    {
+      "file": "Login.dc.html",
+      "title": "Acceso · vidrio",
+      "x": 1400,
+      "y": 0,
+      "w": 1280,
+      "h": 860
+    },
+    {
+      "file": "Movil.dc.html",
+      "title": "Portada en móvil",
+      "x": 2800,
+      "y": 0,
+      "w": 390,
+      "h": 844
+    },
+    {
+      "file": "Ayuda.dc.html",
+      "title": "Ayuda · vidrio",
+      "x": 0,
+      "y": 1100,
+      "w": 1280,
+      "h": 1240
+    },
+    {
+      "file": "Editorial.dc.html",
+      "title": "B · Editorial (plana, para comparar)",
+      "x": 1400,
+      "y": 1100,
+      "w": 1280,
+      "h": 860
+    }
+  ],
+  "annotations": [
+    {
+      "id": "sistema",
+      "x": 0,
+      "y": -250,
+      "w": 640,
+      "text": "Glassmorphism sobre rojinegro CGT.\n\nEl fondo con formas orgánicas no es adorno: es lo que hace visible el vidrio. Un panel translúcido sobre blanco plano es indistinguible del blanco.\n\nReceta, igual en todas las pantallas:\n· vidrio claro — rgba(255,255,255,0.62) + blur(18px)\n· borde — 1px rgba(255,255,255,0.78)\n· sombra — 0 8px 32px rgba(13,13,13,0.13)\n· navbar y pie más ligeros (0.50-0.58)\n\nLa ayuda pasa a ser un apartado propio en la portada, con su tarjeta y el teléfono a la vista, además del enlace en la barra."
+    },
+    {
+      "id": "contraste",
+      "x": 2800,
+      "y": -250,
+      "w": 360,
+      "text": "Contraste comprobado.\n\nEl texto va en #0d0d0d sobre vidrio blanco al 62% — el fondo efectivo queda casi blanco, así que el contraste supera con holgura el 4.5:1 que pide la WCAG AA.\n\nLos secundarios están en #4a4340 (no en gris claro) por lo mismo: sobre vidrio, un gris del 60% se cae por debajo del mínimo."
+    },
+    {
+      "id": "riesgos",
+      "x": 1400,
+      "y": -250,
+      "w": 420,
+      "text": "Tres cosas que hay que decidir antes de llevarlo al código:\n\n1. backdrop-filter no existe en navegadores antiguos. Ahí el panel queda translúcido pero SIN desenfocar, y el texto se lee sobre las formas del fondo. La opacidad al 62% aguanta, pero conviene verlo en un equipo viejo.\n\n2. Las fuentes vienen de Google Fonts y la política de seguridad del sitio hoy sólo admite fuentes propias (font-src 'self'). O se amplía, o se descargan al servidor, o se usa una pila del sistema.\n\n3. No hay hoja de estilos: cada plantilla lleva su propio bloque <style> — doce archivos con el CSS duplicado. Aplicar esto pantalla por pantalla multiplica el problema; lo sensato es extraer una hoja común primero."
+    },
+    {
+      "id": "editorial",
+      "x": 2800,
+      "y": 1100,
+      "w": 330,
+      "text": "B · Editorial se queda plana a propósito, sin vidrio, para poder comparar las dos estéticas de lado.\n\nSi te quedas con el vidrio, esta se retira."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}

@@ -1,0 +1,469 @@
+/* Sistema visual del Sistema de Carnets — CGT
+   ============================================
+   Una sola hoja para todas las pantallas. Antes cada plantilla llevaba su
+   propio bloque <style> con el mismo CSS repetido: ocho copias de los mismos
+   colores y botones, de las que siempre se olvidaba alguna al cambiar algo.
+
+   Tipografía: pila del sistema, a propósito. Cargar una fuente desde Google
+   manda la IP de cada visitante a Google en cada visita, y la EIPD (§7.2)
+   declara que toda la cadena permanece en la UE. Si algún día se quiere una
+   tipografía con más carácter, se descarga y se sirve desde /static/ con
+   @font-face — nunca desde un CDN ajeno.
+
+   Vidrio: el efecto necesita que HAYA algo detrás. Por eso el fondo lleva
+   formas orgánicas difuminadas (.fondo). Sobre blanco plano, un panel
+   translúcido es indistinguible del blanco. */
+
+
+/* ---------- Sistema ---------- */
+
+:root {
+  --rojo: #cc0000;
+  --rojo-oscuro: #a30000;
+  --tinta: #0d0d0d;
+  --tinta-2: #3d3633;
+  --tinta-3: #4a4340;
+  --tinta-4: #6f6663;
+  --papel: #ffffff;
+
+  /* Vidrio. La opacidad no baja más: por debajo, el texto pierde el 4.5:1
+     que pide la WCAG AA sobre las zonas más intensas del fondo. */
+  --vidrio: rgba(255, 255, 255, 0.48);
+  --vidrio-borde: rgba(255, 255, 255, 0.68);
+  --vidrio-ligero: rgba(255, 255, 255, 0.42);
+  --vidrio-tenue: rgba(255, 255, 255, 0.40);
+  --vidrio-borde-tenue: rgba(255, 255, 255, 0.62);
+
+  --radio: 18px;
+  --radio-boton: 14px;
+  --radio-campo: 10px;
+  --radio-chico: 12px;
+
+  --sombra: 0 8px 32px 0 rgba(13, 13, 13, 0.14);
+  --sombra-suave: 0 8px 32px 0 rgba(13, 13, 13, 0.09);
+  --sombra-boton: 0 6px 20px 0 rgba(204, 0, 0, 0.24);
+  --sombra-boton-claro: 0 6px 20px 0 rgba(13, 13, 13, 0.10);
+
+  /* Pila del sistema, sin CDN. "Archivo" va primero por si algún día se
+     autoaloja con @font-face (o alguien la tiene instalada); mientras no
+     exista, se cae a la del sistema sin pedir nada a nadie. */
+  --fuente: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Roboto, Arial, sans-serif;
+  --fuente-titulo: "Archivo", "Segoe UI Semibold", "Segoe UI", system-ui,
+                   -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--fuente);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--rojo); text-decoration: none; }
+a:hover { color: var(--tinta); }
+
+:focus-visible {
+  outline: 3px solid var(--rojo);
+  outline-offset: 2px;
+}
+
+
+/* ---------- Fondo con formas orgánicas ----------
+   Son lo que hace visible el vidrio. `pointer-events: none` para que no
+   intercepten clics, y `overflow: hidden` en el body para que no generen
+   barras de desplazamiento. */
+
+body { overflow-x: hidden; }
+
+.fondo {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fondo span {
+  position: absolute;
+  display: block;
+  filter: blur(80px);
+}
+
+.fondo .f1 {
+  width: 720px; height: 600px; left: -140px; top: -160px;
+  background: var(--rojo); opacity: 0.30;
+  border-radius: 54% 46% 38% 62% / 48% 52% 48% 52%;
+}
+.fondo .f2 {
+  width: 560px; height: 480px; right: -120px; top: 90px;
+  background: var(--tinta); opacity: 0.16;
+  border-radius: 42% 58% 60% 40% / 56% 44% 56% 44%;
+}
+.fondo .f3 {
+  width: 640px; height: 420px; left: 34%; bottom: -180px;
+  background: var(--rojo); opacity: 0.16;
+  border-radius: 60% 40% 46% 54% / 40% 56% 44% 60%;
+}
+.fondo .f4 {
+  width: 420px; height: 380px; left: 8%; bottom: -90px;
+  background: var(--tinta); opacity: 0.10;
+  border-radius: 48% 52% 56% 44% / 52% 48% 52% 48%;
+}
+
+@media (max-width: 700px) {
+  .fondo span { filter: blur(60px); }
+  .fondo .f1 { width: 420px; height: 360px; left: -110px; top: -90px; }
+  .fondo .f2 { width: 360px; height: 320px; right: -90px; top: 300px; }
+  .fondo .f3 { width: 400px; height: 300px; left: -60px; bottom: -110px; }
+  .fondo .f4 { display: none; }
+}
+
+
+/* ---------- Superficies de vidrio ---------- */
+
+.vidrio {
+  background: var(--vidrio);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--vidrio-borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+/* Sin backdrop-filter (Safari antiguo, Android viejo) el panel queda
+   translúcido pero SIN desenfocar, y el texto se lee sobre las formas del
+   fondo. Se sube la opacidad para que siga siendo legible. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .vidrio, .barra, .pie { background: rgba(255, 255, 255, 0.90); }
+  .boton--claro { background: rgba(255, 255, 255, 0.90); }
+}
+
+.barra {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 22px auto 0;
+  padding: 14px 24px;
+  max-width: 1200px;
+  background: rgba(255, 255, 255, 0.46);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.66);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(13, 13, 13, 0.11);
+}
+
+.pie {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 34px auto 22px;
+  padding: 16px 24px;
+  max-width: 1200px;
+  background: var(--vidrio-tenue);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--vidrio-borde-tenue);
+  border-radius: 16px;
+  box-shadow: var(--sombra-suave);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--tinta-3);
+}
+
+.pie p { margin: 0; max-width: 74ch; }
+
+.marcas { display: flex; align-items: center; gap: 7px; flex: none; }
+.marcas i { width: 9px; height: 9px; border-radius: 3px; display: block; }
+.marcas i:first-child { background: var(--rojo); }
+.marcas i:last-child { background: var(--tinta); }
+
+
+/* ---------- Marca ---------- */
+
+.marca { display: flex; align-items: center; gap: 13px; color: var(--tinta); }
+.marca:hover { color: var(--tinta); }
+
+/* El logo ya lleva las siglas dentro, así que al lado no se repiten: solo va
+   el nombre del sistema. Sin redondear las esquinas — es la marca, no una
+   tarjeta. Se sirve desde /static/, nunca desde un CDN ajeno. */
+.marca__logo {
+  height: 34px;
+  width: auto;
+  flex: none;
+  display: block;
+}
+
+.marca__sep { width: 1px; height: 18px; background: rgba(13, 13, 13, 0.20); }
+
+.marca__nombre {
+  font-size: 12.5px; letter-spacing: 0.11em; color: var(--tinta-3);
+  text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+  .marca__logo { height: 30px; }
+  .marca__sep, .marca__nombre { display: none; }
+}
+
+
+/* ---------- Composición ---------- */
+
+.envoltorio {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.centrado {
+  position: relative;
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.panel {
+  width: 100%;
+  max-width: 470px;
+  padding: 36px 34px 30px;
+}
+
+.rejilla {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  align-items: stretch;
+}
+@media (max-width: 940px) { .rejilla { grid-template-columns: minmax(0, 1fr); } }
+
+
+/* ---------- Tipografía ---------- */
+
+.titular {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: clamp(2.4rem, 7vw, 5.4rem);
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  color: var(--tinta);
+  margin: 0;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.titular em { font-style: normal; color: var(--rojo); }
+
+.titulo { font-family: var(--fuente-titulo); font-weight: 700; font-size: 1.55rem; line-height: 1.12; letter-spacing: -0.018em; margin: 0; }
+.subtitulo { margin: 0; max-width: 56ch; font-size: 1.08rem; line-height: 1.6; color: var(--tinta-2); }
+.entradilla { margin: 0; font-size: 0.95rem; line-height: 1.6; color: var(--tinta-3); }
+
+.etiqueta {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.19em;
+  color: var(--tinta-4); text-transform: uppercase;
+}
+
+
+/* ---------- Botones ---------- */
+
+.boton {
+  font-family: var(--fuente-titulo);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 14px 26px;
+  border-radius: var(--radio-boton);
+  font-weight: 700;
+  font-size: 15px;
+  text-align: center;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* El rojo se queda al 88%: por debajo, el blanco encima cae del 4.5:1 que
+   pide la WCAG para texto de 15px, y este es el botón principal del sitio.
+   El efecto de vidrio lo dan el borde claro y la sombra, no la transparencia. */
+.boton--principal {
+  background: rgba(204, 0, 0, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.30);
+  box-shadow: var(--sombra-boton);
+  color: var(--papel);
+}
+.boton--principal:hover { background: var(--tinta); color: var(--papel); }
+
+.boton--claro {
+  background: var(--vidrio-ligero);
+  border: 1px solid rgba(13, 13, 13, 0.55);
+  box-shadow: var(--sombra-boton-claro);
+  color: var(--tinta);
+}
+.boton--claro:hover { background: var(--tinta); color: var(--papel); border-color: var(--tinta); }
+
+.boton--tenue { border-color: rgba(13, 13, 13, 0.26); }
+
+.boton--ancho { width: 100%; justify-content: space-between; }
+
+
+/* ---------- Formularios ---------- */
+
+.formulario { display: flex; flex-direction: column; gap: 18px; }
+
+.campo { display: flex; flex-direction: column; gap: 8px; }
+
+.campo label {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.11em;
+  color: var(--tinta-3); text-transform: uppercase;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  width: 100%;
+  min-height: 50px;
+  padding: 13px 15px;
+  border: 1px solid rgba(13, 13, 13, 0.22);
+  border-radius: var(--radio-campo);
+  background: rgba(255, 255, 255, 0.55);
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--tinta);
+}
+.campo textarea { min-height: 130px; resize: vertical; line-height: 1.55; }
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  outline: 2px solid var(--rojo);
+  outline-offset: -1px;
+  border-color: var(--rojo);
+  background: var(--papel);
+}
+
+.campo .ayuda,
+.campo .helptext {
+  font-size: 12.5px; line-height: 1.5; color: var(--tinta-4);
+}
+.campo ul { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--tinta-4); }
+
+
+/* ---------- Avisos ---------- */
+
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 13px 16px;
+  border-radius: var(--radio-chico);
+  font-size: 14px;
+  line-height: 1.55;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(13, 13, 13, 0.16);
+  color: var(--tinta-3);
+}
+
+.aviso--error,
+.aviso--rojo {
+  background: rgba(204, 0, 0, 0.09);
+  border-color: rgba(204, 0, 0, 0.28);
+  color: #8c0000;
+  font-weight: 500;
+}
+
+.aviso p { margin: 0; }
+
+
+/* ---------- Tablas ---------- */
+
+.tabla-scroll { overflow-x: auto; }
+
+table.datos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+  min-width: 480px;
+}
+table.datos th,
+table.datos td {
+  text-align: left;
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(13, 13, 13, 0.10);
+}
+table.datos th {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.13em;
+  color: var(--tinta-4); text-transform: uppercase;
+  border-bottom: 1px solid rgba(13, 13, 13, 0.35);
+}
+table.datos td { font-variant-numeric: tabular-nums; }
+table.datos tr:hover td { background: rgba(255, 255, 255, 0.35); }
+
+
+/* ---------- Listas de tarjetas ---------- */
+
+.tarjeta { padding: 26px 26px 24px; display: flex; flex-direction: column; gap: 12px; }
+.tarjeta .boton { margin-top: auto; }
+
+.tarjeta__icono {
+  width: 38px; height: 38px; flex: none;
+  border-radius: var(--radio-chico);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 4px;
+}
+.tarjeta__icono--rojo { background: var(--rojo); color: var(--papel); }
+.tarjeta__icono--tinta { background: var(--tinta); color: var(--papel); }
+.tarjeta__icono--hueco {
+  background: rgba(13, 13, 13, 0.08);
+  border: 1px solid rgba(13, 13, 13, 0.16);
+  color: var(--tinta);
+}
+
+.enlaces { display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px solid rgba(13, 13, 13, 0.12); font-size: 14.5px; }
+
+
+/* ---------- Accesibilidad ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+
+/* ---------- Barra: acciones ---------- */
+
+.barra__acciones { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.barra__acciones > a:not(.boton) { font-size: 14.5px; font-weight: 500; color: var(--tinta-2); }
+.barra__acciones > a:not(.boton):hover { color: var(--rojo); }
+
+.boton--compacto { min-height: 44px; padding: 11px 22px; font-size: 14px; }
+
+
+/* ---------- Bloque de contenido estándar ---------- */
+
+.seccion { position: relative; padding: 44px 0 10px; }
+.seccion > * + * { margin-top: 18px; }
+
+.acciones { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+
+.lista-legal { margin: 0; padding-left: 22px; }
+.lista-legal li { margin-bottom: 10px; }
+
+.nota { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--tinta-4); }
+
+.vacio {
+  margin: 0; padding: 26px; text-align: center;
+  font-size: 15px; color: var(--tinta-4);
+}

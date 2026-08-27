@@ -1,36 +1,20 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso al Sistema de Carnets</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #ffffff; display: flex; height: 100vh; justify-content: center; align-items: center; color: #000000; }
-        .caja-login { background: #ffffff; padding: 40px; border: 2px solid #000000; border-top: 8px solid #cc0000; width: 100%; max-width: 400px; }
-        h2 { text-align: center; color: #000000; margin-top: 0; margin-bottom: 30px; font-size: 24px; text-transform: uppercase; }
-        .campo { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 15px; color: #000000; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 12px; border: 1px solid #000000; box-sizing: border-box; font-size: 16px; }
-        input[type="text"]:focus, input[type="password"]:focus { outline: 2px solid #cc0000; border-color: #cc0000; }
-        button { width: 100%; background-color: #cc0000; color: #ffffff; border: 2px solid #cc0000; padding: 14px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; transition: all 0.2s ease; }
-        button:hover { background-color: #000000; border-color: #000000; }
-        .error { background-color: #ffffff; color: #cc0000; padding: 12px; border: 2px solid #cc0000; text-align: center; margin-bottom: 20px; font-size: 15px; font-weight: bold; }
-        .aviso { background-color: #ffffff; color: #000000; padding: 12px; border: 2px solid #000000; text-align: center; margin-bottom: 20px; font-size: 15px; }
-        .enlace-alta { display: block; text-align: center; margin-top: 20px; font-size: 14px; color: #000000; }
-    </style>
-</head>
-<body>
+{% extends "gestion/base.html" %}
 
-    <div class="caja-login">
-        <h2>Acceso Sindicatos</h2>
+{% block titulo %}Acceso — Sistema de Carnets{% endblock %}
+
+{% block contenido %}
+<main class="centrado">
+    <div class="vidrio panel">
+
+        <span class="etiqueta">Acceso sindicatos</span>
+        <h1 class="titulo" style="font-size: 2rem; margin-top: 6px;">Entrar</h1>
 
         {% comment %}
-           {# ... #} solo comenta UNA línea: en varias, Django lo imprime tal cual.
-           El alta redirige aquí con un mensaje explicando que la cuenta queda
-           pendiente de aprobación. Sin pintarlo, quien acaba de registrarse
-           llega a esta pantalla sin nada que le indique por qué todavía no
-           puede entrar, lo intenta, y recibe el error de credenciales de
-           abajo, que además le señala al sitio equivocado.
+            El alta redirige aquí con un mensaje explicando que la cuenta queda
+            pendiente de aprobación. Sin pintarlo, quien acaba de registrarse
+            llega sin nada que le indique por qué todavía no puede entrar, lo
+            intenta, y recibe el error de credenciales de abajo, que además le
+            señala al sitio equivocado.
         {% endcomment %}
         {% if messages %}
             {% for mensaje in messages %}
@@ -39,12 +23,10 @@
         {% endif %}
 
         {% if form.errors %}
-            <div class="error">
-                Usuario o contraseña incorrectos. Inténtelo de nuevo.
-            </div>
+            <div class="aviso aviso--error">Usuario o contraseña incorrectos. Inténtelo de nuevo.</div>
         {% endif %}
 
-        <form method="POST">
+        <form class="formulario" method="POST">
             {% csrf_token %}
             <div class="campo">
                 <label for="id_username">Nombre de Usuario</label>
@@ -54,17 +36,14 @@
                 <label for="id_password">Contraseña</label>
                 {{ form.password }}
             </div>
-            <button type="submit">Iniciar Sesión</button>
+            <button class="boton boton--principal" type="submit">Iniciar Sesión</button>
         </form>
 
-        <a class="enlace-alta" href="{% url 'password_reset' %}">
-            ¿Has olvidado tu contraseña?
-        </a>
+        <div class="enlaces">
+            <a href="{% url 'password_reset' %}">¿Has olvidado tu contraseña?</a>
+            <a href="{% url 'registro_sindicato' %}">¿Tu sindicato aún no tiene cuenta? Solicitar alta</a>
+        </div>
 
-        <a class="enlace-alta" href="{% url 'registro_sindicato' %}">
-            ¿Tu sindicato aún no tiene cuenta? Solicitar alta
-        </a>
     </div>
-
-</body>
-</html>
+</main>
+{% endblock %}

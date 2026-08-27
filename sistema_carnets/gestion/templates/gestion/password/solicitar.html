@@ -1,24 +1,32 @@
-{% extends "gestion/password/base.html" %}
+{% extends "gestion/base.html" %}
 
-{% block titulo %}Recuperar contraseña{% endblock %}
-{% block encabezado %}Recuperar contraseña{% endblock %}
+{% block titulo %}Recuperar contraseña — Sistema de Carnets{% endblock %}
 
 {% block contenido %}
-    <p>Escribe el correo con el que se dio de alta tu cuenta. Te enviaremos un
-    enlace para poner una contraseña nueva.</p>
+<main class="centrado">
+    <div class="vidrio panel">
+        <h1 class="titulo" style="font-size: 1.8rem;">Recuperar contraseña</h1>
+        <p class="entradilla">Escribe el correo con el que se dio de alta tu cuenta.
+        Te enviaremos un enlace para poner una contraseña nueva.</p>
 
-    <form method="post">
-        {% csrf_token %}
-        {% if form.errors %}
-            <div class="error">Revisa la dirección: no parece un correo válido.</div>
-        {% endif %}
-        <div class="campo">
-            <label for="{{ form.email.id_for_label }}">Correo electrónico</label>
-            {{ form.email }}
+        <form class="formulario" method="post" style="margin-top: 20px;">
+            {% csrf_token %}
+            {% if form.errors %}
+                <div class="aviso aviso--error">Revisa la dirección: no parece un correo válido.</div>
+            {% endif %}
+            <div class="campo">
+                <label for="{{ form.email.id_for_label }}">Correo electrónico</label>
+                {{ form.email }}
+            </div>
+            <button class="boton boton--principal" type="submit">Enviar enlace</button>
+        </form>
+
+        <p class="nota" style="margin-top: 18px;">Si tu cuenta todavía está pendiente
+        de aprobación, no recibirás el correo: escribe al administrador.</p>
+
+        <div class="enlaces">
+            <a href="{% url 'login' %}">Volver al acceso</a>
         </div>
-        <button type="submit">Enviar enlace</button>
-    </form>
-
-    <p class="ayuda">Si tu cuenta todavía está pendiente de aprobación, no
-    recibirás el correo: escribe al administrador.</p>
+    </div>
+</main>
 {% endblock %}

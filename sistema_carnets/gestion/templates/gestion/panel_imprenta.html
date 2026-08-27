@@ -1,39 +1,38 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Imprenta</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 30px; background-color: #ffffff; color: #000000; }
-        h1 { font-size: 22px; text-transform: uppercase; border-bottom: 4px solid #cc0000; padding-bottom: 10px; }
-        table { border-collapse: collapse; width: 100%; max-width: 700px; margin-top: 20px; }
-        th, td { border: 1px solid #000000; padding: 10px 14px; text-align: left; font-size: 15px; }
-        th { background-color: #000000; color: #ffffff; text-transform: uppercase; font-size: 13px; }
-        tr:nth-child(even) { background-color: #f5f5f5; }
-        .vacio { margin-top: 20px; font-size: 15px; }
-    </style>
-</head>
-<body>
-    <h1>Lotes enviados a imprenta</h1>
+{% extends "gestion/base.html" %}
 
-    {% if lote %}
-        <table>
-            <tr>
-                <th>Sindicato</th>
-                <th>Nº Afiliado</th>
-                <th>Fecha de envío</th>
-            </tr>
-            {% for fila in lote %}
-                <tr>
-                    <td>{{ fila.sindicato_codigo }}</td>
-                    <td>{{ fila.num_afiliado }}</td>
-                    <td>{{ fila.fecha_envio_imprenta|date:"d/m/Y H:i" }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p class="vacio">Todavía no se ha enviado ningún lote a imprenta.</p>
-    {% endif %}
-</body>
-</html>
+{% block titulo %}Lotes de imprenta — Sistema de Carnets{% endblock %}
+
+{% block contenido %}
+<main class="envoltorio">
+    <div class="vidrio" style="padding: 34px; margin-top: 34px;">
+
+        <h1 class="titulo" style="font-size: 1.9rem;">Lotes enviados a imprenta</h1>
+
+        {% if lote %}
+            <div class="tabla-scroll" style="margin-top: 22px;">
+                <table class="datos">
+                    <thead>
+                        <tr>
+                            <th>Sindicato</th>
+                            <th>Nº Afiliado</th>
+                            <th>Fecha de envío</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fila in lote %}
+                            <tr>
+                                <td>{{ fila.sindicato_codigo }}</td>
+                                <td>{{ fila.num_afiliado }}</td>
+                                <td>{{ fila.fecha_envio_imprenta|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="vacio">Todavía no se ha enviado ningún lote a imprenta.</p>
+        {% endif %}
+
+    </div>
+</main>
+{% endblock %}

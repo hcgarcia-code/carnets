@@ -32,3 +32,7 @@ staticfiles/
 
 # Excel de ejemplo generado por `manage.py preparar_pruebas`
 afiliados_de_ejemplo.xlsx
+
+# Lienzo de diseño ya montado (~2 MB de editor empaquetado). Se regenera desde
+# los .dc.html de diseno/, que sí van al repositorio.
+diseno/portada-carnets-cgt.html
