@@ -3,6 +3,9 @@ Django==5.2.17
 pandas==3.0.5
 openpyxl==3.1.5
 python-dotenv==1.2.2
+# Manual de usuario servido como pagina web (/ayuda/manual/):
+# se renderiza desde MANUAL_USUARIO.md para no mantener dos copias
+markdown==3.10
 django-simple-history==3.13.0
 cryptography==50.0.0
 # Segundo factor del admin (unica cuenta que descifra datos personales)

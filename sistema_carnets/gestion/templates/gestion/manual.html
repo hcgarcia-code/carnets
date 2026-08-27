@@ -1,0 +1,48 @@
+{% extends "gestion/base.html" %}
+
+{% comment %}
+El manual de usuario, renderizado desde MANUAL_USUARIO.md (ver views.manual_usuario).
+
+Todo el contenido llega ya en HTML desde el renderizador de Markdown, así que
+aquí solo va el andamiaje: el índice a un lado y el texto al otro. Los estilos
+de lo que hay dentro de `.prosa` van por etiqueta (h2, table, blockquote…) en
+carnets.css, porque el Markdown no genera clases.
+{% endcomment %}
+
+{% block titulo %}Manual de usuario — Sistema de Carnets{% endblock %}
+
+{% block contenido %}
+<main class="envoltorio">
+
+    <header class="seccion">
+        <p class="etiqueta">Ayuda</p>
+        <h1 class="titular">Manual de <em>usuario</em></h1>
+        <p class="subtitulo">Todo el circuito, de la solicitud de alta al lote
+        en imprenta. Puedes buscar en esta página con Ctrl+F.</p>
+        <p class="acciones">
+            <a class="boton boton--claro" href="{% url 'ayuda' %}">Volver a la ayuda</a>
+        </p>
+    </header>
+
+    <div class="manual">
+
+        {% comment %}
+            El índice lo genera la extensión `toc` a partir de los títulos del
+            propio Markdown. Se queda fijo al hacer scroll en pantallas anchas
+            (ver .manual__indice); en móvil pasa arriba, plegado.
+        {% endcomment %}
+        <aside class="manual__indice">
+            <details class="vidrio indice" open>
+                <summary>Contenido</summary>
+                {{ indice }}
+            </details>
+        </aside>
+
+        <article class="vidrio prosa">
+            {{ cuerpo }}
+        </article>
+
+    </div>
+
+</main>
+{% endblock %}

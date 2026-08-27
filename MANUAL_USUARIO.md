@@ -9,6 +9,25 @@ Bienvenido al **Sistema de Gestión de Carnets Sindicales**. Esta guía te ayuda
 
 El sistema protege los datos personales de los afiliados mediante **encriptación de alta seguridad**. Tómate un momento para entender el flujo.
 
+### Las direcciones que vas a usar
+
+Escribe la dirección del sistema a secas y llegas a la portada, que te ofrece los
+tres caminos. No hace falta que memorices ninguna otra:
+
+| Dirección | Para qué |
+|-----------|----------|
+| `/` | Portada. Entrar, solicitar alta o ir a la ayuda |
+| `/ayuda/` | Contacto, manual y los fallos más frecuentes |
+| `/ayuda/manual/` | Este mismo manual, para leer en el navegador |
+| `/login/` | Entrar con tu cuenta |
+| `/alta/` | Solicitar el alta de tu sindicato |
+| `/recuperar-password/` | Si olvidaste la contraseña |
+| `/subir-datos/` | Subir el Excel de afiliados (requiere sesión) |
+| `/notificaciones/` | Estado de tus lotes (requiere sesión) |
+
+La **página de ayuda es pública**: se ve sin cuenta, a propósito, porque quien más
+la necesita es justo quien no consigue entrar.
+
 ---
 
 ## 2. Para Sindicatos
@@ -20,40 +39,34 @@ El sistema protege los datos personales de los afiliados mediante **encriptació
 #### Acceder a la página de registro
 
 1. Abre navegador → `https://tu-dominio.es/`
-2. Verás un botón **"Solicitar alta"** o directamente `/registro/`
+2. En la portada, tarjeta **"Tu sindicato aún no la tiene"** → botón **"Solicitar alta"**
+   (o directamente `/alta/`)
 
 #### Completar el formulario
 
-```
-┌────────────────────────────────────────────┐
-│      Solicitud de Alta de Sindicato        │
-├────────────────────────────────────────────┤
-│ Nombre de usuario: [cgt_rama_metal]        │
-│ Sindicato o rama:  [CGT Rama Metal BCN]    │
-│ Contraseña:        [••••••••••]            │
-│ Repetir contraseña:[••••••••••]            │
-│                                            │
-│         [ Solicitar acceso ]               │
-└────────────────────────────────────────────┘
-```
-
-**Detalles importantes:**
+El formulario pide cinco datos (la contraseña, dos veces) y termina con el botón
+**Solicitar acceso**:
 
 | Campo | Qué poner | Ejemplo |
 |-------|-----------|---------|
 | **Nombre de usuario** | Identificador único, sin espacios | `cgt_barcelona` |
+| **Correo electrónico** | Obligatorio. Es por donde recuperas la contraseña | `metal@cgtbcn.org` |
 | **Sindicato o rama** | Nombre completo, para que el administrador sepa a quién aprueba | `CGT Rama Metal Barcelona` |
+| **Persona que solicita** | Tu nombre, para que sepa a quién está aprobando | `Ana Ejemplo` |
 | **Contraseña** | Mínimo 8 caracteres; el sistema rechaza las demasiado comunes o solo numéricas | `MiSindicato-2026!` |
 
-> **El formulario no pide correo electrónico.** No es un olvido: el sistema no envía ningún
-> aviso automático, así que un correo que nadie va a usar sería un dato personal guardado sin
-> motivo. La consecuencia práctica está en el apartado 2.6: **si pierdes la contraseña, hay que
-> pedírsela al administrador**, no hay recuperación por correo.
+> **Pon una dirección de correo que uséis de verdad**, mejor del sindicato que
+> personal: es la única vía de recuperar la contraseña sin depender del
+> administrador, y si la persona que solicitó el alta se va, la cuenta de correo
+> del sindicato sigue ahí. Es obligatoria justamente por eso — dejarla opcional
+> significaría que una parte de las cuentas se queda sin recuperación posible, y
+> sin saber cuáles hasta que a alguien le hace falta.
 
 #### Qué pasa después
 
 1. El sistema crea tu **cuenta desactivada**: todavía no puedes entrar
-2. El administrador ve tu solicitud en su panel, con el nombre de sindicato que declaraste
+2. El administrador ve tu solicitud en su panel, con el nombre de sindicato y la
+   persona que declaraste
 3. Comprueba que la solicitud es legítima y activa la cuenta
 4. ✓ Aprobada → ya puedes iniciar sesión
 5. ✗ Con dudas → te contacta por los canales habituales de la organización
@@ -72,27 +85,32 @@ tu solicitud le aparece en el panel, pero solo la ve si entra a mirar.
 #### Acceder
 
 1. Abre navegador → `https://tu-dominio.es/login/`
-2. Completa:
-   ```
-   Usuario: [tu username]
-   Contraseña: [tu contraseña]
-   [ Iniciar sesión ]
-   ```
+2. Escribe tu usuario y tu contraseña, y pulsa **Iniciar sesión**
 
 #### Si todo va bien
 
-- Verás **panel de inicio** con 3 secciones:
-  1. Acuerdo Legal (pendiente)
-  2. Subir Afiliados
-  3. Notificaciones
+El sistema te lleva directamente a donde tienes que trabajar:
+
+- **La primera vez**, al acuerdo legal (apartado 2.3). Hasta firmarlo no puedes subir nada
+- **Las siguientes**, a la pantalla de **subir datos**
+
+Arriba, en la barra, tienes siempre **Ayuda**, **Notificaciones** y **Salir**.
 
 #### Si falla
 
-| Mensajón | Causa | Solución |
-|----------|-------|----------|
+| Mensaje | Causa | Solución |
+|---------|-------|----------|
 | Usuario o contraseña incorrectos | Datos mal escritos | Revisa mayúsculas, espacios |
 | Tu cuenta aún está pendiente de aprobación | Admin no ha activado | Espera 1-2 días, luego reintenta |
 | Demasiados intentos fallidos | 5 fallos con el mismo usuario | Espera **5 minutos** y reintenta |
+
+#### Cerrar sesión
+
+Botón **"Salir"**, arriba a la derecha, en cualquier pantalla. Te devuelve a la portada.
+
+**Ciérrala siempre en un ordenador compartido.** La sesión caduca sola a la media
+hora de inactividad, pero media hora es tiempo de sobra para que quien se siente
+después entre en los datos de afiliación de tu sindicato.
 
 ---
 
@@ -102,17 +120,8 @@ tu solicitud le aparece en el panel, pero solo la ve si entra a mirar.
 
 #### Flujo
 
-1. Tras loguear, ves página:
-   ```
-   ┌─────────────────────────────────────┐
-   │      Acuerdo de Protección Datos    │
-   ├─────────────────────────────────────┤
-   │ [Texto legal: protección datos,     │
-   │  reglamento RGPD, retención, ...]   │
-   │                                     │
-   │      [ Aceptar ]  [ Rechazar ]      │
-   └─────────────────────────────────────┘
-   ```
+1. Tras entrar, ves la pantalla **Acuerdo de Protección de Datos**: el texto
+   legal completo y, al final, los botones **Aceptar** y **Rechazar**.
 
 2. Lee el acuerdo (o pídeselo a tu DPO/abogado)
 3. Haz clic en **"Aceptar"**
@@ -136,45 +145,53 @@ tu solicitud le aparece en el panel, pero solo la ve si entra a mirar.
 
 **¿Qué es?** Un archivo Excel (`.xlsx`) con datos de afiliados a imprimir.
 
-#### Descargar plantilla
+#### Descargar la plantilla
 
-El sistema proporciona una **plantilla oficial** en: `/recursos/afiliados_plantilla.xlsx`
+**No la fabriques tú.** Hay una plantilla oficial y es el único formato que el
+sistema acepta. Se descarga desde **`/subir-datos/`**, con el botón *"Descargar la
+plantilla oficial (.xlsx)"* que hay encima del formulario.
 
-**O descargarlo aquí:**
-
-```
-Nombre archivo: afiliados_plantilla.xlsx
-Peso: ~10 KB
-Columnas: Confederacion | Fed_Local | Fed_Sectorial | Sindicato | Num_Afiliado | Nombre_Apellidos | Lengua | Estado
-```
+| | |
+|---|---|
+| **Archivo** | `plantilla_afiliacion_oficial.xlsx` (unos 25 KB) |
+| **Hoja `ALTAS`** | Donde escribes. Trae la fila de cabecera y nada más |
+| **Hoja `Datos`** | Las listas de confederaciones, federaciones y sindicatos |
 
 #### Rellenar la plantilla
 
-**Importante:** Respetar exactamente el formato. El sistema es estricto.
+Escribe **en la hoja `ALTAS`**, debajo de la cabecera. No cambies, borres ni
+renombres ninguna columna: si falta una, el sistema rechaza el archivo entero.
 
-```
-┌──────────┬──────────┬──────────┬──────────┬──────────┬─────────────────────┬────────┬──────────┐
-│Confedera-│ Fed_     │ Fed_     │Sindicato │Num_      │Nombre_Apellidos     │Lengua  │ Estado   │
-│cion      │Local     │Sectorial │          │Afiliado  │                     │        │          │
-├──────────┼──────────┼──────────┼──────────┼──────────┼─────────────────────┼────────┼──────────┤
-│    28    │  28001   │    01    │   100    │ 000001   │Juan Pérez González  │  A     │  ALTA    │
-│    28    │  28001   │    01    │   100    │ 000002   │María García López   │  A     │  ALTA    │
-│    28    │  28002   │    01    │   200    │ 000001   │Carlos López Ruiz    │  C     │  BAJA    │
-└──────────┴──────────┴──────────┴──────────┴──────────┴─────────────────────┴────────┴──────────┘
-```
+Las cuatro primeras columnas se rellenan **copiando el valor completo de la hoja
+`Datos`**, con su código y su nombre. El sistema se queda con el código de
+delante; el texto que va detrás del guion es para que tú puedas leerlo.
+
+Así se ve una fila bien rellenada:
+
+| Confederacion | Fed_Local | Fed_Sectorial | Sindicato | Num_Afiliado | Nombre_Apellidos | Lengua | Estado |
+|---|---|---|---|---|---|---|---|
+| `01-Confederación Andalucía` | `01080-fed. local Vitoria` | `00 - OFICIOS VARIOS` | `001 - S.O.V. Almeria` | `000001` | Juan Pérez González | `A` | `ALTA` |
+| `01-Confederación Andalucía` | `01080-fed. local Vitoria` | `03 - ENSEÑANZA` | `007 - Enseñanza Granada` | `000002` | María García López | `A` | `ALTA` |
+| `03-Confederación Asturias` | `03800-fed. local Alcoy` | `02 - BANCA, BOLSA, AHORRO` | `005 - OO.VV. Xerez` | `000003` | Carlos López Ruiz | `C` | `BAJA` |
 
 **Detalles de cada columna:**
 
-| Columna | Formato | Ejemplo | Notas |
-|---------|---------|---------|-------|
-| **Confederacion** | 2 dígitos | 28 | Código CCAA (28=Madrid) |
-| **Fed_Local** | 5 dígitos | 28001 | Código local provincial |
-| **Fed_Sectorial** | 2 dígitos | 01 | Sector (01=Sector A) |
-| **Sindicato** | 3 dígitos | 100 | Código sindicato local |
-| **Num_Afiliado** | 6 dígitos | 000001 | Número secuencial |
-| **Nombre_Apellidos** | Texto ≤255 car. | Juan Pérez | Nombre completo |
-| **Lengua** | A o C | A | A=Castellano, C=Catalán |
-| **Estado** | ALTA o BAJA | ALTA | Situación del afiliado |
+| Columna | Qué escribir | Qué guarda el sistema |
+|---------|--------------|----------------------|
+| **Confederacion** | El valor entero de la hoja `Datos` | Los **2 dígitos** de delante del guion |
+| **Fed_Local** | El valor entero de la hoja `Datos` | Los **5 dígitos** de delante del guion |
+| **Fed_Sectorial** | El valor entero de la hoja `Datos` | Los **2 dígitos** de delante del guion |
+| **Sindicato** | El valor entero de la hoja `Datos` | Los **3 dígitos** de delante del guion |
+| **Num_Afiliado** | El número, con o sin ceros delante | **6 dígitos**: rellena con ceros por la izquierda (`42` → `000042`) |
+| **Nombre_Apellidos** | Nombre completo, hasta 255 caracteres | Tal cual, **cifrado** |
+| **Lengua** | `A` o `C`, exactamente | `A`=Castellano, `C`=Catalán |
+| **Estado** | `ALTA` o `BAJA`, exactamente | Situación del afiliado |
+
+> **`Lengua` y `Estado` van en MAYÚSCULAS, sin excepción.** Se comparan letra a
+> letra y **distinguen mayúsculas**: `ALTA` vale; `Alta` y `alta` los rechaza
+> (comprobado). Los espacios sobrantes delante o detrás sí se quitan solos.
+> Tampoco valen `Castellano`, `ES` ni `PENDIENTE`. Si una fila trae otra cosa, da
+> error, y con una sola fila mala se cae el archivo entero.
 
 #### Validaciones que hace el sistema
 
@@ -210,9 +227,9 @@ Detalle:
 
 #### Subir el archivo
 
-1. Accede a `/subir/`
+1. Accede a `/subir-datos/`
 2. Botón **"Elegir archivo"** → selecciona tu .xlsx
-3. Botón **"Subir y procesar"**
+3. Botón **"Procesar Archivo"**
 4. Espera (puede tardar 10-30 segundos según cantidad de filas)
 
 #### Confirmación
@@ -242,23 +259,14 @@ Mientras el admin procesa tu lote, puedes ver el progreso.
 1. Login → `/notificaciones/`
 2. Verás historial de eventos:
 
-```
-┌─────────────────────────────────────────────────┐
-│        NOTIFICACIONES DE TU SINDICATO           │
-├─────────────────────────────────────────────────┤
-│ 21/08/2026 14:30                               │
-│ "Tu lote de 500 afiliados ha sido marcado      │
-│  como IMPRESO. Está listo para enviar a        │
-│  imprenta."                                     │
-│                                                 │
-│ 20/08/2026 10:15                               │
-│ "Se han recibido 500 afiliados de tu envío    │
-│  del 15/08. Admin está validando..."           │
-│                                                 │
-│ 15/08/2026 09:45                               │
-│ "Subida exitosa: 500 afiliados procesados"     │
-└─────────────────────────────────────────────────┘
-```
+Un historial en orden, de lo más reciente a lo más antiguo. Las que no has
+leído aparecen destacadas en rojo:
+
+| Fecha | Aviso |
+|---|---|
+| 21/08/2026 14:30 | Tu lote de 500 afiliados ha sido marcado como IMPRESO. Está listo para enviar a imprenta |
+| 20/08/2026 10:15 | Se han recibido 500 afiliados de tu envío del 15/08 |
+| 15/08/2026 09:45 | Subida correcta: 500 afiliados procesados |
 
 #### Marcar como leídas
 
@@ -266,31 +274,46 @@ Mientras el admin procesa tu lote, puedes ver el progreso.
 
 ---
 
-### 2.6 Cambiar Contraseña
+### 2.6 Recuperar la Contraseña
 
 #### Olvidé la contraseña
 
-**No hay recuperación automática.** El sistema no tiene enlace de "¿Olvidaste la contraseña?"
-ni envía correos, porque el formulario de alta no recoge ninguna dirección (ver 2.1).
+**Puedes reponerla tú, sin esperar a nadie.**
 
-La vía es pedírselo al administrador:
+1. En `/login/`, enlace **"¿Has olvidado tu contraseña?"** (o ve a `/recuperar-password/`)
+2. Escribe el correo con el que se dio de alta la cuenta
+3. Recibirás un mensaje con un **enlace de un solo uso**
+4. Ábrelo y elige una contraseña nueva
 
-1. Contacta con el administrador por los canales habituales de la organización
-2. Te asigna una contraseña nueva desde su panel
-3. Te la comunica **por un canal distinto** al que usaste para pedirla, si es posible
-4. Entra con ella y pídele que te la cambie por una tuya si no puedes hacerlo
+**Si no llega el correo**, en este orden: mira la carpeta de spam; comprueba que la
+dirección es la que declarasteis en el alta; y si sigue sin llegar, escribe a soporte
+(apartado 6).
 
-**No la envíes ni la pidas por correo electrónico sin cifrar.** Una contraseña en un buzón
-queda ahí indefinidamente y abre el acceso a datos de afiliación sindical.
+> **La pantalla dice "si existe una cuenta con ese correo, te hemos enviado un
+> mensaje" tanto si existe como si no.** No es un fallo ni una evasiva: si
+> confirmara cuáles existen, cualquiera podría ir probando direcciones para
+> averiguar qué sindicatos usan el sistema.
+
+**El enlace caduca** y solo sirve una vez. Si tardas, pide otro.
+
+**Hay un límite de peticiones**: cinco cada cuarto de hora desde la misma conexión a
+internet. Si estáis varias personas en el mismo local y probáis a la vez, os puede
+salir un aviso de "demasiadas peticiones". Esperad quince minutos.
 
 #### Quiero cambiarla, pero la recuerdo
 
-Igual: pídeselo al administrador. La aplicación no tiene todavía pantalla de cambio de
-contraseña para las cuentas de sindicato.
+Usa el mismo circuito de arriba: pide el correo de recuperación y elige una nueva. La
+aplicación no tiene todavía una pantalla aparte de "cambiar contraseña" para las
+cuentas de sindicato.
 
-> Si esto os resulta incómodo en el uso diario, decídselo al administrador: añadir la
-> recuperación por correo es posible, pero exige recoger y custodiar las direcciones, y esa
-> decisión es de la organización, no técnica.
+#### Si prefieres que lo haga el administrador
+
+Sigue siendo posible (por ejemplo, si perdisteis también el acceso al buzón de
+correo). Entonces:
+
+- Que te la comunique **por un canal distinto** al que usaste para pedirla
+- **No la envíes ni la pidas por correo sin cifrar.** Una contraseña en un buzón queda
+  ahí indefinidamente y abre el acceso a datos de afiliación sindical
 
 ---
 
@@ -308,19 +331,15 @@ contraseña para las cuentas de sindicato.
 
 #### Qué ves
 
-```
-┌────────────────────────────────────────────────────┐
-│           LOTES ENVIADOS A IMPRENTA                │
-├────────────────────────────────────────────────────┤
-│ Sindicato     | Nº Afiliado      | Fecha de envío │
-├────────────────────────────────────────────────────┤
-│    003        | 000101           | 21/08/26 14:30 │
-│    003        | 000102           | 21/08/26 14:30 │
-│    007        | 000201           | 20/08/26 10:15 │
-│    007        | 000202           | 20/08/26 10:15 │
-│    003        | 000103           | 15/08/26 09:45 │
-└────────────────────────────────────────────────────┘
-```
+Una tabla con tres columnas, y solo tres:
+
+| Sindicato | Nº Afiliado | Fecha de envío |
+|---|---|---|
+| 003 | 000101 | 21/08/26 14:30 |
+| 003 | 000102 | 21/08/26 14:30 |
+| 007 | 000201 | 20/08/26 10:15 |
+| 007 | 000202 | 20/08/26 10:15 |
+| 003 | 000103 | 15/08/26 09:45 |
 
 #### ¿Qué ves y qué NO ves?
 
@@ -406,7 +425,8 @@ puede comprobar si hubo accesos que no fueran tuyos.
 
 ### 4.3 Si Sospechas que Alguien Más Accedió a Tu Cuenta
 
-1. **Cambia contraseña inmediatamente** (Cambiar contraseña, ver arriba)
+1. **Cambia la contraseña inmediatamente** tú mismo, por `/recuperar-password/`
+   (apartado 2.6). No esperes a que conteste nadie
 2. **Contacta al admin:**
    ```
    "Mi cuenta [username] puede haber sido comprometida.
@@ -419,14 +439,28 @@ puede comprobar si hubo accesos que no fueran tuyos.
 
 **¿Cómo se protegen?**
 - ✓ Encriptación AES-256 (nivel banco)
-- ✓ Historial de cambios audito (quién vio, cuándo)
+- ✓ Historial de cambios auditado (quién vio, cuándo)
 - ✓ Acceso restringido por rol
 - ✓ Sesiones seguras (HTTPS)
 
 **¿Cuánto tiempo se guardan?**
-- Afiliados: Mientras sea necesario (consulta DPO de tu sindicato)
-- Auditoría de cambios: 2 años (para investigaciones)
-- Logs de acceso: 30 días (borrado automático)
+
+| Qué | Cuánto | Desde cuándo cuenta |
+|-----|--------|---------------------|
+| Datos del afiliado | **3 años** | Desde que pasa a **BAJA**, no desde que se dio de alta |
+| Registro de auditoría de accesos | 2 años | Desde cada acceso |
+
+Pasados los tres años, un proceso automático **anonimiza** la ficha: desaparecen el
+nombre y el número de afiliado, y con ellos el vínculo entre una persona y su
+afiliación sindical. Se anonimiza también todo el historial de versiones de esa
+ficha, que es la parte que de verdad importa: borrar solo la ficha viva dejaría el
+nombre anterior guardado en el historial.
+
+Queda el recuento de carnets emitidos, que ya no identifica a nadie.
+
+> **Mientras el afiliado siga de ALTA no hay plazo que corra**, porque los datos
+> siguen haciendo falta para la finalidad que los legitima. El reloj empieza el día
+> que se marca la baja.
 
 ---
 
@@ -466,11 +500,26 @@ puede comprobar si hubo accesos que no fueran tuyos.
 
 ### P: ¿Qué pasa si pierdo acceso?
 
-**R:** Contacta al admin. Puede resetear tu contraseña.
+**R:** Si es la contraseña, repónla tú desde `/recuperar-password/` (apartado 2.6).
+Si perdiste también el buzón de correo del alta, contacta con el administrador.
 
 ### P: ¿Se puede exportar datos de afiliados?
 
-**R:** Solo imprenta puede descargar lotes listos para imprenta (si admin lo permite). Sindicatos no pueden exportar masivamente.
+**R:** Ni los sindicatos ni la imprenta pueden exportar. **Solo el administrador**
+genera el archivo para la imprenta, desde el panel de administración, y esa
+exportación queda registrada en la auditoría. La imprenta consulta su panel en
+pantalla, sin botón de descarga.
+
+### P: ¿Dónde consigo la plantilla oficial?
+
+**R:** En `/subir-datos/`, encima del formulario, o en la página de ayuda
+(`/ayuda/`). Es un `.xlsx` de unos 25 KB. No fabriques la tuya: el sistema comprueba
+que estén las ocho columnas con su nombre exacto.
+
+### P: ¿Cómo cierro la sesión?
+
+**R:** Botón **"Salir"**, arriba a la derecha. Hazlo siempre en ordenadores
+compartidos.
 
 ### P: ¿Qué seguridad hay contra hackers?
 
@@ -493,41 +542,76 @@ puede comprobar si hubo accesos que no fueran tuyos.
 
 ### P: ¿Qué hago si olvido contraseña?
 
-**R:** Pídesela al administrador: no hay recuperación automática por correo (ver 2.6).
+**R:** Repónla tú desde `/recuperar-password/`. Te llega un enlace de un solo uso al
+correo del alta (ver 2.6).
 
 ### P: ¿Puedo eliminar mis datos?
 
-**R:** Sí, contacta a tu DPO. Es tu derecho (RGPD Art. 17). El admin lo ejecuta con auditoría.
+**R:** Sí. Si eres una persona afiliada, **dirígete a tu sindicato**, no a esta web:
+tu sindicato es el responsable de tus datos y quien tramita el derecho de supresión
+(RGPD Art. 17). El plazo legal es de 30 días. Con independencia de que lo pidas, los
+datos se anonimizan solos a los 3 años de la baja (ver 4.4).
 
 ---
 
 ## 6. Contactos de Soporte
 
-| Problema | Contacto | Tiempo |
-|----------|----------|--------|
-| No puedo loguear | admin@sistema.es | 24h |
-| Error al subir archivo | admin@sistema.es | 24h |
-| Datos incorrectos | tu_sindicato@ejemplo.es + admin | 48h |
-| Brecha de seguridad | admin@sistema.es (URGENTE) | 1h |
-| Acceso a imprenta | admin@sistema.es | 24h |
+**Todo esto está también en la web, en `/ayuda/`**, que se ve sin necesidad de tener
+cuenta.
+
+| Vía | Dato |
+|-----|------|
+| Correo | **soporte-carnets@cgt.org.es** |
+| Teléfono | **918 055 047** (horario de oficina) |
+
+**Cuando escribas, cuenta qué estabas haciendo y qué te dijo la pantalla**, con el
+mensaje de error tal cual salió. Si el fallo fue al subir un archivo, di el nombre
+del archivo.
+
+> **No adjuntes nunca el Excel de afiliados.** Lleva nombres y números de personas
+> afiliadas, y el correo electrónico no va cifrado: mandarlo convierte una consulta
+> de soporte en una filtración de datos de categoría especial.
+
+Antes de escribir, mira el apartado *"Antes de escribirnos"* de `/ayuda/`: recoge las
+cuatro causas por las que el sistema rechaza un archivo, que son casi todas.
+
+**Si tienes indicios de una brecha de seguridad** —alguien ha entrado en vuestra
+cuenta, os han robado el portátil con la sesión abierta— avisad de inmediato y
+decidlo en el asunto. El plazo legal para notificar una brecha a la autoridad es de
+72 horas y empieza a correr desde que la organización lo sabe.
 
 ---
 
 ## 7. Checklist: Primer Uso
 
-- [ ] Solicité acceso en `/registro/`
+- [ ] Solicité el alta en `/alta/` (con correo del sindicato y persona de contacto)
+- [ ] Avisé al administrador de que la había solicitado
 - [ ] Esperé aprobación (1-2 días)
-- [ ] Logueé con mi usuario y contraseña
-- [ ] Leí y acepté términos legales
-- [ ] Descargué plantilla `afiliados_plantilla.xlsx`
-- [ ] Rellené datos de mis afiliados
-- [ ] Subí archivo (sin errores)
+- [ ] Entré con mi usuario y contraseña en `/login/`
+- [ ] Leí y acepté el acuerdo legal
+- [ ] Descargué `plantilla_afiliacion_oficial.xlsx` desde `/subir-datos/`
+- [ ] Rellené la hoja **ALTAS**, copiando los valores de la hoja **Datos**
+- [ ] Subí el archivo (sin errores)
 - [ ] Recibí confirmación de "Éxito"
-- [ ] Notificación muestra estado "IMPRESO"
+- [ ] La notificación muestra el estado "IMPRESO"
+- [ ] **Cerré la sesión con "Salir"**
 
 ✓ **¡Listo! Tu primer lote está en camino a imprenta.**
 
 ---
 
-**Última revisión:** 2026-08-21
-**Versión:** 1.0
+**Última revisión:** 2026-08-27
+**Versión:** 2.0
+
+Este manual se lee también en el navegador, en **`/ayuda/manual/`**, enlazado desde
+la página de ayuda. Es el mismo texto: la web lo renderiza desde este archivo.
+
+**Qué cambió en la 2.0.** El alta pide ahora correo y persona de contacto, y con el
+correo llegó la **recuperación de contraseña por tu cuenta** (2.6), que antes no
+existía: este manual decía que había que pedírsela al administrador. Hay **portada**
+y **página de ayuda** públicas, y botón de **Salir**. La **plantilla oficial se
+descarga** desde la propia web, y la documentación de sus columnas estaba mal: los
+cuatro códigos se copian enteros desde la hoja `Datos` (`01-Confederación Andalucía`),
+no como dos dígitos sueltos. Se corrigieron las direcciones `/registro/` → `/alta/` y
+`/subir/` → `/subir-datos/`, el plazo de conservación (3 años **desde la baja**), y la
+respuesta sobre exportación, que se contradecía con el apartado 3.2.

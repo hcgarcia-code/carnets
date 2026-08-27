@@ -89,15 +89,18 @@ basa en el reloj, y un desfase de más de medio minuto invalida los códigos.
 ### 3.1 Flujo de Aprobación de Solicitudes
 
 ```
-1. Sindicato accede a /registro/ y solicita alta
-   ├─ Se crea User (is_active=False)
-   ├─ Se crea PerfilSindicato (acuerdo_aceptado=False)
+1. Sindicato accede a /alta/ y solicita el alta
+   ├─ Se crea User (is_active=False, con email OBLIGATORIO)
+   ├─ Se crea PerfilSindicato (nombre_identificativo, persona_contacto,
+   │                           acuerdo_aceptado=False)
    └─ Se audita: SINDICATO_REGISTRADO
 
 2. Admin revisa en django-admin → Users
    ├─ Busca el usuario nuevo
-   ├─ Revisa "Información del sindicato" (nombre_identificativo)
-   │   [Es la única pista: "CGT Rama Metal Barcelona", "UGT Sector Educación", etc.]
+   ├─ Revisa "Información del sindicato":
+   │   - nombre_identificativo → qué sindicato dice ser
+   │   - persona_contacto      → quién dice ser quien lo pide
+   │   + el email de la cuenta
    ├─ Valida que sea legítimo
    └─ Toma decisión: Activar o Rechazar
 
@@ -137,6 +140,7 @@ Dentro de cada usuario, verás una sección **"Información del sindicato"**:
 ```
 Información del sindicato:
   Nombre identificativo: "CGT Rama Metal Barcelona"
+  Persona de contacto:   "Ana Ejemplo"
   Acuerdo aceptado: [☑ / ☐]
   Fecha aceptación: 2026-08-15 14:30:45
   IP aceptación: 203.0.113.42
@@ -144,11 +148,18 @@ Información del sindicato:
 
 **Qué puedes cambiar:**
 - `Nombre identificativo` — si el sindicato lo solicita, actualizar
+- `Persona de contacto` — cuando cambia quien lleva la cuenta en el sindicato
 - `Activo` — marcar/desmarcar para activar/bloquear
+- El `email` de la cuenta, si el sindicato cambia de buzón
 
 **Qué NO debes cambiar:**
 - `Acuerdo aceptado` — registra voluntad del usuario, no lo falsees
 - Fechas/IPs — auditoría inmutable
+
+> **El email no es un dato de adorno: es la única vía de recuperación de
+> contraseña.** Si lo dejas mal escrito o apuntas uno personal de alguien que se
+> marcha del sindicato, esa cuenta se queda sin forma de recuperarse sola y volvéis
+> a depender de ti para cada olvido. Mejor un buzón del sindicato que uno personal.
 
 ---
 
@@ -223,23 +234,60 @@ Flujo típico:
 - ✗ No puede entrar a `/admin/`
 - ✓ Cada consulta suya al panel queda auditada
 
-### 4.4 Eliminar Afiliado
+### 4.4 Eliminar o Anonimizar un Afiliado
 
-**Antes de eliminar:**
-1. Revisa la auditoría en `HistoricalRecords`
-2. Confirma que el sindicato lo solicita (hay un ticket)
-3. Documenta el motivo
+Son dos cosas distintas y se confunden con facilidad. **Elegir mal deja datos
+personales guardados creyendo haberlos suprimido.**
 
-**Proceso:**
+| Quieres… | Herramienta | Qué pasa con el historial |
+|----------|-------------|---------------------------|
+| Corregir un alta errónea (duplicado, sindicato equivocado) | Botón **Eliminar** del admin | **Se conserva íntegro**, con el nombre dentro |
+| Suprimir los datos de una persona (Art. 17, o vencido el plazo) | `expurgar_afiliados` | **Se anonimiza también** |
+
+#### Borrar del admin: para corregir errores, no para suprimir
+
 ```
 1. Admin selecciona afiliado
 2. Botón "Eliminar"
 3. Confirma
-4. El afiliado se elimina (pero HistoricalRecords lo conserva)
-5. Auditoría registra: AFILIADO_ELIMINADO, usuario, IP, motivo
+4. La fila desaparece — pero su historial NO
+5. Queda registrado en /admin/admin/logentry/ (log del admin de Django)
 ```
 
-**Garantía:** Incluso después de eliminar, el historial de cambios queda íntegro.
+> **El borrado del admin no suprime nada a efectos del RGPD.**
+> `django-simple-history` guarda una copia de cada versión del afiliado en
+> `gestion_historicalafiliado` **para siempre**. Borrar la fila viva deja el nombre
+> anterior ahí, cifrado pero recuperable con la clave, e invisible desde la
+> aplicación: es decir, deja sin suprimir justo el dato que acabas de declarar
+> suprimido. Para una solicitud de supresión, ve al apartado 8.3.
+
+#### Anonimizar: `expurgar_afiliados`
+
+```bash
+python manage.py expurgar_afiliados --dry-run   # SIEMPRE primero
+python manage.py expurgar_afiliados
+```
+
+Anonimiza los afiliados **en estado BAJA** cuya `fecha_baja` tenga más de **3 años**
+(el plazo que fija la EIPD). Sustituye nombre y número por valores neutros **en la
+ficha y en todo su historial**, y deja el recuento de carnets emitidos, que ya no
+identifica a nadie.
+
+| Opción | Para qué |
+|--------|----------|
+| `--dry-run` | Dice a cuántos afectaría sin tocar nada |
+| `--anios N` | Cambia el plazo (por defecto 3) |
+
+Deja rastro en la auditoría como `afiliados.expurgados`. Ese registro **es la prueba
+de haber cumplido el plazo** —y de no haberte adelantado a él—, porque después del
+expurgo ya no queda dato que enseñar.
+
+> **Avisa de las bajas sin fecha.** Si el comando dice *"N afiliado(s) de baja sin
+> fecha de baja"*, son bajas anteriores a que el campo existiera: no hay plazo que
+> contar, así que no las toca. **Revísalas a mano**, no las ignores: si las dejas,
+> se quedan fuera del expurgo para siempre. Para saldarlas, ponles una `fecha_baja`
+> razonable (la de la última modificación del historial suele servir) o
+> anonimízalas a mano.
 
 ---
 
@@ -247,7 +295,7 @@ Flujo típico:
 
 ### 5.1 Ver el Historial de Cambios
 
-**Ruta:** `/admin/simple_history_afiliado/`
+**Ruta:** `/admin/gestion_historicalafiliado/`
 
 Esta tabla muestra **cada cambio** hecho a cada afiliado:
 
@@ -277,9 +325,15 @@ CGT Metal | 2026-08-15 14:20 | 150 | afiliados_agosto.xlsx
 - **Sindicato:** Quién subió
 - **Fecha:** Cuándo
 - **Cantidad:** Cuántos afiliados se cargaron
-- **Nombre Archivo:** Sin datos personales (el usuario elige el nombre)
+- **Nombre Archivo:** el que le puso el sindicato
 
-**Nota:** El nombre del archivo NO se logea (el usuario podría poner "maria_fernandez.xlsx" y eso sería personal).
+> **Ojo con el nombre del archivo.** Se guarda **en esta tabla** tal cual lo mandó el
+> sindicato, y lo elige él: nada le impide subir `maria_fernandez.xlsx`, y entonces
+> esta columna contiene un dato personal. No aparece en cambio en el registro de
+> auditoría en JSON (§5.3), que solo guarda el recuento.
+>
+> Si ves nombres de personas en esta columna, díselo al sindicato. Y tenlo en cuenta
+> al expurgar: esta tabla no la toca `expurgar_afiliados`.
 
 ### 5.3 Revisar Logs de Acceso
 
@@ -494,15 +548,39 @@ User.objects.filter(is_superuser=True)
    - ¿Fue acceso fraudulento? → Deshacer cambios, rotar contraseña
    - ¿Fue error del sindicato? → Notificar, documentar
 
-3. Acciones:
-   django-admin → Users → Edita usuario
-   - Botón "Establecer contraseña":
-     [Fuerza reset, sindicato recibe email con enlace temporal]
+3. Cortar el acceso YA:
+   django-admin → Users → Edita usuario → desmarca "Activo" → Guarda
+   [Esto expulsa a quien esté dentro en cuanto caduque su sesión, como
+    máximo a la media hora, y le impide volver a entrar]
 
-4. Auditar:
-   Crear entrada manual en logs:
-   "INCIDENTE: acceso_no_autorizado usuario=X motivo=Y accion=reset_password"
+4. Reponer la contraseña. Dos vías, y la primera es mejor:
+   a) Dile al sindicato que use /recuperar-password/ (le llega un enlace
+      de un solo uso a su correo). Así la contraseña nueva no pasa por ti
+      ni por ningún canal intermedio.
+   b) Si perdieron también el buzón: django-admin → Users → "Establecer
+      contraseña". Comunícasela por un canal distinto al que usó para
+      pedírtela.
+
+5. Vuelve a marcar "Activo" cuando la cuenta esté saneada
 ```
+
+> **El botón "Establecer contraseña" del admin no envía ningún correo.** Es de
+> Django y solo cambia el hash: si lo usas, tienes que comunicar la contraseña tú, y
+> ese es precisamente el paso frágil. Prefiere siempre `/recuperar-password/`.
+
+> **Desactivar la cuenta no cierra la sesión abierta al instante.** Django comprueba
+> `is_active` al autenticar, no en cada petición; quien ya esté dentro sigue hasta
+> que su sesión caduque (`SESSION_COOKIE_AGE`, 30 minutos por defecto). Si necesitas
+> echarlo ahora mismo, borra sus sesiones:
+> ```bash
+> python manage.py shell -c "
+> from django.contrib.sessions.models import Session
+> from django.utils import timezone
+> for s in Session.objects.filter(expire_date__gte=timezone.now()):
+>     if s.get_decoded().get('_auth_user_id') == 'ID_DEL_USUARIO':
+>         s.delete()
+> "
+> ```
 
 ### 8.2 Incident: Datos Exfiltrados (Brecha)
 
@@ -519,38 +597,85 @@ User.objects.filter(is_superuser=True)
 3. Si fue acceso no autorizado:
    - Cambiar contraseña de admin
    - Auditar todas las máquinas de admin (en logs)
-   - Activar 2FA si está disponible
+   - Comprobar que el segundo factor sigue activo y es tuyo
 
-4. Notificar:
-   - DPO (Delegado de Protección de Datos)
-   - AEPD si es grave (>2% de usuarios)
-   - Sindicatos afectados (plazo 72h)
+4. Notificar (ver el matiz de abajo):
+   - Al DPO y a los sindicatos afectados, cuanto antes
+   - A la AEPD, salvo que sea improbable que haya riesgo
 ```
 
-### 8.3 Incident: Afiliado Solicita "Derecho al Olvido"
+> **No hay ningún umbral de "X% de afectados".** El criterio del RGPD (Art. 33) es
+> otro: se notifica a la AEPD **siempre**, en 72 horas, *salvo* que sea improbable
+> que la brecha suponga un riesgo para los derechos y libertades de las personas. Y
+> aquí el dato es **afiliación sindical**, categoría especial del Art. 9: dar por
+> improbable el riesgo con estos datos es muy difícil de sostener. **Ante la duda, se
+> notifica.**
+>
+> Las 72 horas cuentan **desde que la organización tiene conocimiento**, no desde que
+> terminas de investigar. Si a las 72 horas no lo sabes todo, se notifica con lo que
+> haya y se completa después: el propio Art. 33.4 lo permite.
+>
+> **Quien notifica es el sindicato responsable de los datos**, no esta aplicación.
+> Tu papel es darle los hechos —qué pasó, cuándo, qué datos, cuántas personas, qué
+> has hecho— con la auditoría en la mano y sin tardar.
 
-Un afiliado solicita que se eliminen sus datos (RGPD Art. 17).
+### 8.3 Incident: Afiliado Solicita Supresión (RGPD Art. 17)
+
+**La solicitud no te llega a ti.** El responsable de los datos es **el sindicato** al
+que la persona está afiliada, no esta aplicación ni CGT Confederal: aquí los datos
+solo se tratan por encargo, para confeccionar el carnet. Quien recibe, valora y
+contesta la solicitud es el sindicato. Tú ejecutas lo que te pida.
 
 ```
-1. Verificar solicitud:
-   - Email auténtico del afiliado
-   - Confirmar que es sindicalista de ese sindicato
+1. El sindicato verifica la solicitud (es su obligación, no la tuya)
+   y te pide por escrito la supresión, identificando al afiliado por
+   su número, NO por su nombre en un correo sin cifrar
 
-2. Coordinación:
-   - Contactar al sindicato propietario de los datos
-   - Sindicato solicita a admin que elimine
+2. Localizas la ficha en /admin/gestion/afiliado/
 
-3. Eliminación:
-   admin@sistema → Django-admin → Afiliado
-   - Busca afiliado por nombre/número
-   - Botón "Eliminar"
-   - Confirma: "Sí, estoy seguro"
-   - Sistema audita: AFILIADO_ELIMINADO, motivo=derecho_al_olvido
+3. La anonimizas — ficha E HISTORIAL:
+```
 
+```bash
+python manage.py shell
+```
+
+```python
+from gestion.models import Afiliado
+from gestion.auditoria import ACCIONES, registrar
+
+IDS = [1234]   # las pk de las fichas a suprimir
+
+Afiliado.history.filter(id__in=IDS).update(
+    nombre_apellidos="ANONIMIZADO", num_afiliado="000000", notas_historicas="")
+Afiliado.objects.filter(pk__in=IDS).update(
+    nombre_apellidos="ANONIMIZADO", num_afiliado="000000", notas_historicas="")
+registrar(ACCIONES.AFILIADOS_EXPURGADOS,
+          usuario="supresion_art17", cantidad=len(IDS), ids=IDS)
+```
+
+```
 4. Verificación:
-   - Confirmar que no aparece en búsquedas
-   - HistoricalRecords lo conserva (para auditoría legal)
+   - La ficha ya no lleva nombre en el admin
+   - El historial de esa ficha tampoco (compruébalo, es el paso que se olvida)
+   - Confirmas al sindicato para que conteste al afiliado
+
+5. Plazo: 30 días desde que el afiliado lo pidió a su sindicato.
 ```
+
+> **Primero el historial, luego la ficha.** En ese orden: si anonimizas la ficha
+> viva, `django-simple-history` crea **una versión más** con el dato viejo dentro y
+> vuelves a tener el problema.
+>
+> **Y no uses el botón "Eliminar" del admin para esto.** Borra la fila y deja el
+> historial completo, con el nombre: habrías respondido "suprimido" conservando el
+> dato (ver 4.4).
+
+> **Antes de suprimir, comprueba si procede.** El derecho del Art. 17 no es
+> incondicional: si el afiliado sigue de alta y el carnet está en curso, el sindicato
+> puede tener base para conservarlo. Esa valoración es del sindicato; tú no la haces
+> ni la discutes, pero tampoco ejecutes una supresión que nadie te ha pedido por
+> escrito.
 
 ---
 
@@ -574,11 +699,19 @@ Un afiliado solicita que se eliminen sus datos (RGPD Art. 17).
 
 ### 9.3 Trimestral
 
+- [ ] **Ejecutar el expurgo del plazo de conservación** (RGPD Art. 5.1.e). Primero en seco:
+      ```bash
+      python manage.py expurgar_afiliados --dry-run
+      python manage.py expurgar_afiliados
+      ```
+      Si avisa de bajas **sin fecha de baja**, resuélvelas: son anteriores al campo y
+      se quedan fuera del expurgo para siempre si nadie las mira (ver 4.4)
 - [ ] Revisar incidentes del trimestre
 - [ ] **Comprobar que el segundo factor del admin sigue funcionando** (entra y sal; si has
       cambiado de teléfono sin reejecutar `activar_2fa`, te enterarás ahora y no en una urgencia)
 - [ ] Verificar capacidad de almacenamiento (logs, BD)
-- [ ] Repasar que CI sigue en verde en GitHub Actions
+- [ ] Repasar que CI sigue en verde en GitHub Actions, **incluido `pip-audit`**: avisa de
+      vulnerabilidades conocidas en las dependencias en cada push
 
 ### 9.4 Anualmente
 
@@ -666,6 +799,41 @@ Lo que sí sería un fallo es lo contrario: si en el panel aparece `v1$1:...` o
 
 ## 12. Apéndice: Comandos Útiles
 
+### Los comandos del proyecto
+
+Todos se ejecutan desde la raíz, con el entorno activado:
+`python sistema_carnets/manage.py <comando>`
+
+| Comando | Para qué | Ojo con |
+|---------|----------|---------|
+| `expurgar_afiliados` | Anonimiza las bajas con el plazo vencido (§4.4) | **Irreversible.** Usa `--dry-run` antes, siempre |
+| `reencriptar_afiliados` | Re-cifra todo con la clave nueva al rotar (§6.2) | Aborta si falta alguna clave antigua; no escribe nada a medias |
+| `revisar_auditoria` | Manda correo si hay algo reseñable en la última hora (§5.4) | Necesita `ADMINS` y `EMAIL_HOST` configurados |
+| `activar_2fa` | Da de alta el segundo factor de una cuenta de admin (§2.2) | Sin esto no se entra al admin |
+| `backup_a_s3_cifrado` | Copia de seguridad cifrada a Object Storage | Ver `deploy/backups_cifrados_s3.md` |
+| `importar_desde_beta` | Trae cuentas y afiliados del despliegue beta | Solo para la migración inicial; ver abajo |
+| `preparar_pruebas` | Monta un entorno de pruebas completo | **Se niega a correr con `DEBUG=False`** o sobre una base con afiliados |
+
+### Migración desde el beta (una sola vez)
+
+```bash
+# En el beta — solo las tres tablas que hacen falta, no la base entera:
+python manage.py dumpdata auth.User gestion.PerfilSindicato gestion.Afiliado \
+    --indent 2 -o beta.json
+
+# En el 2.0:
+python sistema_carnets/manage.py importar_desde_beta beta.json --dry-run
+python sistema_carnets/manage.py importar_desde_beta beta.json
+```
+
+- **Copia el hash de la contraseña sin volver a cifrarlo**, así que los sindicatos
+  entran con la contraseña que ya tenían y no hay que repartir credenciales nuevas
+- **No duplica**: descarta los afiliados que ya existan para el mismo sindicato y número
+- Recupera la fecha de alta original, que `auto_now_add` machacaría
+
+El procedimiento completo, con el estado de los datos del beta y qué hacer con las
+filas corruptas, está en **`deploy/migrar_desde_beta.md`**.
+
 ### Django Shell
 
 ```bash
@@ -728,5 +896,27 @@ EOF
 
 ---
 
-**Última revisión:** 2026-08-21
-**Versión:** 1.0
+**Última revisión:** 2026-08-27
+**Versión:** 2.0
+
+**Qué cambió en la 2.0.** Se corrigieron tres cosas que podían llevar a error real:
+
+1. **§4.4 y §8.3 — supresión de datos.** La versión anterior presentaba como
+   *garantía* que el historial sobrevive al borrado. Para una solicitud del Art. 17
+   eso es justo el fallo: borrar la fila del admin deja el nombre en
+   `gestion_historicalafiliado`, y habrías contestado "suprimido" conservando el
+   dato. Ahora se distingue borrar (corregir errores) de anonimizar
+   (`expurgar_afiliados`), y el procedimiento del Art. 17 anonimiza **historial
+   primero, ficha después**.
+2. **§8.1 — "el botón Establecer contraseña envía un correo".** No lo envía; es de
+   Django y solo cambia el hash. Además ya existe `/recuperar-password/`, que es la
+   vía correcta. Se añade cómo cerrar de verdad una sesión abierta.
+3. **§8.2 — el umbral ">2% de usuarios" para notificar a la AEPD.** No existe. El
+   criterio del Art. 33 es el riesgo, y quien notifica es el sindicato responsable.
+
+Se añaden `expurgar_afiliados`, `importar_desde_beta` y el resto de comandos (§12),
+el expurgo trimestral (§9.3), `pip-audit` en CI, y los campos nuevos del alta
+(correo obligatorio y persona de contacto). También se anota que
+`RegistroSubida.nombre_archivo` guarda el nombre que eligió el sindicato y puede
+llevar datos personales (§5.2). Se corrigió `/registro/` → `/alta/` y se retiró la
+acción de auditoría `AFILIADO_ELIMINADO`, que no existe.

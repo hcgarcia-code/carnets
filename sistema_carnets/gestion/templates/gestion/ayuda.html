@@ -1,5 +1,4 @@
 {% extends "gestion/base.html" %}
-{% load static %}
 
 {% comment %}
 Página de ayuda. Pública a propósito: quien más la necesita es justo quien no
@@ -22,8 +21,8 @@ usa el sistema. Ni sindicatos, ni recuentos, ni nombres.
 
     <header class="seccion">
         <h1 class="titular">Ayuda</h1>
-        <p class="subtitulo">Qué revisar antes de escribir, de dónde bajar la
-        plantilla oficial y cómo contactar con soporte.</p>
+        <p class="subtitulo">El manual completo, qué revisar antes de escribir
+        y cómo contactar con soporte.</p>
     </header>
 
     <div class="rejilla">
@@ -48,15 +47,20 @@ usa el sistema. Ni sindicatos, ni recuentos, ni nombres.
             <p class="entradilla"><a href="tel:+34918055047">918 055 047</a></p>
         </section>
 
+        {% comment %}
+            Esta caja sustituye a la de descarga de la plantilla. La plantilla
+            no se pierde: sigue —y es donde de verdad hace falta— en
+            /subir-datos/, encima del formulario. Y el manual explica de dónde
+            bajarla, así que este enlace lleva igualmente hasta ella.
+        {% endcomment %}
         <section class="vidrio tarjeta">
-            <span class="etiqueta">Plantilla</span>
-            <h2 class="titulo">La plantilla oficial</h2>
-            <p class="entradilla">Es el único formato que el sistema acepta.
-            Trae ya las columnas correctas y las listas de confederaciones,
-            federaciones y sindicatos.</p>
+            <span class="etiqueta">Manual</span>
+            <h2 class="titulo">Manual de usuario</h2>
+            <p class="entradilla">Todo el circuito paso a paso: solicitar el
+            alta, preparar el archivo, subirlo y seguir el estado del lote.
+            Se lee en el navegador, sin descargar nada.</p>
             <a class="boton boton--claro boton--ancho"
-               href="{% static 'documentos/plantilla_afiliacion_oficial.xlsx' %}"
-               download>Descargar la plantilla (.xlsx)</a>
+               href="{% url 'manual_usuario' %}">Leer el manual</a>
         </section>
 
     </div>
@@ -68,7 +72,8 @@ usa el sistema. Ni sindicatos, ni recuentos, ni nombres.
         <ul class="lista-legal">
             <li><strong>Faltan columnas obligatorias.</strong> El archivo no
             sale de la plantilla oficial, o se le ha borrado o renombrado alguna
-            columna. Bájala otra vez arriba y vuelca los datos en ella.</li>
+            columna. Descárgala otra vez desde la pantalla de subir datos y
+            vuelca los datos en ella.</li>
 
             <li><strong>El archivo no es .xlsx.</strong> Un .xls antiguo o un
             .csv renombrado no valen. En Excel: <em>Guardar como → Libro de

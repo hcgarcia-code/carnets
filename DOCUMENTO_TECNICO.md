@@ -127,7 +127,7 @@ python -c "import base64,os; print(base64.b64encode(os.urandom(32)).decode())"
 - Cambiar estado de impresión
 - Quién, cuándo, desde qué IP
 
-**Tabla `simple_history_afiliado`:**
+**Tabla `gestion_historicalafiliado`:**
 ```sql
 SELECT 
   history_id, 
@@ -137,7 +137,7 @@ SELECT
   confederacion_territorial,
   num_afiliado,  -- cifrado en v1$...
   nombre_apellidos,  -- cifrado en v1$...
-FROM simple_history_afiliado
+FROM gestion_historicalafiliado
 ORDER BY history_date DESC
 ```
 
@@ -145,7 +145,13 @@ ORDER BY history_date DESC
 - Los registros son **de solo lectura** (no se pueden editar, solo crear)
 - Incluyen **timestamp y usuario** de cada cambio
 - Preservan el **estado exacto** de cada campo en el momento del cambio
-- No se purgan automáticamente (política de retención: consultar DPO)
+
+**Con una excepción deliberada: el expurgo por vencimiento del plazo** (§4.2). Es la única
+escritura que toca el historial, y existe justamente porque la inmutabilidad, llevada al
+límite, choca con el Art. 17: un historial que guarda cada versión *para siempre* conserva el
+nombre de una persona mucho después de que la finalidad que lo legitimaba haya desaparecido.
+`expurgar_afiliados` anonimiza los campos personales del historial y deja intacto lo demás
+—fechas, autor, secuencia de cambios—, que es lo que la trazabilidad necesita de verdad.
 
 **Las LECTURAS también se auditan** (`gestion/auditoria.py`), y esto es lo que distingue a
 este sistema de uno que solo registre cambios. Para datos de categoría especial hay que poder
@@ -162,6 +168,12 @@ admin puede llevarse el expediente de todos los afiliados sin dejar rastro.
 | `acceso.denegado` | Intento rechazado por permisos |
 | `sindicato.registrado` | Alta autoservicio |
 | `login.correcto` / `login.fallido` / `login.bloqueado` | Autenticación |
+| `reposicion.solicitada` / `reposicion.bloqueada` | Reposición de contraseña por correo |
+| `afiliados.expurgados` | Anonimización por vencimiento del plazo (§4.2) |
+
+> `afiliados.expurgados` es un caso aparte: **es el único rastro que queda**. Después del
+> expurgo no hay dato que enseñar, así que ese registro es la prueba de haber cumplido el
+> plazo —y de no haberse adelantado a él—.
 
 **Regla que gobierna ese módulo: aquí no se escriben datos personales.** Se registra quién,
 cuándo, desde dónde, qué operación y sobre cuántos registros; nunca el nombre ni el número.
@@ -191,9 +203,35 @@ Detalles deliberados:
 |---|---|---|---|
 | Login (`auth_views.py`) | par (IP, usuario) | 5 fallos | **5 minutos** → 429 |
 | Alta (`views.py`) | IP | 5 solicitudes | **1 hora** → 429 |
+| Reposición de contraseña (`auth_views.py`) | **IP sola** | 5 peticiones | **15 minutos** → 429 |
 
 El de login cuenta por *(IP, usuario)* y no solo por IP: así un atacante no puede bloquear la
 cuenta de un tercero desde fuera, y sigue cortándose el tanteo de contraseñas.
+
+El de reposición cuenta **solo por IP, deliberadamente**. Aquí la clave no puede incluir la
+dirección de correo pedida: si contara por dirección, el propio patrón de bloqueo revelaría
+cuáles existen —justo lo que la respuesta neutra de la pantalla se esfuerza en no decir—, y
+además dejaría que cualquiera bloqueara la recuperación de un sindicato concreto pidiéndola
+cinco veces.
+
+**Reposición de contraseña por correo** (`/recuperar-password/`, cuatro rutas de
+`PasswordResetView` y siguientes). Vive gracias a que el alta exige correo desde `386cef9`.
+Django firma un token de un solo uso ligado al hash actual de la contraseña, de modo que usarlo
+lo invalida. La pantalla responde lo mismo exista o no la cuenta (enumeración de usuarios).
+Deja rastro como `reposicion.solicitada` y `reposicion.bloqueada`.
+
+> Esas dos acciones de auditoría se llamaron antes `PASSWORD_*`. Se renombraron porque
+> `bandit` marca como posible secreto en el código (S105) cualquier constante cuyo nombre
+> contenga `PASSWORD`.
+
+**Cierre de sesión** (`/salir/`, `LogoutView` con `next_page='portada'`). **Solo acepta POST**,
+que es lo que impone `LogoutView` desde Django 5: con GET, una `<img src="/salir/">` en
+cualquier página ajena cerraba la sesión del sindicato que la visitara. La plantilla base lo
+emite como formulario con token CSRF, no como enlace.
+
+> `settings.LOGOUT_REDIRECT_URL` sigue apuntando a `login`, pero **no se usa**: el `next_page`
+> de la vista tiene prioridad. Se manda a la portada y no al login a propósito, para no invitar
+> a volver a entrar en un equipo compartido.
 
 > **Ambos guardan su contador en la caché de Django, lo que convierte al backend de caché en un
 > control de seguridad.** Con la caché en memoria del proceso, cada worker lleva su propia
@@ -261,7 +299,7 @@ administrador la apruebe.
 ### 3.2 Aceptación de Términos Legales (Autenticado)
 
 ```
-Sindicato autenticado accede a /subir/
+Sindicato autenticado accede a /subir-datos/
     ↓
 cargar_datos_sindicato() [GET]
     └→ ¿PerfilSindicato.acuerdo_aceptado = True?
@@ -278,7 +316,7 @@ acuerdo_legal() [POST]
     └→ PerfilSindicato.fecha_aceptacion = now()
     └→ PerfilSindicato.ip_aceptacion = request.REMOTE_ADDR
     └→ .save() [audita vía HistoricalRecords]
-    └→ Redirige a /subir/
+    └→ Redirige a /subir-datos/
     
 [Sindicato ya puede subir archivos]
 ```
@@ -418,9 +456,10 @@ gestion_afiliado:
   estado_impresion (CharField: 'PENDIENTE'/'IMPRESO')
   fecha_envio_imprenta (DateTimeField, nullable)
   fecha_creacion (DateTimeField, auto_now_add)
+  fecha_baja (DateTimeField, nullable) → INICIO DEL PLAZO DE CONSERVACIÓN
 
 -- Auditoría (HistoricalRecords de simple-history)
-simple_history_afiliado:
+gestion_historicalafiliado:
   history_id (PK)
   ... [TODOS los campos de gestion_afiliado + history_user_id, history_date]
   
@@ -430,27 +469,57 @@ gestion_registrosubida:
   sindicato_id (FK → auth_user)
   fecha (DateTimeField, auto_now_add)
   cantidad_afiliados (IntegerField)
-  nombre_archivo (CharField) — SIN datos personales
+  nombre_archivo (CharField) — lo elige el sindicato: PUEDE llevar datos personales
 
 -- Perfiles de sindicato
 gestion_perfilsindicato:
   id (PK)
   usuario_id (OneToOneField → auth_user)
   nombre_identificativo (CharField) — "CGT Rama Metal"
+  persona_contacto (CharField) — quién solicitó el alta
   acuerdo_aceptado (BooleanField)
   fecha_aceptacion (DateTimeField)
   ip_aceptacion (GenericIPAddressField)
 ```
 
+**`fecha_baja` se sella sola**, desde `clean()` y también desde `save()`: se rellena al pasar a
+`BAJA` y se vacía al volver a `ALTA`. Está en los dos sitios a propósito — `save()` solo no
+cubre la validación del formulario, y `clean()` solo no cubre las escrituras que no pasan por
+un formulario (el importador, el shell).
+
+> **Es el campo que hacía falta para que el plazo de conservación fuera ejecutable.** La EIPD lo
+> daba por documentado citando un `fecha_cancelacion` que nunca existió: `estado` pasaba a
+> `BAJA` sin dejar constancia de cuándo, así que no había fecha desde la que contar tres años.
+> Sin este campo, el §4.2 era una declaración de intenciones.
+
+**Lo que `fecha_baja` no puede arreglar** son las bajas anteriores a su existencia: se quedan a
+`NULL` y no hay forma de saber cuándo vencen. `expurgar_afiliados` no las toca y **las cuenta
+en voz alta** en cada pasada, para que no queden invisibles.
+
 ### 4.2 Retención de Datos
 
-| Tabla | Retención | Motivo | Responsable |
-|-------|-----------|--------|-------------|
-| gestion_afiliado | Según RGPD (consultar DPO) | Base de datos de miembros activos | Sindicato (propietario) |
-| simple_history_afiliado | 2 años (configurable) | Auditoría de cambios | RGPD Art. 15 (derecho de acceso) |
-| gestion_registrosubida | Indefinida | Trazabilidad de cargas | DPO, para investigaciones |
-| django_admin_log | 2 años | Auditoría de admin | Seguridad, investigación |
-| Logs (stdout/fichero) | 30 días (rotación diaria) | Detección de anomalías | Operaciones |
+| Tabla | Retención | Se cumple mediante | Estado |
+|-------|-----------|--------------------|--------|
+| `gestion_afiliado` | **3 años desde `fecha_baja`** | `expurgar_afiliados` (cron trimestral) | Automático |
+| `gestion_historicalafiliado` | Ídem, **a la vez que la ficha** | El mismo comando, en la misma transacción | Automático |
+| `gestion_registrosubida` | Indefinida | — | **Sin expurgo** (ver aviso) |
+| `django_admin_log` | 2 años | Revisión manual | Manual |
+| Registro de auditoría (JSONL) | 2 años | Rotación del destino externo | Operaciones |
+
+**El expurgo anonimiza, no borra la fila**, para conservar el recuento de carnets emitidos —que
+ya no identifica a nadie— y perder el vínculo persona ↔ afiliación, que es el dato del Art. 9.
+
+**Y anonimiza el historial primero, dentro de la misma transacción.** Ese orden no es un
+detalle de estilo: anonimizar la ficha viva antes haría que `django-simple-history` grabara
+*una versión más* con el dato viejo dentro. Tocar solo la ficha viva dejaría el nombre anterior
+en `gestion_historicalafiliado` —cifrado, pero recuperable con la clave, e invisible desde la
+aplicación—, es decir, dejaría sin suprimir justo el dato declarado suprimido.
+
+> **Hueco conocido: `gestion_registrosubida.nombre_archivo`.** Guarda el nombre del archivo tal
+> como lo mandó el sindicato, y lo elige él: nada impide un `maria_fernandez.xlsx`. No lo toca
+> ningún expurgo y no caduca. No aparece en cambio en el registro de auditoría en JSON, que
+> solo guarda el recuento. Mitigación de hoy: vigilarlo (§5.2 del manual de administrador). El
+> arreglo sería no guardar el nombre, o guardar solo su extensión.
 
 ---
 
@@ -460,8 +529,8 @@ gestion_perfilsindicato:
 
 | Rol | Descripción | Permisos | Vistas Accesibles |
 |-----|-------------|----------|------------------|
-| **Sin login** | Público | ninguno | /registro/, /login/ |
-| **Sindicato** (is_active=True) | Usuario sindical | read/write propios afiliados | /acuerdo/, /subir/, /notificaciones/ |
+| **Sin login** | Público | ninguno | `/`, `/ayuda/`, `/alta/`, `/login/`, `/recuperar-password/…` |
+| **Sindicato** (is_active=True) | Usuario sindical | read/write propios afiliados | `/acuerdo-legal/`, `/subir-datos/`, `/notificaciones/`, `/salir/` |
 | **Sindicato** (is_active=False) | Cuenta pendiente | ninguno | /login/ (mensaje de rechazo) |
 | **Imprenta** (group='Imprenta') | Cta de imprenta | read parcial (sin nombres) | /panel-imprenta/ |
 | **Admin** (is_superuser=True) | Administrador | full access (CRUD) | django-admin, todas las vistas |
@@ -511,6 +580,59 @@ confederacion_territorial = CharField(
 
 **Inyección en Templates:** `{{ variable }}` con escapado automático XSS
 
+> **Nota sobre los códigos del Excel.** Las cuatro columnas de códigos llegan como
+> `"01-Confederación Andalucía"` y la vista se queda con lo anterior al primer guion
+> (`str(...).split('-')[0].strip()`); `Num_Afiliado` toma la parte entera y rellena con ceros
+> hasta seis (`.split('.')[0].zfill(6)`, porque pandas lee `1` como `1.0`). Después, el
+> `RegexValidator` del modelo es quien decide: **lo que no cuadre no entra**. La extracción es
+> comodidad para el sindicato, no una validación.
+>
+> `Lengua` y `Estado`, en cambio, se comparan **exactos contra sus `choices`**, distinguiendo
+> mayúsculas: `ALTA` entra, `Alta` no. Solo se recortan los espacios.
+
+### 6.3 Capa de Presentación
+
+Desde `1456da3` hay **una hoja de estilos y una plantilla base** para todo el sitio:
+
+```
+gestion/templates/gestion/base.html   → cabecera, barra, fondo, pie; bloques titulo/barra/contenido/pie
+gestion/static/gestion/carnets.css    → tokens (:root), vidrio, botones, campos, tablas
+gestion/static/gestion/logo-cgt.png
+gestion/static/documentos/plantilla_afiliacion_oficial.xlsx
+```
+
+Antes, cada una de las ocho plantillas repetía su propia cabecera y su propio bloque `<style>`
+con el mismo CSS. Cambiar un color exigía acordarse de las ocho y siempre se olvidaba alguna.
+
+Dos restricciones que **no** son estéticas:
+
+- **Ningún recurso de terceros.** Nada de Google Fonts ni CDN: la tipografía es la pila del
+  sistema. Cargar una fuente desde Google mandaría la IP de cada visitante a Google en cada
+  visita, lo que contradice la EIPD §7.2 (toda la cadena en la UE) y la propia CSP del sitio
+  (`font-src 'self'`). Hay una prueba que lo vigila.
+- **El admin de Django queda fuera a propósito.** Sobrescribir su CSS es frágil, se rompe al
+  actualizar Django y no aporta: lo usa una sola persona.
+
+Las pruebas de `tests/test_hoja_estilos.py` comprueban el **HTML renderizado**, no los archivos
+fuente: que una plantilla enlace la hoja no significa que la página la sirva, y es la página lo
+que ve el navegador.
+
+**El manual de usuario se publica en `/ayuda/manual/`** renderizando `MANUAL_USUARIO.md` con
+`markdown` (`views.manual_usuario`), en vez de mantener una copia en HTML: dos versiones del
+mismo texto acaban siempre igual, se corrige una y la otra se queda contando lo de antes.
+
+- El resultado se cachea con `lru_cache` por **(ruta, fecha de modificación)**: así no hay que
+  acordarse de vaciar nada al editar el texto.
+- **El renderizador lleva desactivado el paso de HTML en crudo** (`html_block` e `inline_html`
+  desregistrados). Es lo que sostiene el `mark_safe` de la vista —la única excepción al «sin
+  `|safe` ni `mark_safe`» del §2.1—: no es una promesa, es que estructuralmente no puede emitir
+  etiquetas venidas del origen. Hay una prueba que le mete un `<script>` y comprueba que sale
+  escapado.
+- Si el `.md` no está donde la vista lo busca, responde **404 y no 500**: es una página pública
+  y una traza de error no debería ser lo que vea quien pase por ahí.
+- Solo se publica este volumen. El documento técnico y el manual de administrador se quedan en
+  el repositorio: uno explica cómo está construido el sistema y el otro cómo administrarlo.
+
 ---
 
 ## 7. Configuración de Seguridad (Django Settings)
@@ -537,9 +659,11 @@ CSRF_COOKIE_SECURE=True
 SECURE_HSTS_SECONDS=31536000
 SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO:https   # solo si hay proxy TLS delante
 
-# Caché COMPARTIDA: sostiene los limitadores de intentos
-CACHE_BACKEND=django.core.cache.backends.redis.RedisCache
-CACHE_LOCATION=redis://10.0.1.30:6379/1
+# Caché COMPARTIDA: sostiene los limitadores de intentos.
+# Por defecto DatabaseCache (requiere haber corrido createcachetable).
+# Redis solo si algun dia hace falta; lo que importa es que sea compartida.
+# CACHE_BACKEND=django.core.cache.backends.redis.RedisCache
+# CACHE_LOCATION=redis://10.0.1.30:6379/1
 
 # Auditoría
 AUDITORIA_LOG_PATH=/var/log/carnets/auditoria.jsonl
@@ -671,28 +795,49 @@ sindical en manos del atacante.
 
 ### 10.1 RGPD (Reglamento General de Protección de Datos)
 
+> **Quién es responsable, y por qué importa aquí.** Los datos **no los recaba esta
+> aplicación ni CGT Confederal**. Los recaban los **sindicatos de rama y provincia** en su
+> propia relación con las personas afiliadas, y los trasladan aquí con una única finalidad:
+> confeccionar el carnet. Cada sindicato es **responsable del tratamiento**; la estructura
+> confederal que opera el sistema es **encargada**, y la imprenta, **subencargada**.
+>
+> La consecuencia técnica es concreta: la obligación de informar es del **Art. 13** (datos
+> recogidos del interesado por su sindicato), no del Art. 14, y **la cumple el sindicato ante
+> su afiliación**, no esta web. Por eso las pantallas no llevan aviso legal en el pie. Ver
+> `RAT_Registro_Actividades_Tratamiento.md`, que por eso mismo tiene **dos registros**, y los
+> contratos `CONTRATO_Encargado_Confederal.md` y `CONTRATO_Encargado_Imprenta.md`.
+
 | Artículo | Implementación |
 |----------|----------------|
-| Art. 5(1)(a) Legalidad | Formulario solicita consentimiento explícito (acuerdo_aceptado) |
-| Art. 5(1)(f) Integridad | Encriptación AES-256-GCM + auditoría con HistoricalRecords |
-| Art. 9 Datos especiales | Categoría especial (afiliación sindical); cifrado obligatorio |
-| Art. 15 Derecho de acceso | HistoricalRecords permite auditoria de lo que el usuario vio |
-| Art. 17 Derecho al olvido | Sindicatos pueden solicitar eliminación (admin lo ejecuta, audita) |
-| Art. 32 Seguridad técnica | Encriptación, autenticación, limitadores, logging |
+| Art. 5(1)(a) Legalidad | Acuerdo firmado por el sindicato (`acuerdo_aceptado`, con fecha e IP) |
+| Art. 5(1)(e) **Limitación del plazo** | `fecha_baja` + `expurgar_afiliados`: 3 años post-baja, ficha **e historial** (§4.2) |
+| Art. 5(1)(f) Integridad | AES-256-GCM en columna + auditoría con HistoricalRecords |
+| Art. 9 Datos especiales | Categoría especial (afiliación sindical); cifrado obligatorio, sin él no arranca |
+| Art. 13 Información | **La cumple cada sindicato ante su afiliación**, no esta aplicación |
+| Art. 15 Derecho de acceso | HistoricalRecords + auditoría de lecturas |
+| Art. 17 Supresión | Anonimización de ficha **e historial** (§4.2 y §8.3 del manual de administrador) |
+| Art. 32 Seguridad técnica | Cifrado, 2FA, limitadores, checks de despliegue, `pip-audit` en CI |
+| Art. 33 Brechas | Notifica el **sindicato responsable**; el operador aporta la auditoría |
 
 ### 10.2 Auditoría Responsable de Datos (DPO)
 
 El DPO debe revisar:
-- Política de retención (cuánto tiempo conservar auditoría)
-- Copias de seguridad (¿cifradas? ¿dónde se almacenan?)
-- Testigos de acceso a datos sensibles (¿quién vio qué)
+- Política de retención (que el cron trimestral de `expurgar_afiliados` corre de verdad, y qué
+  dice el aviso de "bajas sin fecha de baja")
+- Copias de seguridad (¿cifradas? ¿dónde se almacenan? ¿en la UE?)
+- Testigos de acceso a datos sensibles (¿quién vio qué?)
 - Incidentes de seguridad (plantilla de notificación)
+- Que el proveedor de claves sea un KMS en la UE y no el `.env` (§2.3)
 
 ---
 
 ## 11. Guía de Despliegue Seguro
 
 ### 11.1 Antes de Producción
+
+> **El paso a paso completo, probado sobre PythonAnywhere, está en
+> `deploy/PUESTA_EN_MARCHA.md`.** Lo de aquí es el resumen conceptual; si vas a desplegar,
+> sigue aquel.
 
 ```bash
 # 1. Activar modo seguro
@@ -702,27 +847,46 @@ export ALLOWED_HOSTS="tu-dominio.es,www.tu-dominio.es"
 # 2. Generar SECRET_KEY fuerte (no commitear en git)
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 
-# 3. Generar claves de cifrado (256 bits, en hexadecimal)
-python -c "import secrets; print(secrets.token_hex(32))"
+# 3. Generar la clave de cifrado — 256 bits EN BASE64, no en hexadecimal
+python -c "import base64,os; print(base64.b64encode(os.urandom(32)).decode())"
 
 # 4. Almacenar en .env (gitignored)
 SECRET_KEY=...
-CARNETS_ENCRYPTION_KEYS=k2:CLAVE_NUEVA_BASE64=,k1:CLAVE_ANTERIOR_BASE64=
+CARNETS_ENCRYPTION_KEYS=k1:CLAVE_BASE64=
+AUDITORIA_LOG_PATH=/ruta/absoluta/existente/auditoria.jsonl
 
 # 5. Migrar BD
 python manage.py migrate
 
-# 6. Crear superusuario
-python manage.py createsuperuser
+# 6. Crear la tabla de la caché — NO es opcional (ver 7.2)
+python manage.py createcachetable
 
-# 7. Ejecutar pruebas de seguridad
+# 7. Crear superusuario Y darle segundo factor
+python manage.py createsuperuser
+python manage.py activar_2fa <usuario>     # sin esto NO se puede entrar al admin
+
+# 8. Recopilar los estáticos (hoja de estilos, logo, plantilla oficial)
+python manage.py collectstatic --noinput
+
+# 9. Ejecutar pruebas de seguridad
 pytest tests/ -v
 ruff check .
 bandit -r . -c pyproject.toml
 
-# 8. Habilitar HTTPS (certificado Let's Encrypt)
+# 10. La comprobación que decide si el despliegue es seguro
+python manage.py check --deploy --fail-level WARNING
+
+# 11. Habilitar HTTPS (certificado Let's Encrypt)
 # Usar gunicorn + nginx
 ```
+
+Tres de esos pasos son los que se olvidan y cada uno rompe de una forma distinta:
+
+| Paso omitido | Cómo se manifiesta |
+|---|---|
+| `createcachetable` | `check` falla con `gestion.E001`. Si se ignorase, cada worker llevaría su propio contador y el límite de 5 intentos sería 5 **por worker** |
+| `activar_2fa` | El admin pide un código que nadie puede generar: cuenta creada e inaccesible |
+| `AUDITORIA_LOG_PATH` a una ruta que no existe | `ImproperlyConfigured` al arrancar. El mensaje **nombra la variable** desde `879f010`, porque antes solo se veía un `PermissionError` sin pistas |
 
 ### 11.2 Stack Recomendado (Producción)
 
@@ -735,10 +899,22 @@ Internet
    ↓
 [PostgreSQL 14+] — BD con replicación
    ↓
-[Redis] — caché + sessions (persistencia entre reinicios)
-   ↓
-[Backup diario] — encrypted, en EU (RGPD)
+[Backup diario] — cifrado, en la UE (RGPD)
 ```
+
+**La caché va en la base de datos (`DatabaseCache`), no en Redis.** Lo que el sistema necesita
+de la caché es que los contadores de los limitadores sean **compartidos entre workers**, y eso
+lo cumple una tabla igual que Redis, sin un servicio más que desplegar, vigilar y asegurar. Es
+también la única opción viable en alojamientos sencillos como PythonAnywhere. Si algún día la
+caché pasa a soportar carga real, Redis es la sustitución natural: basta cambiar `CACHES`.
+
+**Tareas programadas** (ver `deploy/tareas_programadas.md`):
+
+| Frecuencia | Comando | Para qué |
+|---|---|---|
+| Cada hora | `revisar_auditoria` | Avisar de rachas de bloqueos y de cada exportación |
+| Diaria | `backup_a_s3_cifrado` | Copia cifrada a Object Storage en la UE |
+| **Trimestral** | `expurgar_afiliados` | Plazo de conservación (Art. 5.1.e) |
 
 ---
 
@@ -748,3 +924,45 @@ Internet
 - **cryptography.io:** https://cryptography.io/en/latest/
 - **RGPD Art. 9:** https://gdpr-info.eu/art-9-gdpr/
 - **OWASP Top 10:** https://owasp.org/www-project-top-ten/
+
+**Documentos del propio proyecto:**
+
+| Documento | Qué contiene |
+|---|---|
+| `EIPD_Evaluacion_Impacto_Proteccion_Datos.md` | Evaluación de impacto (v1.2) |
+| `RAT_Registro_Actividades_Tratamiento.md` | **Dos** registros: responsable y encargado |
+| `CONTRATO_Encargado_Confederal.md` | Sindicato (responsable) ↔ estructura confederal |
+| `CONTRATO_Encargado_Imprenta.md` | Subencargo de la imprenta |
+| `INFORMACION_Afiliados_Art13.md` | Texto que entrega cada sindicato a su afiliación |
+| `deploy/PUESTA_EN_MARCHA.md` | Despliegue paso a paso |
+| `deploy/migrar_desde_beta.md` | Migración desde el despliegue beta |
+| `deploy/tareas_programadas.md` | Los tres cron |
+| `MANUAL_USUARIO.md` / `MANUAL_ADMINISTRADOR.md` | Los otros dos volúmenes |
+
+---
+
+**Última revisión:** 2026-08-27
+**Versión:** 2.0
+
+**Qué cambió en la 2.0.** El documento se había quedado 14 commits atrás. Lo sustancial:
+
+- **§4.1 y §4.2 — el plazo de conservación es ejecutable.** Se documenta `fecha_baja` (el campo
+  que faltaba: la EIPD citaba un `fecha_cancelacion` que nunca existió) y `expurgar_afiliados`,
+  que anonimiza **historial primero, ficha después**, en una transacción. Se corrige la tabla de
+  retención, que daba plazos inventados ("30 días", "consultar DPO").
+- **§2.4 — la inmutabilidad tiene una excepción**, y es deliberada: sin ella el Art. 17 no se
+  puede cumplir.
+- **§2.5 — reposición de contraseña y cierre de sesión**, con por qué el limitador de reposición
+  cuenta por IP sola y por qué `/salir/` solo acepta POST.
+- **§6.3 — capa de presentación** (hoja común, plantilla base, sin recursos de terceros), que no
+  existía cuando se escribió este documento.
+- **§10.1 — quién es responsable.** Los datos los recaban los sindicatos de rama y provincia,
+  no CGT Confederal: cambia el artículo aplicable (13, no 14) y quién informa.
+- **§11 — despliegue**: `createcachetable`, `activar_2fa`, `collectstatic` y
+  `check --deploy --fail-level WARNING`, con qué rompe si se olvida cada uno. La clave de
+  cifrado se genera **en base64**, no en hexadecimal como decía antes.
+- Se corrigieron el nombre de la tabla de historial (`gestion_historicalafiliado`, no
+  `simple_history_afiliado`), las rutas `/registro/` y `/subir/`, y la caché, que se
+  documentaba como Redis cuando es `DatabaseCache`.
+- Se anota un **hueco conocido**: `gestion_registrosubida.nombre_archivo` guarda el nombre que
+  eligió el sindicato y ningún expurgo lo toca.

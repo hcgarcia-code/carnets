@@ -1,14 +1,19 @@
 import logging
+from functools import lru_cache
+from pathlib import Path
 
+import markdown as libreria_markdown
 import pandas as pd
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import DatabaseError, transaction
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import render, redirect
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 from simple_history.utils import bulk_create_with_history
 
 from .auditoria import ACCIONES, registrar
@@ -327,3 +332,78 @@ def panel_imprenta(request):
     registrar(ACCIONES.LOTE_IMPRESION_CONSULTADO, peticion=request, cantidad=len(lote))
 
     return render(request, 'gestion/panel_imprenta.html', {'lote': lote})
+
+
+# 5. EL MANUAL DE USUARIO COMO PÁGINA WEB
+#
+# Se renderiza MANUAL_USUARIO.md en vez de mantener una copia en HTML: dos
+# versiones del mismo texto acaban siempre igual, se corrige una y la otra se
+# queda contando lo de antes.
+#
+# El archivo vive en la raíz del repositorio, un nivel por encima de BASE_DIR.
+RUTA_MANUAL = Path(settings.BASE_DIR).parent / 'MANUAL_USUARIO.md'
+
+EXTENSIONES_MARKDOWN = [
+    'tables',        # el manual es sobre todo tablas
+    'toc',           # índice navegable: son seiscientas líneas
+    'fenced_code',
+    'sane_lists',
+    'attr_list',
+]
+
+# El índice va del h2 al h3. Fuera el h1, que es el título del documento y ya
+# lo enseña la cabecera de la página: como entrada de índice no lleva a ningún
+# sitio. Y fuera el h4, que son los pasos de dentro de cada apartado: con ellos
+# la lista pasa de cien entradas y deja de ser un índice.
+NIVELES_DEL_INDICE = '2-3'
+
+
+@lru_cache(maxsize=1)
+def _manual_renderizado(ruta: str, marca_de_tiempo: float):
+    """Convierte el manual a HTML. Devuelve (cuerpo, índice).
+
+    Cacheado por (ruta, fecha de modificación): renderizar en cada visita es
+    trabajo repetido para un archivo que cambia una vez cada varios meses, y
+    meter la fecha en la clave evita el problema clásico de la caché, que es
+    tener que acordarse de vaciarla al editar el texto.
+    """
+    convertidor = libreria_markdown.Markdown(
+        extensions=EXTENSIONES_MARKDOWN,
+        extension_configs={'toc': {'toc_depth': NIVELES_DEL_INDICE}},
+    )
+
+    # Se desactiva el paso de HTML en crudo. Por defecto, el renderizador deja
+    # pasar tal cual cualquier etiqueta que venga dentro del Markdown; sin esto,
+    # la seguridad de la página dependería de que nadie pegue nunca en el .md un
+    # bloque copiado de otra parte. Desregistrados los dos manejadores, un
+    # `<script>` en el origen sale escapado y se ve como texto.
+    convertidor.preprocessors.deregister('html_block')
+    convertidor.inlinePatterns.deregister('html')
+
+    cuerpo = convertidor.convert(Path(ruta).read_text(encoding='utf-8'))
+    return cuerpo, convertidor.toc
+
+
+def manual_usuario(request):
+    # Pública, como la ayuda de la que cuelga: buena parte del manual explica
+    # cómo conseguir la cuenta que todavía no se tiene.
+    if not RUTA_MANUAL.is_file():
+        # Un despliegue que no traiga el .md daría un 500 en una página
+        # pública. Mejor un 404, que dice lo que pasa sin enseñar la traza.
+        logger.error("No se encuentra el manual de usuario en %s", RUTA_MANUAL)
+        raise Http404("El manual no está disponible.")
+
+    cuerpo, indice = _manual_renderizado(str(RUTA_MANUAL), RUTA_MANUAL.stat().st_mtime)
+
+    # mark_safe sobre la salida del renderizador. Es una excepción al "sin
+    # |safe ni mark_safe" del resto del proyecto, y se sostiene sobre tres
+    # cosas, no sobre una promesa:
+    #   1. El origen es un archivo del repositorio, no entrada de usuario.
+    #   2. El renderizador tiene desactivado el paso de HTML en crudo (arriba),
+    #      así que estructuralmente no puede emitir etiquetas del origen.
+    #   3. La CSP del sitio (script-src 'self') no ejecutaría un script suelto.
+    # Ambas cosas están cubiertas por tests/test_manual_web.py.
+    return render(request, 'gestion/manual.html', {
+        'cuerpo': mark_safe(cuerpo),  # noqa: S308  # nosec B308 B703
+        'indice': mark_safe(indice),  # noqa: S308  # nosec B308 B703
+    })

@@ -76,6 +76,13 @@ Esta carpeta contiene la documentación completa del sistema. Hay tres documento
 - Eres imprenta y necesitas acceder al panel
 - Tienes dudas sobre seguridad o protección de datos
 
+> **Este es el único de los tres que se publica en la propia aplicación**, en
+> `/ayuda/manual/`, enlazado desde la página de ayuda. No es una copia: la página
+> renderiza este mismo `MANUAL_USUARIO.md`, así que editarlo aquí lo actualiza
+> allí. Los otros dos volúmenes no se publican: uno explica cómo está construido
+> el sistema y el otro cómo administrarlo, y ninguna de las dos cosas tiene por
+> qué estar al alcance de quien pase por la web.
+
 ---
 
 ## ⚖️ Documentos de cumplimiento (RGPD)
@@ -235,25 +242,31 @@ ver [`deploy/waf_y_ddos.md`](deploy/waf_y_ddos.md).
 
 | Rol | Problema | Contacto |
 |-----|----------|----------|
-| Sindicato | No puedo loguear | admin@sistema |
-| Sindicato | Error en Excel | admin@sistema |
-| Admin | Brecha de seguridad | DPO, AEPD (urgente) |
-| Imprenta | No veo el panel | admin@sistema |
+| Sindicato | No puedo entrar | **soporte-carnets@cgt.org.es** · 918 055 047 |
+| Sindicato | Error al subir el Excel | **soporte-carnets@cgt.org.es** · 918 055 047 |
+| Sindicato | Olvidé la contraseña | Ninguno: se repone solo, en `/recuperar-password/` |
+| Imprenta | No veo el panel | **soporte-carnets@cgt.org.es** |
+| Admin | Brecha de seguridad | El **sindicato responsable** (es quien notifica a la AEPD) + DPO |
+
+Todo esto está también en la web, en `/ayuda/`, que se ve sin tener cuenta.
 
 ---
 
 ## 📅 Mantenimiento Recomendado
 
+- **Cada hora (cron):** `revisar_auditoria` — avisa de rachas de bloqueos y de cada exportación
+- **Diario (cron):** `backup_a_s3_cifrado` — copia cifrada a Object Storage en la UE
 - **Semanal:** Revisar solicitudes de alta nuevas
-- **Mensual:** Auditar accesos de imprenta, revisar logs
-- **Trimestral:** Revisar incidentes, verificar capacidad de almacenamiento
+- **Mensual:** Auditar accesos de imprenta, revisar logs, comprobar que los backups existen
+- **Trimestral (cron):** `expurgar_afiliados` — plazo de conservación, 3 años desde la baja
+- **Trimestral:** Revisar incidentes, comprobar que el segundo factor del admin sigue vivo
 - **Anualmente:** Rotación de claves, auditoría de seguridad completa
 
 ---
 
 ## 📖 Versión
 
-- **Documentación v1.0** — 2026-08-21
+- **Documentación v2.0** — 2026-08-27 (los tres volúmenes revisados contra el código)
 - **Sistema Django 5.2** con django-simple-history y cryptography
 - **Python 3.12+**
 - **Compliance:** RGPD, Art. 9 (datos de categoría especial)

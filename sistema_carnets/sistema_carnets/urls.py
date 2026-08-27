@@ -29,6 +29,11 @@ urlpatterns = [
         name='ayuda',
     ),
 
+    # El manual de usuario, renderizado desde MANUAL_USUARIO.md. Cuelga de la
+    # ayuda y es igual de público: buena parte de lo que explica es cómo
+    # conseguir la cuenta que todavía no se tiene.
+    path('ayuda/manual/', views.manual_usuario, name='manual_usuario'),
+
     # Nueva ruta para la pantalla de inicio de sesión de los sindicatos
     path(
         'login/',

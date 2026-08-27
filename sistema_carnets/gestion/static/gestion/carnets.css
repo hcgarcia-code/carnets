@@ -477,3 +477,143 @@ table.datos tr:hover td { background: rgba(255, 255, 255, 0.35); }
   margin: 0; padding: 26px; text-align: center;
   font-size: 15px; color: var(--tinta-4);
 }
+
+
+/* ---------- Manual de usuario ---------- */
+
+/* El manual es la única pantalla larga del sitio: el resto son formularios o
+   tablas que caben de una vez. Por eso lleva índice fijo al lado, y por eso
+   los estilos de aquí abajo van por etiqueta y no por clase — el contenido lo
+   genera el renderizador de Markdown, que no pone clases. */
+
+.manual {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+  margin: 10px 0 40px;
+}
+
+.manual__indice { position: sticky; top: 22px; }
+
+.indice { padding: 18px 20px; font-size: 0.9rem; }
+.indice > summary {
+  font-family: var(--fuente-titulo);
+  font-weight: 700; font-size: 0.95rem;
+  color: var(--tinta); cursor: pointer;
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.indice ul { list-style: none; margin: 14px 0 0; padding: 0; }
+.indice li ul { margin: 6px 0 6px 12px; padding-left: 10px; border-left: 1px solid rgba(13, 13, 13, 0.10); }
+.indice a { display: block; padding: 4px 0; color: var(--tinta-3); line-height: 1.4; }
+.indice a:hover { color: var(--rojo); }
+
+/* Qué niveles entran en el índice lo decide quien lo genera, no esta hoja:
+   ver NIVELES_DEL_INDICE en gestion/views.py. Esconderlos aquí con `display:
+   none` dejaría los enlaces en el HTML, invisibles pero navegables con el
+   teclado, que es la clase de detalle que rompe la accesibilidad sin que se
+   note. */
+
+/* Aun así el índice puede pasar de alto de pantalla, y entonces lo pegajoso
+   juega en contra: el final quedaría inalcanzable. */
+.indice ul { max-height: calc(100vh - 150px); overflow-y: auto; }
+
+.prosa {
+  padding: 40px 46px;
+  max-width: 80ch;
+  color: var(--tinta-2);
+  font-size: 1rem;
+  line-height: 1.7;
+  /* El contenido del manual manda: sin esto, una tabla ancha estira la
+     rejilla y empuja el índice fuera de la pantalla. */
+  min-width: 0;
+}
+
+/* El <h1> del Markdown sobra: la cabecera de la página ya lo dice. */
+.prosa > h1:first-child { display: none; }
+
+.prosa h2 {
+  font-family: var(--fuente-titulo);
+  font-weight: 800; font-size: 1.7rem; line-height: 1.15;
+  letter-spacing: -0.02em; color: var(--tinta);
+  margin: 46px 0 16px; padding-top: 22px;
+  border-top: 1px solid rgba(13, 13, 13, 0.12);
+  /* Para que el ancla no quede tapada por la barra al saltar desde el índice */
+  scroll-margin-top: 20px;
+}
+.prosa > h2:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+
+.prosa h3 {
+  font-family: var(--fuente-titulo);
+  font-weight: 700; font-size: 1.2rem; line-height: 1.25;
+  color: var(--tinta); margin: 32px 0 12px; scroll-margin-top: 20px;
+}
+.prosa h4 {
+  font-weight: 600; font-size: 1rem; color: var(--tinta);
+  margin: 24px 0 10px; scroll-margin-top: 20px;
+}
+
+.prosa p { margin: 0 0 16px; }
+.prosa ul, .prosa ol { margin: 0 0 18px; padding-left: 22px; }
+.prosa li { margin-bottom: 8px; }
+.prosa li > ul, .prosa li > ol { margin-top: 8px; }
+
+.prosa a { color: var(--rojo); text-decoration: none; border-bottom: 1px solid rgba(204, 0, 0, 0.35); }
+.prosa a:hover { color: var(--tinta); border-bottom-color: var(--tinta); }
+
+.prosa strong { color: var(--tinta); font-weight: 700; }
+.prosa hr { border: 0; border-top: 1px solid rgba(13, 13, 13, 0.10); margin: 34px 0; }
+
+/* Las tablas son la mitad del manual. Cada una scrollea dentro de su caja:
+   la página nunca se desplaza en horizontal. */
+.prosa table {
+  display: block; width: 100%; overflow-x: auto;
+  border-collapse: collapse; margin: 0 0 20px;
+  font-size: 0.92rem;
+}
+.prosa thead th {
+  text-align: left; white-space: nowrap;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--tinta-4);
+  padding: 10px 14px; border-bottom: 1px solid rgba(13, 13, 13, 0.18);
+}
+.prosa tbody td {
+  padding: 11px 14px; vertical-align: top;
+  border-bottom: 1px solid rgba(13, 13, 13, 0.08);
+}
+.prosa tbody tr:last-child td { border-bottom: 0; }
+
+/* Las citas son los avisos del manual: lo que hay que leer sí o sí. */
+.prosa blockquote {
+  margin: 0 0 22px; padding: 16px 20px;
+  background: rgba(204, 0, 0, 0.06);
+  border-left: 3px solid var(--rojo);
+  border-radius: 0 var(--radio-chico) var(--radio-chico) 0;
+}
+.prosa blockquote p:last-child { margin-bottom: 0; }
+
+.prosa code {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+  font-size: 0.87em; padding: 2px 6px;
+  background: rgba(13, 13, 13, 0.06); border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+.prosa pre {
+  margin: 0 0 20px; padding: 18px 20px; overflow-x: auto;
+  background: rgba(13, 13, 13, 0.05);
+  border: 1px solid rgba(13, 13, 13, 0.08);
+  border-radius: var(--radio-chico);
+  font-size: 0.85rem; line-height: 1.55;
+}
+.prosa pre code { padding: 0; background: none; overflow-wrap: normal; }
+
+/* Las casillas del checklist final: Markdown las deja como texto "[ ]". */
+.prosa input[type="checkbox"] { margin-right: 8px; accent-color: var(--rojo); }
+
+@media (max-width: 900px) {
+  .manual { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  /* Fijo en una columna estrecha taparía el texto; arriba y plegable. */
+  .manual__indice { position: static; }
+  .prosa { padding: 28px 22px; }
+  .prosa h2 { font-size: 1.4rem; }
+}
