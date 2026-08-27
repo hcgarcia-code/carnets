@@ -813,6 +813,23 @@ Todos se ejecutan desde la raíz, con el entorno activado:
 | `backup_a_s3_cifrado` | Copia de seguridad cifrada a Object Storage | Ver `deploy/backups_cifrados_s3.md` |
 | `importar_desde_beta` | Trae cuentas y afiliados del despliegue beta | Solo para la migración inicial; ver abajo |
 | `preparar_pruebas` | Monta un entorno de pruebas completo | **Se niega a correr con `DEBUG=False`** o sobre una base con afiliados |
+| `avisar_version_2` | Avisa por correo a los sindicatos del paso a la 2.0 | **En seco por defecto**: sin `--enviar` no manda nada. No lleva control de "ya enviado" |
+
+### Avisar a los sindicatos de un cambio
+
+```bash
+python sistema_carnets/manage.py avisar_version_2 --url https://LA-DIRECCION
+python sistema_carnets/manage.py avisar_version_2 --url https://LA-DIRECCION --enviar
+```
+
+**Compone un mensaje por destinatario, nunca uno con todos.** Meter a todos los
+sindicatos en el mismo correo dejaría que cada uno viera la lista completa de los
+demás con sus direcciones: quién está usando el sistema de carnets de CGT. Eso no
+es un descuido de estilo, es una comunicación de datos a terceros.
+
+Mira la lista de **"sindicatos SIN correo"** que saca en seco: a esos no les llega
+nada y hay que avisarles por teléfono. El texto vive en
+`gestion/templates/gestion/correo/version_2.txt`.
 
 ### Migración desde el beta (una sola vez)
 

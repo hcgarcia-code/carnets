@@ -667,6 +667,12 @@ SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO:https   # solo si hay proxy TLS d
 
 # Auditoría
 AUDITORIA_LOG_PATH=/var/log/carnets/auditoria.jsonl
+
+# Correo. Las dos primeras son OBLIGATORIAS en producción: sin ellas el sistema
+# arranca igual y falla en silencio (ver 7.1).
+DEFAULT_FROM_EMAIL=soporte-carnets@cgt.org.es
+ADMINS_CORREOS=quien-vigila@cgt.org.es
+EMAIL_HOST=correo.cgt.org.es
 ```
 
 ### 7.1 Comprobaciones que impiden un despliegue inseguro
@@ -675,17 +681,31 @@ Estos ajustes tienen valores por defecto pensados para desarrollo local (HTTPS d
 caché en memoria). Eso significa que **olvidar el `.env` produciría un servidor en producción
 sirviendo por HTTP con las cookies en claro**, sin que nada fallara de forma visible.
 
-Tres mecanismos lo impiden:
+Cuatro mecanismos lo impiden:
 
 | Mecanismo | Dónde | Qué corta |
 |---|---|---|
 | `GestionConfig.ready()` | `gestion/apps.py` | Arrancar sin clave de cifrado |
-| Check de despliegue `gestion.E001` | `gestion/checks.py` | Caché no compartida entre workers |
+| Check `gestion.E001` | `gestion/checks.py` | Caché no compartida entre workers |
+| Checks `gestion.E002` y `gestion.E003` | `gestion/checks.py` | Correo saliente que no llega a nadie |
 | `check --deploy --fail-level WARNING` | script de despliegue | HTTPS, cookies, HSTS, `SECRET_KEY` débil |
 
-El tercero es clave: los avisos de seguridad de Django son `WARNING`, no `ERROR`, así que un
+El último es clave: los avisos de seguridad de Django son `WARNING`, no `ERROR`, así que un
 `check --deploy` a secas terminaba con éxito sobre una configuración insegura. Con
 `--fail-level WARNING` un aviso detiene el despliegue igual que un error.
+
+**Los tres checks propios comparten una forma de fallar**, y es la razón de que existan: nada
+se rompe de manera visible. La caché no compartida sigue contando intentos, solo que por
+worker. El remitente sin configurar entrega el mensaje al SMTP y da por hecho que llegó.
+`mail_admins()` con `ADMINS` vacío no lanza ninguna excepción: recorre una lista de cero
+destinatarios y termina bien. En los tres casos el sistema *funciona*, deja de proteger, y no
+hay ningún síntoma hasta que alguien necesita justo eso.
+
+Concretamente, sin `DEFAULT_FROM_EMAIL` la reposición de contraseña —la vía que el manual de
+usuario da como principal— no llega a ningún buzón; y sin `ADMINS`, las alertas de
+`revisar_auditoria` sobre rachas de bloqueos y exportaciones de datos personales no las recibe
+nadie, de modo que la detección de incidentes documentada en el manual de administrador (§5.4)
+sencillamente no existe.
 
 ### 7.2 Por qué la caché es un control de seguridad
 

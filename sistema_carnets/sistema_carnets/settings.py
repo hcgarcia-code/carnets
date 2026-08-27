@@ -364,3 +364,26 @@ if EMAIL_HOST:
     EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Remitente de todo lo que envía la aplicación: reposición de contraseña y
+# avisos a los sindicatos.
+#
+# Django trae por defecto 'webmaster@localhost', que ningún servidor de correo
+# acepta. Con él, el correo de reposición de contraseña —que es la vía que el
+# manual de usuario da como principal— no llega a ninguna parte, y el envío no
+# falla, así que nadie se entera. Por eso el valor por defecto de aquí es la
+# dirección pública de soporte y no la de Django.
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'soporte-carnets@cgt.org.es')
+SERVER_EMAIL = os.environ.get('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
+
+# Quién recibe las alertas de `revisar_auditoria` (rachas de bloqueos,
+# exportaciones de datos personales). Con la lista vacía, `mail_admins()` se
+# ejecuta sin error y no escribe a nadie: la detección que documenta el manual
+# de administrador (§5.4) deja de existir sin que nada lo indique.
+#
+# Formato: ADMINS_CORREOS=una@cgt.org.es,otra@cgt.org.es
+ADMINS = [
+    ('Administración Carnets', direccion.strip())
+    for direccion in os.environ.get('ADMINS_CORREOS', '').split(',')
+    if direccion.strip()
+]

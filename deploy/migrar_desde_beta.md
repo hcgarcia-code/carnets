@@ -20,9 +20,9 @@ camino.
 | Correo en el alta | sí | sí (añadido para esto) |
 | Persona de contacto | sí | sí (añadido para esto) |
 | Recuperar contraseña | sí | sí (añadido para esto) |
-| Portada `/` | sí | **no** |
+| Portada `/` | sí | sí |
 | Ruta del alta | `/registro/` | `/alta/` |
-| Página de contacto | sí | **no** |
+| Página de contacto | sí | sí, en `/ayuda/` (con el manual dentro) |
 | Cifrado en reposo | **no** | sí |
 | Segundo factor en el admin | **no** | sí |
 | Registro de auditoría | **no** | sí |
@@ -189,13 +189,30 @@ parar y revisarlo antes de seguir.
 
 ## Paso 6 — Avisar a los sindicatos
 
-Un correo corto basta. Conviene que diga:
+**Hay un comando que lo hace**, y conviene usarlo en vez de un correo a mano:
+compone un mensaje por destinatario. Meter a todos en el mismo correo dejaría
+que cada sindicato viera la lista completa de los demás, con sus direcciones
+—quién está usando el sistema de carnets de CGT—, y eso no es un descuido de
+estilo sino una comunicación de datos a terceros que nadie ha autorizado.
 
-- La dirección nueva del sistema.
-- Que **su usuario y su contraseña son los mismos** y no tienen que hacer nada.
-- Que sus afiliados ya cargados están ahí.
-- Que si olvidan la contraseña, la recuperan solos desde el enlace del acceso.
-- Que la portada y la página de contacto del beta ya no existen.
+```bash
+# En seco: dice a quién escribiría y enseña el mensaje. No envía nada.
+python sistema_carnets/manage.py avisar_version_2 --url https://LA-DIRECCION-NUEVA
+
+# Cuando lo veas bien:
+python sistema_carnets/manage.py avisar_version_2 --url https://LA-DIRECCION-NUEVA --enviar
+```
+
+Escribe a los **sindicatos activos**: deja fuera a la imprenta, al personal de
+administración y a las cuentas pendientes de aprobación.
+
+**Mira la lista de "sindicatos SIN correo"** que saca en seco. A esos no les
+llega nada, y hay que avisarles por teléfono o por los canales de la
+organización. El texto está en
+`gestion/templates/gestion/correo/version_2.txt` por si quieres retocarlo.
+
+El comando **no lleva control de "ya enviado"**: si se ejecuta dos veces,
+escribe dos veces.
 
 ---
 

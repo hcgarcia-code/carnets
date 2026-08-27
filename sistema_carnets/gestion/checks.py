@@ -50,3 +50,67 @@ def comprobar_cache_compartida(app_configs, **kwargs):
             id=CACHE_NO_COMPARTIDA,
         ),
     ]
+
+
+REMITENTE_SIN_CONFIGURAR = "gestion.E002"
+ADMINS_SIN_CONFIGURAR = "gestion.E003"
+
+# El que pone Django cuando nadie configura nada.
+REMITENTE_DE_DJANGO = "webmaster@localhost"
+
+
+@register(Tags.security, deploy=True)
+def comprobar_remitente_de_correo(app_configs, **kwargs):
+    """Con el remitente por defecto de Django, el correo sale y no llega.
+
+    `webmaster@localhost` no es una dirección enrutable: los servidores de
+    destino la rechazan o la mandan a spam. Y el envío no falla —Django
+    entrega el mensaje al SMTP y da por hecho que ya está—, así que la
+    reposición de contraseña, que el manual de usuario da como vía principal,
+    deja de funcionar sin que nada avise.
+
+    Solo aplica si hay servidor de correo configurado: en local no lo hay y
+    los mensajes van a la consola.
+    """
+    if not settings.EMAIL_HOST:
+        return []
+    if settings.DEFAULT_FROM_EMAIL != REMITENTE_DE_DJANGO:
+        return []
+
+    return [
+        Error(
+            f"DEFAULT_FROM_EMAIL sigue siendo '{REMITENTE_DE_DJANGO}', el valor por "
+            "defecto de Django, y hay un servidor de correo configurado. Los mensajes "
+            "saldrán con un remitente que el destino rechaza: la reposición de "
+            "contraseña dejará de llegar sin que ningún envío falle.",
+            hint=(
+                "Pon DEFAULT_FROM_EMAIL en el .env del servidor "
+                "(p. ej. soporte-carnets@cgt.org.es)."
+            ),
+            id=REMITENTE_SIN_CONFIGURAR,
+        ),
+    ]
+
+
+@register(Tags.security, deploy=True)
+def comprobar_destinatarios_de_alertas(app_configs, **kwargs):
+    """Sin ADMINS, las alertas de seguridad no le llegan a nadie.
+
+    `revisar_auditoria` avisa por `mail_admins()` de las rachas de bloqueos de
+    acceso y de cada exportación de datos personales. Con `ADMINS` vacío esa
+    llamada no lanza ningún error: simplemente no escribe. El cron sigue
+    corriendo, el registro se sigue escribiendo, y el aviso no existe.
+    """
+    if not settings.EMAIL_HOST or settings.ADMINS:
+        return []
+
+    return [
+        Error(
+            "ADMINS está vacío y hay servidor de correo configurado. Las alertas de "
+            "`revisar_auditoria` (rachas de bloqueos, exportaciones de datos "
+            "personales) se envían con mail_admins(), que sin destinatarios no falla "
+            "ni escribe: la detección de incidentes queda anulada en silencio.",
+            hint="Pon ADMINS_CORREOS en el .env del servidor, separando por comas.",
+            id=ADMINS_SIN_CONFIGURAR,
+        ),
+    ]

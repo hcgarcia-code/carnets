@@ -66,6 +66,9 @@ class ACCIONES:
     # este registro es la prueba de haber cumplido el plazo (y de no haberse
     # adelantado a él).
     AFILIADOS_EXPURGADOS = "afiliados.expurgados"
+    # Aviso masivo a los sindicatos (avisar_version_2). Guarda el recuento,
+    # nunca las direcciones: este registro sale del ambito cifrado.
+    AVISO_ENVIADO = "aviso.enviado"
     ACCESO_DENEGADO = "acceso.denegado"
     SINDICATO_REGISTRADO = "sindicato.registrado"
     LOTE_IMPRESION_CONSULTADO = "lote_impresion.consultado"

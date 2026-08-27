@@ -1,0 +1,65 @@
+{% autoescape off %}Hola:
+
+El sistema de carnets de CGT pasa a una versión nueva y cambia de dirección.
+
+    {{ url }}
+
+Guárdala en favoritos. La dirección anterior dejará de funcionar.
+
+
+LO PRIMERO: NO TIENES QUE HACER NADA
+
+Tu usuario ("{{ usuario }}") y tu contraseña son los mismos de siempre. Los
+afiliados que ya habías cargado están ahí, no hay que volver a subirlos.
+
+Si no recuerdas la contraseña, ahora puedes reponerla tú desde el enlace
+"¿Has olvidado tu contraseña?" de la pantalla de acceso. Te llega un correo a
+esta misma dirección.
+
+
+QUÉ CAMBIA PARA TI
+
+- La plantilla oficial se descarga desde la propia pantalla de subir datos.
+  Ya no hay que pedirla ni buscarla: está encima del formulario.
+
+- Hay un manual de usuario que se lee en el navegador, sin descargar nada.
+  Está en la página de ayuda, con el circuito completo paso a paso.
+
+- Hay una página de ayuda con el teléfono, el correo de soporte y las causas
+  más frecuentes de que el sistema rechace un archivo.
+
+- Hay un botón de "Salir" para cerrar la sesión. Úsalo siempre si trabajas en
+  un ordenador compartido del local.
+
+- Puedes recuperar la contraseña tú, sin esperar a que conteste nadie.
+
+
+QUÉ CAMBIA EN LA PROTECCIÓN DE LOS DATOS
+
+Esto no lo vas a notar al usarlo, pero es el motivo principal del cambio:
+
+- Los nombres y los números de afiliado se guardan cifrados en el disco del
+  servidor. Quien robase una copia de la base de datos no podría leerlos.
+
+- Cada consulta a datos personales queda registrada: quién, cuándo y desde
+  dónde. También las lecturas, no solo los cambios.
+
+- La cuenta de administración, que es la única que ve los nombres, necesita
+  además un código de un solo uso. Robar su contraseña ya no basta.
+
+- Los datos de una persona dada de baja se borran solos a los tres años,
+  como exige el Reglamento de Protección de Datos.
+
+
+SI ALGO NO FUNCIONA
+
+Escribe a soporte-carnets@cgt.org.es o llama al 918 055 047.
+
+Cuenta qué estabas haciendo y qué te dijo la pantalla. Y una cosa importante:
+NO adjuntes nunca el Excel de afiliados a un correo. Lleva datos de personas
+afiliadas y el correo no va cifrado.
+
+--
+Sistema de carnets de CGT
+{{ url }}
+{% endautoescape %}
