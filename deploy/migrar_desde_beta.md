@@ -146,9 +146,11 @@ deduce si esa persona está de alta o de baja.
 Si decides fijarlo por asunción, hay un comando que lo hace dejando constancia:
 
 ```bash
-python sistema_carnets/manage.py sanear_volcado_beta beta.json     --salida beta_saneado.json --dry-run          # primero, para ver a quién afecta
+# Primero en seco, para ver a quién afecta:
+python sistema_carnets/manage.py sanear_volcado_beta beta.json --salida beta_saneado.json --dry-run
 
-python sistema_carnets/manage.py sanear_volcado_beta beta.json     --salida beta_saneado.json
+# Cuando lo veas bien:
+python sistema_carnets/manage.py sanear_volcado_beta beta.json --salida beta_saneado.json
 
 python sistema_carnets/manage.py importar_desde_beta beta_saneado.json --dry-run
 python sistema_carnets/manage.py importar_desde_beta beta_saneado.json
