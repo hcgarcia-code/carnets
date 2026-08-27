@@ -14,7 +14,7 @@ Bloques disponibles:
   titulo     — el <title> de la pestaña
   barra      — la barra superior (por defecto: marca + enlace de ayuda)
   contenido  — obligatorio
-  pie        — el pie legal (por defecto: el aviso del RGPD)
+  pie        — el pie (por defecto: solo la marca roja y negra)
 {% endcomment %}
 <html lang="es">
 <head>
@@ -60,13 +60,14 @@ Bloques disponibles:
 
     {% block contenido %}{% endblock %}
 
+    {% comment %}
+        El pie va sin texto legal a propósito. Quien entra aquí es el sindicato
+        que sube los datos, no la persona afiliada: informar del Art. 13 le
+        corresponde a cada sindicato ante su propia afiliación, no a esta
+        pantalla. No lo repongas sin revisar antes la EIPD.
+    {% endcomment %}
     {% block pie %}
     <footer class="pie">
-        <p>
-            Los datos de afiliación tratados aquí están protegidos conforme al
-            Reglamento General de Protección de Datos. Para ejercer tus derechos,
-            dirígete al sindicato al que estés afiliado o afiliada.
-        </p>
         <span class="marcas"><i></i><i></i></span>
     </footer>
     {% endblock %}
