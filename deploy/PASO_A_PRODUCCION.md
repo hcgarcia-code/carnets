@@ -24,43 +24,90 @@ carnetscgt.eu.pythonanywhere.com
 ```
 
 **Y ahí es donde está ahora el beta.** No es una web libre a la que mudarse: es
-la que hay que sustituir. Eso cambia el orden de todo lo que viene detrás,
-porque durante un rato la misma dirección tiene que dejar de servir una cosa y
-empezar a servir otra.
+la que hay que reconfigurar para que sirva el 2.0 en vez del beta. No hace falta
+borrarla ni crear ninguna otra.
 
 > Si lo que quieres es otra dirección distinta (`carnets.eu.pythonanywhere.com`,
 > por ejemplo), eso es **otra cuenta de PythonAnywhere**, no una opción dentro
-> de la actual. Y entonces esta guía sirve igual, pero el beta se queda donde
-> está y hay que apagarlo aparte (último apartado).
+> de la actual. Esta guía serviría igual, pero el beta se quedaría en pie y
+> habría que apagarlo aparte.
 
 ---
 
-## El orden importa
+## El orden importa (pero menos de lo que parece)
 
-El instinto es "monto lo nuevo y luego migro los datos". Aquí es al revés,
-porque **el beta es la única copia de los datos de los sindicatos** y en cuanto
-lo sustituyas dejarás de poder sacar el volcado.
+No hay que borrar ni recrear ninguna web. La dirección es una **propiedad de la
+aplicación web**, y el código es otra: en la pestaña Web se le cambia a
+`carnetscgt.eu.pythonanywhere.com` a qué proyecto apunta, y ya está. El beta se
+queda en su carpeta, con su base de datos intacta, sin dirección.
+
+Eso simplifica dos cosas:
+
+- **El volcado del beta puedes sacarlo cuando quieras**, también después de
+  quitarle la dirección: el `dumpdata` se ejecuta desde una consola contra la
+  carpeta del beta, no contra su web.
+- **No hace falta "congelar" el beta desactivando cuentas.** Repuntar la
+  dirección *es* el corte: en cuanto recargas, el beta deja de ser accesible y
+  nadie puede subir nada más ahí.
+
+Lo que sí importa es que **los datos estén dentro antes de que los sindicatos
+lleguen**. Si cambias la dirección primero e importas después, hay un rato en el
+que entran y no encuentran a sus afiliados.
 
 ```
-1. Volcado del beta          ← mientras el beta sigue en pie
-2. Congelar el beta          ← que nadie suba nada más
-3. Preparar el 2.0
-4. Importar el volcado
+1. Decidir con qué base de datos se queda producción   ← lo que más se olvida
+2. Volcado del beta
+3. Configurar el correo
+4. Importar en el 2.0        ← con el 2.0 todavía en prueba-carnetscgt
 5. Comprobar
-6. Cambiar la dirección
+6. Repuntar la dirección     ← esto es el corte
 7. Avisar a los sindicatos
-8. Borrar el volcado y apagar el beta
+8. Borrar el volcado y la base del beta
 ```
 
 ---
 
-## Paso 1 — Sacar el volcado del beta
+## Paso 1 — Decidir con qué base de datos se queda producción
 
-**Antes de tocar nada.** El procedimiento completo, con lo que trae de sucio el
-volcado real, está en `migrar_desde_beta.md`. En corto:
+**Esto es lo que el atajo hace urgente.** Si repuntas la dirección al proyecto
+del 2.0, se lleva consigo *su* base de datos: la que has estado usando para
+probar. Todo lo que haya ahí —cuentas de prueba, afiliados de ejemplo— pasa a
+ser producción.
+
+Mira qué tiene antes de decidir:
 
 ```bash
-# Consola Bash, con el entorno del BETA
+python sistema_carnets/manage.py shell -c "
+from django.contrib.auth.models import User
+from gestion.models import Afiliado, RegistroSubida
+print('usuarios:', [(u.username, u.is_active, u.is_superuser) for u in User.objects.all()])
+print('afiliados:', Afiliado.objects.count())
+print('subidas:', RegistroSubida.objects.count())
+"
+```
+
+Dos caminos:
+
+- **Limpiar lo de prueba** y quedarte con esa base. Borra las cuentas de
+  ejemplo desde el admin y, si hubiera afiliados de prueba, bórralos también
+  —del admin, que aquí sí es lo correcto: son datos inventados, no una
+  supresión del Art. 17—.
+- **Empezar con una base vacía**: renombra el SQLite del 2.0, vuelve a correr
+  `migrate`, `createcachetable`, `createsuperuser` y `activar_2fa`. Es más
+  trabajo pero no deja nada de prueba por medio.
+
+**Guarda la contraseña y el segundo factor del superusuario que vaya a quedar**,
+porque es la única cuenta que descifra datos personales.
+
+---
+
+## Paso 2 — Sacar el volcado del beta
+
+El procedimiento completo, con lo que trae de sucio el volcado real, está en
+`migrar_desde_beta.md`. En corto, desde una consola Bash:
+
+```bash
+# Con el entorno y la carpeta del BETA
 PYTHONPATH=/home/carnetscgt python manage.py dumpdata \
     auth.User gestion.PerfilSindicato gestion.Afiliado --indent 2 -o beta.json
 ```
@@ -68,30 +115,17 @@ PYTHONPATH=/home/carnetscgt python manage.py dumpdata \
 **Ese archivo es el fichero de afiliación en claro.** No lo mandes por correo,
 no lo dejes en Descargas y bórralo en cuanto termines (paso 8).
 
-Descárgalo también a tu equipo: es la única copia de seguridad que vas a tener
-si algo sale mal a mitad.
+> **Sácalo en una franja de poco uso.** Lo que un sindicato suba al beta después
+> de este volcado no aparecerá en el 2.0. No se pierde —el beta sigue en su
+> carpeta hasta el paso 8— pero habría que repetirle la carga.
 
 ---
 
-## Paso 2 — Congelar el beta
+## Paso 3 — El correo, antes de seguir
 
-Desde que sacas el volcado hasta que el 2.0 está en pie, cualquier cosa que un
-sindicato suba al beta **se pierde**: no está en tu volcado y el beta va a
-desaparecer.
-
-Lo más simple y reversible es desactivar las cuentas de sindicato en el admin
-del beta (`is_active = False`). Entran, ven que no pueden, y llaman. Es feo,
-pero es mucho mejor que perder una carga sin que nadie lo note.
-
-**Hazlo en una franja de poco uso** y ten el paso 7 (el aviso) preparado antes.
-
----
-
-## Paso 3 — Preparar el 2.0
-
-Si ya tienes la web de pruebas montada, esto ya está hecho: es la misma
-aplicación. Comprueba que el `.env` del servidor tiene, además de lo de
-`PUESTA_EN_MARCHA.md`, **las tres variables de correo**:
+La aplicación ya está montada: es la misma que la web de pruebas. Lo que falta
+comprobar es el `.env`, que además de lo de `PUESTA_EN_MARCHA.md` necesita **las
+tres variables de correo**:
 
 ```
 DEFAULT_FROM_EMAIL=soporte-carnets@cgt.org.es
@@ -156,29 +190,47 @@ paso 5).
 
 ---
 
-## Paso 6 — Cambiar la dirección
+## Paso 6 — Repuntar la dirección
 
-En la pestaña **Web** de PythonAnywhere:
+**No hay que borrar ni recrear ninguna web.** Se le cambia a la que ya existe en
+`carnetscgt.eu.pythonanywhere.com` a qué proyecto apunta. El código y la base de
+datos del beta se quedan donde están; lo único que pierde es la dirección.
 
-1. **Apaga primero el beta.** Con la cuenta de pago puedes tener varias webs,
-   pero solo una puede responder en `carnetscgt.eu.pythonanywhere.com`.
-   Elimina esa web (o cámbiale el dominio) antes de asignárselo al 2.0.
-2. Al 2.0, apúntale el dominio principal.
-3. Repasa que sigan bien:
-   - **Source code** y **Working directory**
-   - **WSGI configuration file** (con `PYTHONPATH=/home/carnetscgt`)
-   - **Virtualenv**: `entorno_sindicato`
-   - **Static files**: `/static/` → `/home/carnetscgt/carnets/sistema_carnets/staticfiles`
-4. `ALLOWED_HOSTS` del `.env` tiene que incluir la dirección nueva. **Si no, la
-   web responde 400 a todo** y parece que se ha roto el despliegue.
-5. **Reload.**
+En la pestaña **Web**, sobre `carnetscgt.eu.pythonanywhere.com`, copia lo que ya
+tiene configurado `prueba-carnetscgt`:
+
+| Campo | Valor |
+|---|---|
+| **Source code** | `/home/carnetscgt/carnets` |
+| **Working directory** | `/home/carnetscgt/carnets` |
+| **Virtualenv** | `entorno_sindicato` |
+| **WSGI configuration file** | El del 2.0, con `PYTHONPATH=/home/carnetscgt` |
+| **Static files** | `/static/` → `/home/carnetscgt/carnets/sistema_carnets/staticfiles` |
+
+Lo más práctico es abrir las dos webs en dos pestañas del navegador y copiar
+campo por campo, incluido el contenido del archivo WSGI.
+
+Antes de recargar:
 
 ```bash
 python sistema_carnets/manage.py collectstatic --noinput
 ```
 
-> Deja la web de pruebas en pie unos días, en su propia dirección. Si aparece
-> algo, tienes dónde reproducirlo sin tocar producción.
+Y **`ALLOWED_HOSTS` del `.env` tiene que incluir la dirección nueva**. Si no, la
+web responde 400 a todo y parece que se ha roto el despliegue.
+
+Entonces sí: **Reload**.
+
+> **Deja `prueba-carnetscgt` en pie**, apuntando al mismo proyecto. No estorba y
+> te da una dirección por la que entrar si la principal se queda en 400 por un
+> `ALLOWED_HOSTS` mal puesto.
+>
+> Ojo: al apuntar las dos webs al mismo proyecto, comparten base de datos. Lo
+> que hagas por una lo verás por la otra. Eso es lo que quieres aquí, pero
+> conviene saberlo antes de "probar algo" en la de pruebas.
+
+**La vuelta atrás es inmediata mientras el beta siga en su carpeta**: devuélvele
+a esta web la configuración anterior y recarga.
 
 ---
 
@@ -220,11 +272,14 @@ rm beta.json
 Y la copia de tu equipo, **y la papelera**. Mientras exista, hay un fichero de
 afiliación en claro fuera de todo control técnico.
 
-**Elimina la base de datos del beta.** Mientras siga en pie hay una copia
-completa de los datos sin cifrar, sin segundo factor y sin auditoría. Una vez
-comprobada la migración, mantener los dos sistemas duplica la superficie
-expuesta sin ninguna contrapartida — y eso es exactamente lo que la EIPD dice
-que no se haga.
+**Elimina la base de datos del beta.** Repuntar la dirección le quitó el acceso
+por web, pero su SQLite sigue en su carpeta: una copia completa del fichero de
+afiliación **sin cifrar, sin segundo factor y sin auditoría**. Que no sea
+alcanzable desde fuera no la hace inocua — sigue estando en el disco, y en una
+copia de seguridad del servidor.
+
+Bórrala solo cuando el paso 5 esté comprobado y lleves unos días sin incidencias:
+mientras exista, es también tu vuelta atrás.
 
 Por último, los tres cron (`tareas_programadas.md`): `revisar_auditoria` cada
 hora, `backup_a_s3_cifrado` a diario y `expurgar_afiliados` trimestral. Sin
@@ -241,8 +296,9 @@ ellos el sistema funciona, pero no vigila, no respalda y no caduca nada.
 | `ModuleNotFoundError` | Falta `PYTHONPATH=/home/carnetscgt` en el WSGI, o no está activado `entorno_sindicato` |
 | `ImproperlyConfigured` al arrancar | `AUDITORIA_LOG_PATH` apunta a una ruta que no existe; el mensaje dice qué variable es |
 | El correo de contraseña no llega | `DEFAULT_FROM_EMAIL` sin configurar (lo detecta `check --deploy`) |
-| Un sindicato no puede entrar | Se quedó `is_active=False` del paso 2 |
+| Un sindicato no puede entrar | Su cuenta no se importó: mira los avisos del paso 4 |
+| Los sindicatos ven el sistema vacío | Se repuntó la dirección antes de importar |
 
-La vuelta atrás mientras el beta siga en pie es devolverle el dominio. Después
-de borrar su base de datos ya no hay vuelta atrás: de ahí que el paso 8 vaya el
-último y solo con el paso 5 comprobado.
+**La vuelta atrás es devolver a la web su configuración anterior y recargar.**
+Mientras no borres la base del beta, el camino de vuelta está entero: de ahí que
+el paso 8 vaya el último y solo con el paso 5 comprobado.
