@@ -9,6 +9,9 @@ Para poner una contraseña nueva, entra aquí:
 
 El enlace caduca en unas horas y solo sirve una vez.
 
+Si este correo ha caído en spam o correo no deseado, márcalo como "no es
+spam": así los próximos te llegarán a la bandeja de entrada.
+
 Si no has pedido tú este cambio, no hagas nada: la contraseña actual sigue
 funcionando y nadie ha entrado en tu cuenta. Si te llegan varios correos como
 este que tú no has pedido, avisa al administrador.
