@@ -24,8 +24,9 @@ carnetscgt.eu.pythonanywhere.com
 ```
 
 **Y ahí es donde está ahora el beta.** No es una web libre a la que mudarse: es
-la que hay que reconfigurar para que sirva el 2.0 en vez del beta. No hace falta
-borrarla ni crear ninguna otra.
+la que hay que sustituir. Y como el beta corre sobre Python 3.10 y el 2.0 sobre
+3.12, no basta con reconfigurarla: hay que borrarla y crearla de nuevo (paso 6).
+Eso no toca ningún archivo.
 
 > Si lo que quieres es otra dirección distinta (`carnets.eu.pythonanywhere.com`,
 > por ejemplo), eso es **otra cuenta de PythonAnywhere**, no una opción dentro
@@ -34,25 +35,26 @@ borrarla ni crear ninguna otra.
 
 ---
 
-## El orden importa (pero menos de lo que parece)
+## El orden, y por qué es ese
 
-No hay que borrar ni recrear ninguna web. La dirección es una **propiedad de la
-aplicación web**, y el código es otra: en la pestaña Web se le cambia a
-`carnetscgt.eu.pythonanywhere.com` a qué proyecto apunta, y ya está. El beta se
-queda en su carpeta, con su base de datos intacta, sin dirección.
+La aplicación web de la dirección principal **hay que recrearla**, porque el
+beta corre sobre Python 3.10 y el 2.0 sobre 3.12, y esa versión no se puede
+cambiar después de crear la web (paso 6).
 
-Eso simplifica dos cosas:
+Ahora bien, **borrar una aplicación web no borra archivos**. El código del beta,
+su base de datos y sus virtualenvs se quedan en su carpeta. De ahí salen dos
+cosas que simplifican el plan:
 
-- **El volcado del beta puedes sacarlo cuando quieras**, también después de
-  quitarle la dirección: el `dumpdata` se ejecuta desde una consola contra la
+- **El volcado del beta puedes sacarlo cuando quieras**, también después de que
+  su web deje de existir: el `dumpdata` se ejecuta desde una consola contra la
   carpeta del beta, no contra su web.
-- **No hace falta "congelar" el beta desactivando cuentas.** Repuntar la
-  dirección *es* el corte: en cuanto recargas, el beta deja de ser accesible y
-  nadie puede subir nada más ahí.
+- **No hace falta "congelar" el beta desactivando cuentas.** Recrear la web *es*
+  el corte: desde ese momento el beta no es alcanzable y nadie puede subir nada
+  más ahí.
 
 Lo que sí importa es que **los datos estén dentro antes de que los sindicatos
-lleguen**. Si cambias la dirección primero e importas después, hay un rato en el
-que entran y no encuentran a sus afiliados.
+lleguen**. Si recreas la web primero e importas después, hay un rato en el que
+entran y no encuentran a sus afiliados.
 
 ```
 1. Decidir con qué base de datos se queda producción   ← lo que más se olvida
@@ -60,7 +62,7 @@ que entran y no encuentran a sus afiliados.
 3. Configurar el correo
 4. Importar en el 2.0        ← con el 2.0 todavía en prueba-carnetscgt
 5. Comprobar
-6. Repuntar la dirección     ← esto es el corte
+6. Recrear la web sobre 3.12 ← esto es el corte (y una caída de minutos)
 7. Avisar a los sindicatos
 8. Borrar el volcado y la base del beta
 ```
@@ -166,7 +168,7 @@ los 344 `lengua` inválidos: un problema, no dos).
 
 ---
 
-## Paso 5 — Comprobar antes de cambiar la dirección
+## Paso 5 — Comprobar antes de tocar la web
 
 Con el 2.0 todavía en la dirección de pruebas:
 
@@ -190,47 +192,73 @@ paso 5).
 
 ---
 
-## Paso 6 — Repuntar la dirección
+## Paso 6 — Recrear la aplicación web
 
-**No hay que borrar ni recrear ninguna web.** Se le cambia a la que ya existe en
-`carnetscgt.eu.pythonanywhere.com` a qué proyecto apunta. El código y la base de
-datos del beta se quedan donde están; lo único que pierde es la dirección.
+**El beta corre sobre Python 3.10 y el 2.0 sobre 3.12**, y PythonAnywhere fija
+la versión de Python **al crear** la aplicación web: no hay forma de cambiarla
+después. Una web de 3.10 no puede usar un virtualenv de 3.12.
 
-En la pestaña **Web**, sobre `carnetscgt.eu.pythonanywhere.com`, copia lo que ya
-tiene configurado `prueba-carnetscgt`:
+Bajar el 2.0 a 3.10 tampoco es camino: `pandas 3.0.5` exige Python >=3.11.
+
+Así que hay que borrar la aplicación web y crearla de nuevo sobre 3.12.
+
+> **Borrar una aplicación web en PythonAnywhere NO borra tus archivos.** El
+> código del beta, su base de datos y sus virtualenvs se quedan donde están; lo
+> que desaparece es la configuración de la web y su archivo WSGI. Por eso esto
+> es seguro, y por eso el volcado del beta (paso 2) se puede seguir sacando
+> desde una consola aunque su web ya no exista.
+
+### Antes de borrar nada
+
+**Copia a un archivo de texto el contenido del WSGI de `prueba-carnetscgt`.** Al
+crear la web nueva, PythonAnywhere genera un WSGI en blanco y hay que pegarlo:
+si no lo tienes copiado, te toca reescribirlo con la web principal caída.
+
+Apunta también el resto de la configuración de `prueba-carnetscgt`:
 
 | Campo | Valor |
 |---|---|
 | **Source code** | `/home/carnetscgt/carnets` |
 | **Working directory** | `/home/carnetscgt/carnets` |
 | **Virtualenv** | `entorno_sindicato` |
-| **WSGI configuration file** | El del 2.0, con `PYTHONPATH=/home/carnetscgt` |
 | **Static files** | `/static/` → `/home/carnetscgt/carnets/sistema_carnets/staticfiles` |
 
-Lo más práctico es abrir las dos webs en dos pestañas del navegador y copiar
-campo por campo, incluido el contenido del archivo WSGI.
+### Los pasos
 
-Antes de recargar:
+1. Pestaña **Web** → `carnetscgt.eu.pythonanywhere.com` → **Delete this web app**
+2. **Add a new web app** → mismo dominio → **Manual configuration** →
+   **Python 3.12**
 
-```bash
-python sistema_carnets/manage.py collectstatic --noinput
-```
+   Manual configuration, **no** la opción "Django": esa monta un proyecto nuevo
+   vacío encima y no es lo que quieres.
+3. Rellena Source code, Working directory y Virtualenv con lo de la tabla
+4. Abre el archivo WSGI que ha generado, **borra todo su contenido** y pega el
+   que copiaste
+5. Añade la fila de **Static files**
+6. Comprueba que `ALLOWED_HOSTS` del `.env` incluye la dirección. Si no, la web
+   responde 400 a todo y parece que se ha roto el despliegue
+7. `python sistema_carnets/manage.py collectstatic --noinput`
+8. **Reload**
 
-Y **`ALLOWED_HOSTS` del `.env` tiene que incluir la dirección nueva**. Si no, la
-web responde 400 a todo y parece que se ha roto el despliegue.
+### La ventana de caída
 
-Entonces sí: **Reload**.
+Entre el paso 1 y el 8 la dirección principal no responde. Son minutos, pero
+son minutos con el sistema caído para todo el mundo, así que **hazlo en una
+franja de poco uso** y ten el WSGI ya copiado antes de empezar.
 
-> **Deja `prueba-carnetscgt` en pie**, apuntando al mismo proyecto. No estorba y
-> te da una dirección por la que entrar si la principal se queda en 400 por un
-> `ALLOWED_HOSTS` mal puesto.
->
-> Ojo: al apuntar las dos webs al mismo proyecto, comparten base de datos. Lo
-> que hagas por una lo verás por la otra. Eso es lo que quieres aquí, pero
-> conviene saberlo antes de "probar algo" en la de pruebas.
+**`prueba-carnetscgt` sigue funcionando todo el rato**, apuntando al mismo
+proyecto y la misma base de datos. Si alguien necesita entrar durante la
+ventana, esa dirección le sirve. Déjala en pie también después: no estorba y te
+da una puerta de entrada si la principal se queda en 400.
 
-**La vuelta atrás es inmediata mientras el beta siga en su carpeta**: devuélvele
-a esta web la configuración anterior y recarga.
+> Al apuntar las dos webs al mismo proyecto comparten base de datos: lo que
+> hagas por una lo ves por la otra. Es lo que quieres aquí, pero conviene
+> saberlo antes de "probar algo" en la de pruebas.
+
+**La vuelta atrás** es recrear la web apuntando al beta —sobre Python 3.10,
+porque su virtualenv es de 3.10— con su WSGI. Cópiate también ese antes de
+borrar nada, por si acaso. Mientras no borres la base del beta (paso 8), el
+camino de vuelta está entero.
 
 ---
 
@@ -297,8 +325,10 @@ ellos el sistema funciona, pero no vigila, no respalda y no caduca nada.
 | `ImproperlyConfigured` al arrancar | `AUDITORIA_LOG_PATH` apunta a una ruta que no existe; el mensaje dice qué variable es |
 | El correo de contraseña no llega | `DEFAULT_FROM_EMAIL` sin configurar (lo detecta `check --deploy`) |
 | Un sindicato no puede entrar | Su cuenta no se importó: mira los avisos del paso 4 |
-| Los sindicatos ven el sistema vacío | Se repuntó la dirección antes de importar |
+| Los sindicatos ven el sistema vacío | Se recreó la web antes de importar |
+| `ModuleNotFoundError` tras recrear la web | Se creó sobre Python 3.10, o el virtualenv no es `entorno_sindicato` |
 
-**La vuelta atrás es devolver a la web su configuración anterior y recargar.**
-Mientras no borres la base del beta, el camino de vuelta está entero: de ahí que
-el paso 8 vaya el último y solo con el paso 5 comprobado.
+**La vuelta atrás es recrear la web apuntando al beta**, sobre Python 3.10 y con
+su WSGI —cópiate ese archivo antes de borrar nada—. Mientras no borres su base
+de datos, el camino de vuelta está entero: de ahí que el paso 8 vaya el último y
+solo con el paso 5 comprobado.
