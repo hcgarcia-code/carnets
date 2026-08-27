@@ -1,0 +1,91 @@
+{% extends "gestion/base.html" %}
+{% load static %}
+
+{% comment %}
+Página de ayuda. Pública a propósito: quien más la necesita es justo quien no
+consigue entrar.
+
+Va sin formulario de contacto. Uno que enviase correo desde el servidor es una
+funcionalidad aparte —validación, límite de envíos, consentimiento, y una
+dirección desde la que enviar— y mientras no exista es mejor no fingirla: un
+formulario que no llega a ninguna parte pierde la consulta sin avisar. Aquí van
+las dos vías que sí funcionan hoy.
+
+Como es pública, aplica el mismo criterio que la portada: nada que diga quién
+usa el sistema. Ni sindicatos, ni recuentos, ni nombres.
+{% endcomment %}
+
+{% block titulo %}Ayuda — Sistema de Carnets{% endblock %}
+
+{% block contenido %}
+<main class="envoltorio">
+
+    <header class="seccion">
+        <h1 class="titular">Ayuda</h1>
+        <p class="subtitulo">Qué revisar antes de escribir, de dónde bajar la
+        plantilla oficial y cómo contactar con soporte.</p>
+    </header>
+
+    <div class="rejilla">
+
+        <section class="vidrio tarjeta">
+            <span class="etiqueta">Contacto</span>
+            <h2 class="titulo">Escribir a soporte</h2>
+            <p class="entradilla">Cuenta qué estabas haciendo y qué te dijo la
+            pantalla. Si el fallo salió al subir un archivo, dinos el nombre del
+            archivo, pero <strong>no lo adjuntes</strong>: lleva datos de
+            personas afiliadas y el correo no va cifrado.</p>
+            <p class="entradilla">
+                <a href="mailto:soporte-carnets@cgt.org.es">soporte-carnets@cgt.org.es</a>
+            </p>
+        </section>
+
+        <section class="vidrio tarjeta">
+            <span class="etiqueta">Contacto</span>
+            <h2 class="titulo">Llamar por teléfono</h2>
+            <p class="entradilla">En horario de oficina, si prefieres
+            explicarlo hablando.</p>
+            <p class="entradilla"><a href="tel:+34918055047">918 055 047</a></p>
+        </section>
+
+        <section class="vidrio tarjeta">
+            <span class="etiqueta">Plantilla</span>
+            <h2 class="titulo">La plantilla oficial</h2>
+            <p class="entradilla">Es el único formato que el sistema acepta.
+            Trae ya las columnas correctas y las listas de confederaciones,
+            federaciones y sindicatos.</p>
+            <a class="boton boton--claro boton--ancho"
+               href="{% static 'documentos/plantilla_afiliacion_oficial.xlsx' %}"
+               download>Descargar la plantilla (.xlsx)</a>
+        </section>
+
+    </div>
+
+    <section class="seccion">
+        <h2 class="titulo">Antes de escribirnos</h2>
+        <p class="entradilla">Casi todo lo que rechaza el sistema al subir un
+        archivo es una de estas cuatro cosas:</p>
+        <ul class="lista-legal">
+            <li><strong>Faltan columnas obligatorias.</strong> El archivo no
+            sale de la plantilla oficial, o se le ha borrado o renombrado alguna
+            columna. Bájala otra vez arriba y vuelca los datos en ella.</li>
+
+            <li><strong>El archivo no es .xlsx.</strong> Un .xls antiguo o un
+            .csv renombrado no valen. En Excel: <em>Guardar como → Libro de
+            Excel (.xlsx)</em>.</li>
+
+            <li><strong>Hay valores que no están en la lista.</strong> Las
+            columnas de confederación, federación y sindicato solo admiten los
+            valores de la hoja <em>Datos</em> de la plantilla, escritos igual.</li>
+
+            <li><strong>No puedes entrar todavía.</strong> Las cuentas nuevas
+            las aprueba un administrador a mano; hasta entonces el acceso
+            rebota. Si crees que ya debería estar aprobada, escríbenos.</li>
+        </ul>
+        <p class="nota">¿Olvidaste la contraseña? Puedes reponerla tú desde
+        <a href="{% url 'password_reset' %}">recuperar contraseña</a> sin
+        esperar a que te contestemos.</p>
+    </section>
+
+</main>
+{% endblock %}

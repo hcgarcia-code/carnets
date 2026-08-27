@@ -19,11 +19,31 @@ urlpatterns = [
         name='portada',
     ),
 
+    # Página de ayuda. Pública a propósito: quien más la necesita es justo
+    # quien no consigue entrar. Antes el botón de la portada era un mailto:,
+    # que en un ordenador de local sindical sin cliente de correo configurado
+    # no abre nada.
+    path(
+        'ayuda/',
+        TemplateView.as_view(template_name='gestion/ayuda.html'),
+        name='ayuda',
+    ),
+
     # Nueva ruta para la pantalla de inicio de sesión de los sindicatos
     path(
         'login/',
         LoginConLimiteDeIntentos.as_view(template_name='gestion/login.html'),
         name='login',
+    ),
+
+    # Cierre de sesión. Solo por POST (lo impone LogoutView desde Django 5):
+    # con GET bastaba una <img src="/salir/"> en cualquier página ajena para
+    # echar al sindicato de la suya. Vuelve a la portada, no al login, para no
+    # invitar a volver a entrar en un equipo compartido.
+    path(
+        'salir/',
+        auth_views.LogoutView.as_view(next_page='portada'),
+        name='logout',
     ),
 
     # Reposición de contraseña. La ruta conserva el nombre que ya tenía el

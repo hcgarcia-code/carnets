@@ -24,7 +24,7 @@ HOJA = Path(settings.BASE_DIR) / "gestion" / "static" / "gestion" / "carnets.css
 # Las plantillas propias del proyecto. El admin de Django trae las suyas y no
 # se toca: sobrescribir el CSS del admin es fragil y se rompe al actualizarlo.
 PLANTILLAS = [
-    "portada.html", "login.html", "registro.html", "acuerdo_legal.html",
+    "portada.html", "ayuda.html", "login.html", "registro.html", "acuerdo_legal.html",
     "subir_excel.html", "notificaciones.html", "panel_imprenta.html",
     "password/solicitar.html", "password/enviado.html",
     "password/nueva.html", "password/hecho.html",
@@ -113,7 +113,7 @@ def test_ninguna_plantilla_guarda_su_propia_copia_del_sistema(nombre):
 # --- Lo que ve el navegador ---
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("url", ["/", "/login/", "/alta/", "/recuperar-password/"])
+@pytest.mark.parametrize("url", ["/", "/ayuda/", "/login/", "/alta/", "/recuperar-password/"])
 def test_las_paginas_publicas_sirven_la_hoja(client, url):
     respuesta = client.get(url)
 
@@ -154,7 +154,7 @@ def test_el_panel_de_imprenta_sirve_la_hoja(client, imprenta):
 def test_ninguna_pagina_deja_estilos_sueltos(client):
     """Un `<style>` con el sistema dentro del HTML servido significa que esa
     pantalla se quedo fuera de la refactorizacion."""
-    for url in ("/", "/login/", "/alta/", "/recuperar-password/"):
+    for url in ("/", "/ayuda/", "/login/", "/alta/", "/recuperar-password/"):
         html = client.get(url).content.decode()
         assert "#cc0000" not in html, f"{url} lleva colores del sistema en linea"
 

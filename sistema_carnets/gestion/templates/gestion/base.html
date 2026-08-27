@@ -44,13 +44,20 @@ Bloques disponibles:
             <span class="marca__sep"></span>
             <span class="marca__nombre">Sistema de carnets</span>
         </a>
-        {% comment %}
-            Sin enlace de "salir": el proyecto no tiene ruta de cierre de
-            sesión. Añadirla es trabajo aparte, no de esta hoja de estilos.
-        {% endcomment %}
         <div class="barra__acciones">
+            <a href="{% url 'ayuda' %}">Ayuda</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'notificaciones' %}">Notificaciones</a>
+                {% comment %}
+                    Salir va en un formulario y no en un enlace porque cierra
+                    la sesión, y eso cambia estado: por GET bastaría una
+                    <img src="/salir/"> en cualquier página ajena para echar
+                    al sindicato de la suya. Django 5 lo impone.
+                {% endcomment %}
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit">Salir</button>
+                </form>
             {% else %}
                 <a class="boton boton--principal boton--compacto" href="{% url 'login' %}">Entrar</a>
             {% endif %}

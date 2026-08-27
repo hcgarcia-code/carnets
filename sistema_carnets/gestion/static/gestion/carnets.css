@@ -448,6 +448,16 @@ table.datos tr:hover td { background: rgba(255, 255, 255, 0.35); }
 .barra__acciones > a:not(.boton) { font-size: 14.5px; font-weight: 500; color: var(--tinta-2); }
 .barra__acciones > a:not(.boton):hover { color: var(--rojo); }
 
+/* "Salir" es un botón dentro de un formulario, no un enlace: cierra la sesión
+   y Django 5 solo lo admite por POST. Se le quita el aspecto de botón del
+   navegador para que la fila de la barra se lea de corrido. */
+.barra__acciones form { display: flex; }
+.barra__acciones form button {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  font: inherit; font-size: 14.5px; font-weight: 500; color: var(--tinta-2);
+}
+.barra__acciones form button:hover { color: var(--rojo); }
+
 .boton--compacto { min-height: 44px; padding: 11px 22px; font-size: 14px; }
 
 

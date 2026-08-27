@@ -1,4 +1,5 @@
 {% extends "gestion/base.html" %}
+{% load static %}
 
 {% block titulo %}Carga de datos — Sistema de Carnets{% endblock %}
 
@@ -8,7 +9,18 @@
 
         <h1 class="titulo" style="font-size: 1.9rem;">Carga de Datos Sindicales</h1>
         <p class="entradilla">Sube el archivo Excel con las altas y bajas de
-        afiliación. Asegúrate de usar la plantilla oficial.</p>
+        afiliación. Tiene que venir en la plantilla oficial: el sistema rechaza
+        el archivo si le falta alguna columna.</p>
+
+        {% comment %}
+            El enlace a la plantilla va aquí arriba, antes del formulario: si
+            estuviera debajo, quien llega sin ella ya ha intentado subir otra
+            cosa. La página pedía "usa la plantilla oficial" sin decir dónde
+            estaba.
+        {% endcomment %}
+        <a class="boton boton--claro"
+           href="{% static 'documentos/plantilla_afiliacion_oficial.xlsx' %}"
+           download>Descargar la plantilla oficial (.xlsx)</a>
 
         {% if messages %}
             {% for message in messages %}
