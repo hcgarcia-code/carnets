@@ -1,12 +1,23 @@
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
+from django.views.generic import TemplateView
 
 from gestion import views
 from gestion.auth_views import LoginConLimiteDeIntentos, RecuperarPasswordConLimite
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Portada pública. Sin vista propia: no tiene lógica, solo enseña los dos
+    # caminos de entrada. La raíz devolvía 404 y quien escribía la dirección a
+    # secas —que es lo que hace la gente— se encontraba un error sin ninguna
+    # indicación de adónde ir.
+    path(
+        '',
+        TemplateView.as_view(template_name='gestion/portada.html'),
+        name='portada',
+    ),
 
     # Nueva ruta para la pantalla de inicio de sesión de los sindicatos
     path(
