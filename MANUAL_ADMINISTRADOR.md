@@ -350,9 +350,24 @@ Formato: un JSON por línea, pensado para que lo lea una máquina.
 {"accion": "login.bloqueado", "ip": "198.51.100.7", "ts": "...", "usuario": "admin"}
 ```
 
-**Aquí nunca hay datos personales.** Se registra quién, cuándo, desde dónde, qué operación y
+**Aquí no van datos de afiliados.** Se registra quién, cuándo, desde dónde, qué operación y
 sobre cuántos registros; nunca el nombre ni el número de afiliado. Un registro de auditoría
 con los datos dentro sería una segunda copia sin cifrar de justo lo que se acaba de cifrar.
+
+> **Salvedad heredada del beta.** El campo `usuario` es el nombre de la cuenta, y llegaron dos
+> cuentas cuyo nombre de usuario es un DNI. En esas dos, una línea del registro dice que el
+> titular de un documento concreto ha cargado afiliación sindical —dato de categoría especial
+> del Art. 9— dentro de un archivo que se envía a un destino externo.
+>
+> El alta ya no lo permite: el formulario rechaza DNI y NIE como nombre de usuario. Las dos que
+> quedan hay que renombrarlas. Para localizarlas:
+>
+> ```bash
+> python sistema_carnets/manage.py shell -c "import re; from django.contrib.auth.models import User; print([u.username for u in User.objects.all() if re.fullmatch(r'\d{8}[A-Za-z]|[XYZxyz]\d{7}[A-Za-z]', u.username)])"
+> ```
+>
+> **Avisa al sindicato antes de renombrar**: le cambia la forma de entrar. La contraseña y todo
+> lo demás siguen igual. Desde el admin, campo "Nombre de usuario".
 
 ### 5.4 Alertas automáticas: que alguien se entere
 
