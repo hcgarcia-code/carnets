@@ -320,8 +320,31 @@ LOGGING = {
     },
 }
 
+def preparar_destino_auditoria(ruta: str) -> None:
+    """Crea la carpeta donde se escribirá el registro de auditoría.
+
+    Si no se puede, la aplicación no arranca, y eso es lo correcto: sin
+    registro de accesos no debe prestarse el servicio. Pero el error tiene que
+    decir **qué variable** lo provoca. El fallo natural de `mkdir` es un
+    `PermissionError` sobre una ruta suelta, a doce niveles de traza, y hay que
+    llegar hasta este archivo para deducir de dónde sale. Pasó al desplegar: la
+    ruta llevaba el nombre del directorio del proyecto en vez del del usuario.
+    """
+    try:
+        Path(ruta).parent.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise ImproperlyConfigured(
+            f"No se puede preparar la carpeta del registro de auditoría: {exc}. "
+            f"Revisa AUDITORIA_LOG_PATH en el .env, que ahora vale {ruta!r}. "
+            "Tiene que ser la ruta de un archivo dentro de una carpeta en la "
+            "que este usuario pueda escribir (por ejemplo "
+            "/home/TU_USUARIO/auditoria.jsonl, con TU_USUARIO y no el nombre "
+            "del directorio del proyecto).",
+        ) from exc
+
+
 if AUDITORIA_LOG_PATH:
-    Path(AUDITORIA_LOG_PATH).parent.mkdir(parents=True, exist_ok=True)
+    preparar_destino_auditoria(AUDITORIA_LOG_PATH)
     LOGGING['handlers']['archivo_auditoria'] = {
         'class': 'logging.handlers.WatchedFileHandler',
         'filename': AUDITORIA_LOG_PATH,

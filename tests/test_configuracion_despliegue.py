@@ -68,3 +68,37 @@ def test_el_check_esta_registrado_como_check_de_despliegue():
 
     assert comprobar_cache_compartida in registry.get_checks(include_deployment_checks=True)
     assert comprobar_cache_compartida not in registry.get_checks(include_deployment_checks=False)
+
+
+def test_una_ruta_de_auditoria_imposible_dice_cual_es_la_variable(tmp_path):
+    """Si AUDITORIA_LOG_PATH apunta a donde no se puede escribir, la aplicacion
+    no arranca. Eso esta bien --sin registro de accesos no debe servir-- pero el
+    error tiene que decir QUE variable lo causa.
+
+    Sin esto, lo que sale es un `PermissionError: '/home/carnets'` a doce niveles
+    de traza, y hay que leer hasta la linea de settings.py para deducir de donde
+    viene. Paso de verdad al desplegar: la ruta llevaba el nombre del directorio
+    del proyecto en lugar del nombre de usuario, y el mensaje no daba ninguna
+    pista.
+    """
+    from django.core.exceptions import ImproperlyConfigured
+
+    from sistema_carnets.settings import preparar_destino_auditoria
+
+    # El padre de la ruta es un archivo, no un directorio: mkdir falla igual en
+    # Windows y en Linux, sin depender de permisos del sistema.
+    estorbo = tmp_path / "no_soy_un_directorio"
+    estorbo.write_text("x", encoding="utf-8")
+
+    with pytest.raises(ImproperlyConfigured, match="AUDITORIA_LOG_PATH"):
+        preparar_destino_auditoria(str(estorbo / "auditoria.jsonl"))
+
+
+def test_una_ruta_de_auditoria_valida_crea_su_carpeta(tmp_path):
+    destino = tmp_path / "registros" / "auditoria.jsonl"
+
+    from sistema_carnets.settings import preparar_destino_auditoria
+
+    preparar_destino_auditoria(str(destino))
+
+    assert destino.parent.is_dir()
