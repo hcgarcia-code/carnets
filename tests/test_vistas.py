@@ -125,9 +125,15 @@ def test_aceptar_acuerdo_registra_consentimiento_fecha_e_ip(client):
     assert perfil.ip_aceptacion == '203.0.113.7'
 
 
-def test_acuerdo_captura_primera_ip_de_x_forwarded_for(client):
-    # Tras un proxy, la IP real del cliente es la primera de la lista;
-    # las siguientes son saltos intermedios.
+def test_acuerdo_ignora_la_cabecera_si_no_hay_proxy_declarado(client):
+    """Sin `PROXIES_DE_CONFIANZA`, X-Forwarded-For no vale nada.
+
+    Este test comprobaba antes lo contrario: que se guardaba la PRIMERA entrada
+    de la cabecera. Esa es precisamente la que puede escribir el cliente, así
+    que la constancia de la firma del acuerdo recogía un valor elegido por quien
+    firmaba. Servida la aplicación sin proxy delante, lo correcto es no creerse
+    la cabecera en absoluto.
+    """
     usuario = _crear_usuario()
     client.force_login(usuario)
 
@@ -138,7 +144,24 @@ def test_acuerdo_captura_primera_ip_de_x_forwarded_for(client):
     )
 
     perfil = PerfilSindicato.objects.get(usuario=usuario)
-    assert perfil.ip_aceptacion == '198.51.100.23'
+    assert perfil.ip_aceptacion == '10.0.0.1'
+
+
+def test_acuerdo_toma_la_ip_que_puso_el_proxy_y_no_la_del_cliente(client, settings):
+    """Con un proxy declarado, se lee la cabecera por la DERECHA: la última
+    entrada la añade el proxy en el que confiamos."""
+    settings.PROXIES_DE_CONFIANZA = ['10.0.0.1']
+    usuario = _crear_usuario()
+    client.force_login(usuario)
+
+    client.post(
+        reverse('acuerdo_legal'),
+        HTTP_X_FORWARDED_FOR='1.2.3.4, 198.51.100.23',
+        REMOTE_ADDR='10.0.0.1',
+    )
+
+    perfil = PerfilSindicato.objects.get(usuario=usuario)
+    assert perfil.ip_aceptacion == '198.51.100.23', 'se ha guardado la IP forjada'
 
 
 # --- Carga de Excel: flujo funcional principal ---

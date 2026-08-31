@@ -93,13 +93,18 @@ class ACCIONES:
 def _ip_de(peticion) -> str:
     """IP real de la conexión.
 
-    Se usa REMOTE_ADDR y no X-Forwarded-For por el mismo motivo que en el
-    limitador de intentos de login: la cabecera la pone el cliente y es
-    falsificable, así que cualquiera podría falsear su propio rastro.
+    La resuelve `gestion.ip.ip_real`, que solo se cree X-Forwarded-For si la
+    petición viene de un proxy declarado. Antes se usaba REMOTE_ADDR a secas
+    para que nadie pudiera falsear su rastro con esa cabecera; el motivo era
+    bueno, pero detrás del proxy de producción REMOTE_ADDR era siempre la del
+    balanceador y este campo repetía el mismo valor en todas las líneas, que
+    para investigar un incidente es como no tenerlo.
     """
-    if peticion is None:
-        return "desconocida"
-    return peticion.META.get("REMOTE_ADDR", "desconocida")
+    # Import local: auditoria.py lo carga medio proyecto y gestion/ip.py lee
+    # settings, que en el arranque todavía puede no estar listo.
+    from .ip import ip_real
+
+    return ip_real(peticion) or "desconocida"
 
 
 def _usuario_de(peticion, usuario) -> str:

@@ -39,6 +39,13 @@ skills-lock.json
 # Excel de ejemplo generado por `manage.py preparar_pruebas`
 afiliados_de_ejemplo.xlsx
 
+# Registros operativos que dejan los comandos al ejecutarse en el servidor
+# (p. ej. `sanear_volcado_beta`). Son constancia de decisiones sobre datos y
+# hay que conservarlos, pero fuera del repositorio: dentro del arbol de git un
+# `git clean` los borraria, y ademas frenan el script de despliegue, que se
+# niega a hacer pull con archivos sin seguimiento delante.
+*.log
+
 # Lienzo de diseño ya montado (~2 MB de editor empaquetado). Se regenera desde
 # los .dc.html de diseno/, que sí van al repositorio.
 diseno/portada-carnets-cgt.html

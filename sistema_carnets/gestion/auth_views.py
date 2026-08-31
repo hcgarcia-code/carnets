@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django_otp.admin import OTPAdminSite
 
 from .auditoria import ACCIONES, registrar
+from .ip import ip_real
 
 INTENTOS_MAXIMOS = 5
 VENTANA_BLOQUEO_SEGUNDOS = 5 * 60
@@ -16,12 +17,13 @@ VENTANA_RECUPERACION_SEGUNDOS = 15 * 60
 
 
 def _clave_intentos(request, username: str) -> str:
-    # Se usa REMOTE_ADDR (la IP real de la conexión TCP) y no cabeceras como
-    # X-Forwarded-For, que el cliente puede falsificar libremente para
-    # esquivar el límite. Se combina con el usuario objetivo para no
+    # La IP la resuelve gestion.ip.ip_real, que solo se cree X-Forwarded-For si
+    # la petición viene de un proxy declarado: así el cliente no puede
+    # falsificarla para esquivar el límite, pero detrás del proxy de producción
+    # deja de ser siempre la misma. Se combina con el usuario objetivo para no
     # bloquear cuentas legítimas que comparten IP con un atacante que está
     # probando contra OTRA cuenta.
-    ip = request.META.get('REMOTE_ADDR', 'desconocida')
+    ip = ip_real(request) or 'desconocida'
     usuario_normalizado = (username or '').strip().lower()[:150]
     return f"login_intentos:{ip}:{usuario_normalizado}"
 
@@ -149,7 +151,12 @@ class RecuperarPasswordConLimite(PasswordResetView):
     """
 
     def _clave(self, request) -> str:
-        ip = request.META.get("REMOTE_ADDR", "desconocida")
+        # Este es el limitador al que más le duele que la IP sea la del proxy:
+        # como cuenta SOLO por IP, con un valor constante el cupo pasaba a ser
+        # de cinco peticiones cada cuarto de hora para todo el sitio. Con 51
+        # sindicatos recién avisados de una dirección nueva, el sexto que
+        # pidiera su contraseña se llevaba un 429 sin haber hecho nada.
+        ip = ip_real(request) or "desconocida"
         return f"recuperacion_intentos:{ip}"
 
     def dispatch(self, request, *args, **kwargs):

@@ -18,6 +18,7 @@ from simple_history.utils import bulk_create_with_history
 
 from .auditoria import ACCIONES, registrar
 from .forms import RegistroSindicatoForm
+from .ip import ip_real
 from .models import Afiliado, PerfilSindicato, RegistroSubida
 
 logger = logging.getLogger(__name__)
@@ -60,7 +61,7 @@ def registro_sindicato(request):
     # al que asociar el límite— y por eso el formulario crea la cuenta INACTIVA
     # (ver RegistroSindicatoForm.save): que cualquiera pueda rellenar este
     # formulario no debe significar que cualquiera pueda ya subir datos.
-    ip = request.META.get('REMOTE_ADDR', 'desconocida')
+    ip = ip_real(request) or 'desconocida'
     clave_limite = f"registro_intentos:{ip}"
 
     if cache.get(clave_limite, 0) >= INTENTOS_REGISTRO_MAXIMOS:
@@ -102,13 +103,17 @@ def acuerdo_legal(request):
         perfil.acuerdo_aceptado = True
         perfil.fecha_aceptacion = timezone.now()
 
-        # Capturamos la dirección IP por motivos legales
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0].strip()
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        perfil.ip_aceptacion = ip
+        # Capturamos la dirección IP por motivos legales.
+        #
+        # Antes se tomaba la PRIMERA entrada de X-Forwarded-For, que es
+        # justamente la que puede escribir el cliente: lo que se guardaba como
+        # constancia de la firma era un valor elegido por quien firmaba.
+        # `ip_real` solo se cree la cabecera si la petición viene de un proxy
+        # declarado, y dentro de ella lee por la derecha.
+        #
+        # Puede devolver None, y el campo lo admite: mejor sin IP que con una
+        # inventada en el registro de un consentimiento.
+        perfil.ip_aceptacion = ip_real(request)
         perfil.save()
 
         messages.success(

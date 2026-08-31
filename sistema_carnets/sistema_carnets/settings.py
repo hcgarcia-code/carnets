@@ -293,6 +293,23 @@ SECURE_HSTS_PRELOAD = os.environ.get('SECURE_HSTS_PRELOAD', 'True') == 'True'
 # un vector para que un archivo subido se interprete como HTML/JS ejecutable.
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
+# Proxies inversos de los que SÍ nos fiamos para leer X-Forwarded-For.
+#
+# Vacío por defecto: sin esta lista la cabecera se ignora y se usa REMOTE_ADDR,
+# que es el comportamiento seguro cuando la aplicación se sirve directamente.
+#
+# Detrás de un proxy hace falta rellenarla, o REMOTE_ADDR pasa a ser siempre la
+# del balanceador: el limitador de reposición de contraseña, que cuenta por IP,
+# se vuelve global para todo el sitio, y el campo `ip` de la auditoría repite el
+# mismo valor en cada línea. En PythonAnywhere: PROXIES_DE_CONFIANZA=10.0.0.0/8
+#
+# Admite IPs sueltas y rangos CIDR, separados por comas. Ver gestion/ip.py.
+PROXIES_DE_CONFIANZA = [
+    entrada.strip()
+    for entrada in os.environ.get('PROXIES_DE_CONFIANZA', '').split(',')
+    if entrada.strip()
+]
+
 # Cierre de sesión automático por inactividad (RGPD).
 SESSION_COOKIE_AGE = int(os.environ.get('SESSION_COOKIE_AGE', '1800'))
 SESSION_EXPIRE_AT_BROWSER_CLOSE = (
