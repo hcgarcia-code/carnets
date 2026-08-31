@@ -81,6 +81,13 @@ class ACCIONES:
     LOGIN_CORRECTO = "login.correcto"
     LOGIN_FALLIDO = "login.fallido"
     LOGIN_BLOQUEADO = "login.bloqueado"
+    # Credenciales correctas pero cuenta sin activar. Se distingue de
+    # LOGIN_FALLIDO porque no es lo mismo: tres intentos de un sindicato que
+    # espera aprobación parecen un ataque en el registro y no lo son.
+    LOGIN_CUENTA_INACTIVA = "login.cuenta_inactiva"
+    # Aprobar salta el control manual de altas, que es lo unico que separa a una
+    # cuenta cualquiera de poder subir datos de afiliacion.
+    CUENTAS_APROBADAS = "cuentas.aprobadas"
     # Una reposición de credencial se hace sin conocer la anterior: si alguien
     # controla el buzón de un sindicato, es su vía de entrada. Tiene que dejar
     # rastro igual que un acceso.

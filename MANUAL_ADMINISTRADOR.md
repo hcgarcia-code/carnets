@@ -156,10 +156,11 @@ base de datos a propósito: se lee del archivo en el servidor.
    ├─ Valida que sea legítimo
    └─ Toma decisión: Activar o Rechazar
 
-3. Para ACTIVAR:
-   ├─ Marca: ☑ "Activo" (is_active)
-   ├─ Guarda
-   └─ Sindicato ya puede loguear
+3. Para ACTIVAR (usa la ACCIÓN, no la casilla — ver aviso debajo):
+   ├─ Selecciona la(s) cuenta(s) en el listado
+   ├─ "Acción": Aprobar las cuentas de sindicato seleccionadas
+   ├─ Se activan, se audita CUENTAS_APROBADAS
+   └─ Se le manda un correo a cada una avisando de que ya puede entrar
 
 4. Para RECHAZAR:
    ├─ Selecciona usuario
@@ -167,6 +168,30 @@ base de datos a propósito: se lee del archivo en el servidor.
    ├─ Confirma
    └─ Audita: USUARIO_ELIMINADO
 ```
+
+> **Aprueba con la acción, no marcando la casilla "Activo".** Las dos activan la
+> cuenta, pero solo la acción manda el correo y deja constancia en la auditoría.
+> Si marcas la casilla a mano, el sindicato queda activo **sin enterarse**: no
+> sabe desde cuándo puede entrar y solo lo descubre si vuelve a probar por su
+> cuenta.
+
+**Qué te dice la acción al terminar.** Un resumen y, si hace falta, dos avisos
+en amarillo que conviene leer:
+
+- *«Activadas pero SIN correo, avísales por teléfono»* — esas cuentas ya están
+  activas, pero no hay dirección a la que escribir. Se nombran una a una porque
+  hay que llegarles por otra vía.
+- *«No se ha podido avisar (fallo del correo)»* — la cuenta quedó activada igual;
+  lo que falló fue el envío. La aprobación es lo importante y no se deshace por
+  un problema de SMTP, pero esos sindicatos no han recibido nada.
+
+**Qué ve el sindicato mientras espera.** Si intenta entrar antes de que lo
+apruebes, con su usuario y contraseña correctos, la pantalla le dice que la
+cuenta todavía no está activa y que recibirá un correo. Antes le decía «usuario
+o contraseña incorrectos», y quien acababa de registrarse lo reintentaba hasta
+bloquearse solo. Ese aviso solo sale si la contraseña es correcta: acertando
+solo el nombre de usuario no se revela nada, para que esta pantalla no sirva
+para averiguar desde fuera qué sindicatos están dados de alta.
 
 ### 3.2 Panel de Usuarios en django-admin
 

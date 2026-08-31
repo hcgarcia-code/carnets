@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView, PasswordResetView
 from django.core.cache import cache
 from django.http import HttpResponse
@@ -28,6 +29,39 @@ def _clave_intentos(request, username: str) -> str:
     return f"login_intentos:{ip}:{usuario_normalizado}"
 
 
+MENSAJE_CUENTA_INACTIVA = (
+    "Tu usuario y tu contraseña son correctos, pero la cuenta todavía no está "
+    "activa: un administrador tiene que aprobarla. Recibirás un correo en cuanto "
+    "lo haga. Si llevas más de un par de días esperando, escribe a "
+    "soporte-carnets@cgt.org.es."
+)
+
+
+def _cuenta_pendiente_de_activar(request, username: str) -> bool:
+    """¿El intento es de una cuenta real, sin activar, y con la clave correcta?
+
+    `ModelBackend` rechaza a los usuarios con `is_active=False` ANTES de mirar
+    la contraseña, así que el formulario nunca llega a `confirm_login_allowed` y
+    cae en el error genérico: la pantalla decía "usuario o contraseña
+    incorrectos" a quien los tenía correctos. Quien acaba de registrarse lo
+    reintenta, y acaba bloqueándose solo por insistir en algo que no depende
+    de él.
+
+    Se exige que la contraseña sea CORRECTA, y esa es la parte importante. Con
+    solo acertar el nombre de usuario, esta pantalla sería un comprobador
+    público de qué sindicatos están dados de alta —y qué sindicatos usan el
+    sistema es precisamente lo que se protege al escribir a cada uno por
+    separado en vez de meterlos a todos en el mismo `To:`. Acertar la
+    contraseña es la prueba de que la cuenta es suya.
+    """
+    if not username:
+        return False
+    usuario = User.objects.filter(username=username).first()
+    if usuario is None or usuario.is_active:
+        return False
+    return usuario.check_password(request.POST.get('password', ''))
+
+
 class LoginConLimiteDeIntentos(LoginView):
     """LoginView con bloqueo temporal tras varios intentos fallidos.
 
@@ -54,11 +88,30 @@ class LoginConLimiteDeIntentos(LoginView):
     def form_invalid(self, form):
         username = self.request.POST.get('username', '')
         clave = _clave_intentos(self.request, username)
+        # El intento cuenta pase lo que pase, también el de una cuenta sin
+        # activar: el limitador no distingue casos a propósito, y complicarlo
+        # es justo lo que abrió el agujero del login del admin.
         cache.set(clave, cache.get(clave, 0) + 1, VENTANA_BLOQUEO_SEGUNDOS)
-        # Solo el usuario intentado: la contraseña no se registra nunca, ni
-        # siquiera fallida (suele ser la de otra cuenta, o la buena con una errata).
-        registrar(ACCIONES.LOGIN_FALLIDO, peticion=self.request, usuario=username)
+
+        # Una marca propia y no `form.add_error`: el error genérico de Django
+        # también vive en `non_field_errors`, así que la plantilla no podría
+        # distinguir el suyo del nuestro y acabaría enseñando el de Django, que
+        # habla de mayúsculas y manda al sitio equivocado.
+        self.cuenta_inactiva = _cuenta_pendiente_de_activar(self.request, username)
+        if self.cuenta_inactiva:
+            registrar(ACCIONES.LOGIN_CUENTA_INACTIVA, peticion=self.request, usuario=username)
+        else:
+            # Solo el usuario intentado: la contraseña no se registra nunca, ni
+            # siquiera fallida (suele ser la de otra cuenta, o la buena con una errata).
+            registrar(ACCIONES.LOGIN_FALLIDO, peticion=self.request, usuario=username)
+
         return super().form_invalid(form)
+
+    def get_context_data(self, **kwargs):
+        contexto = super().get_context_data(**kwargs)
+        contexto['cuenta_inactiva'] = getattr(self, 'cuenta_inactiva', False)
+        contexto['mensaje_cuenta_inactiva'] = MENSAJE_CUENTA_INACTIVA
+        return contexto
 
     def form_valid(self, form):
         username = form.cleaned_data.get('username', '')

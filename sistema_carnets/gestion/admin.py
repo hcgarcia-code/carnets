@@ -5,8 +5,11 @@ from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
+from django.core.mail import EmailMessage, get_connection
 from django.db.models import Count, Max, Q
 from django.http import HttpResponse
+from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -375,14 +378,101 @@ class NotificacionAdmin(admin.ModelAdmin):
         return False
 
 
+PLANTILLA_APROBACION_ASUNTO = 'gestion/correo/cuenta_aprobada_asunto.txt'
+PLANTILLA_APROBACION_CUERPO = 'gestion/correo/cuenta_aprobada.txt'
+
+
+def _avisar_de_la_aprobacion(request, usuarios):
+    """Escribe a cada sindicato recien aprobado. Devuelve (enviados, fallidos).
+
+    UN destinatario por mensaje, ni cc ni bcc: meter a varios en el mismo correo
+    ensenaria a cada sindicato la lista de los demas, y eso no es un descuido de
+    estilo sino una comunicacion de datos a terceros que nadie ha autorizado.
+    Mismo criterio que `avisar_version_2`.
+
+    La direccion se saca del request, asi que el enlace sale correcto sin tener
+    que configurar el dominio en otro sitio mas.
+    """
+    if not usuarios:
+        return 0, []
+
+    asunto = render_to_string(PLANTILLA_APROBACION_ASUNTO).strip()
+    url = request.build_absolute_uri(reverse('login'))
+
+    # Una sola conexion SMTP para todo el lote: abrirla y cerrarla por mensaje
+    # es lo que hace que un servidor de correo te corte a mitad.
+    conexion = get_connection()
+    enviados, fallidos = 0, []
+    try:
+        conexion.open()
+        for usuario in usuarios:
+            cuerpo = render_to_string(PLANTILLA_APROBACION_CUERPO, {
+                'usuario': usuario.get_username(),
+                'url': url,
+            })
+            try:
+                EmailMessage(
+                    subject=asunto, body=cuerpo,
+                    to=[usuario.email], connection=conexion,
+                ).send()
+                enviados += 1
+            except OSError:
+                # Un fallo del servidor de correo no puede deshacer la
+                # aprobacion: eso es lo importante, el aviso es una cortesia.
+                # Pero tampoco se calla, o el sindicato se queda esperando un
+                # correo que nadie sabe que no salio.
+                fallidos.append(usuario.get_username())
+    except OSError:
+        fallidos.extend(u.get_username() for u in usuarios[enviados + len(fallidos):])
+    finally:
+        try:
+            conexion.close()
+        except OSError:
+            pass
+
+    return enviados, fallidos
+
+
 # Aprobar salta el control manual de altas, que es lo unico que impide que
 # una cuenta sin revisar empiece a subir datos de afiliacion.
 @admin.action(description="Aprobar las cuentas de sindicato seleccionadas", permissions=["change"])
 def aprobar_cuentas(modeladmin, request, queryset):
-    # Solo activa las que de verdad estaban inactivas: evita que el mensaje de
-    # éxito infle el recuento con cuentas que ya estaban aprobadas de antes.
-    activadas = queryset.filter(is_active=False).update(is_active=True)
-    modeladmin.message_user(request, f"{activadas} cuenta(s) activada(s).")
+    # Se leen ANTES de activarlas: despues, `filter(is_active=False)` ya no
+    # casaria con ellas y no habria a quien escribir. Solo las que de verdad
+    # estaban inactivas, para no reavisar a quien ya recibio su correo en su dia.
+    pendientes = list(queryset.filter(is_active=False))
+    if not pendientes:
+        modeladmin.message_user(
+            request, "Las cuentas seleccionadas ya estaban activas.", level=messages.WARNING,
+        )
+        return
+
+    User.objects.filter(pk__in=[u.pk for u in pendientes]).update(is_active=True)
+
+    registrar(
+        ACCIONES.CUENTAS_APROBADAS,
+        peticion=request,
+        cantidad=len(pendientes),
+        ids=[u.pk for u in pendientes],
+    )
+
+    con_correo = [u for u in pendientes if u.email]
+    sin_correo = [u.get_username() for u in pendientes if not u.email]
+    enviados, fallidos = _avisar_de_la_aprobacion(request, con_correo)
+
+    modeladmin.message_user(
+        request, f"{len(pendientes)} cuenta(s) activada(s). Avisadas por correo: {enviados}.",
+    )
+    # Se nombran de uno en uno a proposito: son los que no se van a enterar por
+    # esta via y hay que llegarles por otra.
+    for titulo, cuentas in (
+        ("No se ha podido avisar (fallo del correo)", fallidos),
+        ("Activadas pero SIN correo, avisales por telefono", sin_correo),
+    ):
+        if cuentas:
+            modeladmin.message_user(
+                request, f"{titulo}: {', '.join(cuentas)}", level=messages.WARNING,
+            )
 
 
 class RegistroSubidaInline(admin.TabularInline):

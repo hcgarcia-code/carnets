@@ -22,7 +22,21 @@
             {% endfor %}
         {% endif %}
 
-        {% if form.errors %}
+        {% comment %}
+            El mensaje genérico está escrito aquí y no se toma del formulario a
+            propósito: el de Django menciona que las mayúsculas cuentan y manda
+            al sitio equivocado.
+
+            `cuenta_inactiva` lo pone la vista cuando el usuario y la contraseña
+            son CORRECTOS y lo que falta es que un administrador apruebe la
+            cuenta. Sin distinguirlo, a quien acaba de registrarse se le dice
+            que se equivoca de contraseña, lo reintenta, y se bloquea solo por
+            insistir en algo que no depende de él. Pasó de verdad.
+            Ver auth_views._cuenta_pendiente_de_activar.
+        {% endcomment %}
+        {% if cuenta_inactiva %}
+            <div class="aviso">{{ mensaje_cuenta_inactiva }}</div>
+        {% elif form.errors %}
             <div class="aviso aviso--error">Usuario o contraseña incorrectos. Inténtelo de nuevo.</div>
         {% endif %}
 

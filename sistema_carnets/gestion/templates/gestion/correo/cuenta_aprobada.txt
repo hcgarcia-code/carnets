@@ -1,0 +1,47 @@
+{% autoescape off %}Hola:
+
+Ya está revisada y activada la cuenta que pediste para el sistema de carnets
+de CGT. Puedes entrar cuando quieras.
+
+    Tu usuario:  {{ usuario }}
+    Entrar aquí: {{ url }}
+
+La contraseña es la que elegiste al darte de alta. Si no la recuerdas, usa el
+enlace "¿Has olvidado tu contraseña?" de esa misma pantalla: te llega un correo
+a esta dirección y caduca en dos horas.
+
+Este mismo correo puede haberte llegado a la carpeta de spam o correo no
+deseado. Márcalo como "no es spam" para que los siguientes —incluido el de
+reponer la contraseña, si lo necesitas— te lleguen a la bandeja de entrada.
+
+
+QUÉ TIENES QUE HACER LA PRIMERA VEZ
+
+1. Entrar con tu usuario y contraseña.
+
+2. Leer y aceptar el acuerdo de protección de datos. Sale solo, antes de
+   dejarte hacer nada más. Es obligatorio: sin él no se pueden tratar datos de
+   personas afiliadas.
+
+3. Descargar la plantilla oficial de Excel. Está encima del formulario, en la
+   pantalla de subir datos. No uses una plantilla vieja: el sistema comprueba
+   las columnas y rechaza el archivo entero si no cuadran.
+
+4. Rellenarla y subirla.
+
+Hay un manual completo, con el circuito paso a paso, en la página de ayuda.
+Se lee en el navegador, sin descargar nada.
+
+
+SI ALGO NO FUNCIONA
+
+Escribe a soporte-carnets@cgt.org.es o llama al 918 055 047.
+
+Y una cosa importante: NO adjuntes nunca el Excel de afiliados a un correo.
+Lleva datos de personas afiliadas y el correo no va cifrado. El archivo se
+sube por la propia pantalla del sistema, que sí lo está.
+
+--
+Sistema de carnets de CGT
+{{ url }}
+{% endautoescape %}
