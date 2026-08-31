@@ -19,12 +19,24 @@ set -euo pipefail
 
 # ============== CONFIGURA ESTAS 6 LÍNEAS ANTES DE EJECUTAR ==================
 # (Ninguna de estas variables es secreta - son solo rutas/nombres.)
-PROJECT_DIR="/home/carnetscgt/sistema_carnets"
-VENV_ACTIVATE="/home/carnetscgt/.virtualenvs/TU_VENV/bin/activate"  # ver nota abajo
-GIT_BRANCH="claude/gstack-setup-xbcyy9"
+# Raíz del repositorio: aquí viven .git, .env y requirements.txt.
+PROJECT_DIR="/home/carnetscgt/carnets"
+VENV_ACTIVATE="/home/carnetscgt/.virtualenvs/carnets/bin/activate"  # ver nota abajo
+# La rama que se despliega. Estuvo apuntando a una rama de trabajo que ya no
+# existe en origin, y el script moría en el paso 2 sin llegar a tocar nada.
+GIT_BRANCH="main"
 DOMINIO="carnetscgt.eu.pythonanywhere.com"
 EMAIL_HOST="correo.cgt.org.es"
 EMAIL_USER="soporte_carnets@cgt.org.es"
+# Carpeta de la aplicación Django: manage.py y db.sqlite3 NO están en la raíz
+# del repositorio, sino un nivel por debajo. La ruta se deriva de PROJECT_DIR,
+# así que basta con acertar esa.
+#
+# Esto separa dos cosas que el script daba por iguales y no lo son: git, .env y
+# requirements.txt van en la raíz; manage.py y la base de datos, dentro. Estaba
+# escrito para la estructura plana del despliegue beta (manage.py en la raíz) y
+# contra el 2.0 fallaba en su propia comprobación previa.
+DJANGO_DIR="$PROJECT_DIR/sistema_carnets"
 # ==============================================================================
 # Nota sobre VENV_ACTIVATE: en el panel de PythonAnywhere, pestaña "Web",
 # busca la sección "Virtualenv" de tu web app - ahí está la ruta exacta.
@@ -88,8 +100,16 @@ log "Paso 0: comprobaciones previas"
 # ==============================================================================
 cd "$PROJECT_DIR"
 
-if [ ! -f "manage.py" ]; then
-    fail "No se encuentra manage.py en $PROJECT_DIR. Revisa PROJECT_DIR."
+if [ ! -f "$DJANGO_DIR/manage.py" ]; then
+    fail "No se encuentra manage.py en $DJANGO_DIR. Revisa PROJECT_DIR."
+    fail "PROJECT_DIR debe ser la RAÍZ del repositorio (la que contiene .git y .env),"
+    fail "no la carpeta de la aplicación Django."
+    exit 1
+fi
+if [ ! -f "$DJANGO_DIR/db.sqlite3" ]; then
+    fail "No se encuentra la base de datos en $DJANGO_DIR/db.sqlite3."
+    fail "Si la has movido con DATABASE_NAME en el .env, ajusta DJANGO_DIR o haz"
+    fail "la copia de seguridad a mano antes de continuar. NO sigo sin backup."
     exit 1
 fi
 if [ ! -d ".git" ]; then
@@ -107,12 +127,12 @@ ok "Directorio de proyecto y estado de git correctos."
 log "Paso 1: backup de la base de datos actual"
 # ==============================================================================
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_DB="db.sqlite3.backup_${TIMESTAMP}"
-cp db.sqlite3 "$BACKUP_DB"
-ok "Backup guardado en $PROJECT_DIR/$BACKUP_DB"
+BACKUP_DB="$DJANGO_DIR/db.sqlite3.backup_${TIMESTAMP}"
+cp "$DJANGO_DIR/db.sqlite3" "$BACKUP_DB"
+ok "Backup guardado en $BACKUP_DB"
 
 CONTEO_ANTES=$(mktemp)
-contar_filas "$PROJECT_DIR/db.sqlite3" > "$CONTEO_ANTES"
+contar_filas "$DJANGO_DIR/db.sqlite3" > "$CONTEO_ANTES"
 log "Recuento de filas ANTES del despliegue:"
 cat "$CONTEO_ANTES"
 
@@ -215,12 +235,12 @@ ok "Dependencias instaladas (incluye django-simple-history, nueva en esta versi�
 # ==============================================================================
 log "Paso 5: comprobar el estado de las migraciones ANTES de aplicar nada"
 # ==============================================================================
-ESTADO_MIGRACIONES=$(python3 manage.py showmigrations gestion 2>&1)
+ESTADO_MIGRACIONES=$(python3 "$DJANGO_DIR/manage.py" showmigrations gestion 2>&1)
 echo "$ESTADO_MIGRACIONES"
 
 if echo "$ESTADO_MIGRACIONES" | grep -q "\[ \] 0001_initial\|\[ \] 0002_alter_afiliado_id\|\[ \] 0003_registrosubida\|\[ \] 0004_afiliado_fecha_creacion"; then
     fail "Alguna migración anterior a la 0005 no está aplicada. Esto no coincide con lo verificado - PARO aquí sin tocar nada más."
-    fail "Restaura con: cp $BACKUP_DB db.sqlite3 (si hiciera falta) y avísame para revisar el caso."
+    fail "Restaura con: cp $BACKUP_DB $DJANGO_DIR/db.sqlite3 (si hiciera falta) y avísame para revisar el caso."
     exit 1
 fi
 
@@ -241,16 +261,16 @@ fi
 if [ "$MIGRAR" = "1" ]; then
     log "Paso 6: aplicar las migraciones pendientes"
     # ==============================================================================
-    python3 manage.py migrate gestion --noinput
+    python3 "$DJANGO_DIR/manage.py" migrate gestion --noinput
 
     CONTEO_DESPUES=$(mktemp)
-    contar_filas "$PROJECT_DIR/db.sqlite3" > "$CONTEO_DESPUES"
+    contar_filas "$DJANGO_DIR/db.sqlite3" > "$CONTEO_DESPUES"
     log "Recuento de filas DESPUÉS de migrar:"
     cat "$CONTEO_DESPUES"
 
     if ! comparar_conteos "$CONTEO_ANTES" "$CONTEO_DESPUES"; then
         fail "¡ALERTA! Se detectó pérdida de datos. Restaurando el backup automáticamente..."
-        cp "$BACKUP_DB" db.sqlite3
+        cp "$BACKUP_DB" "$DJANGO_DIR/db.sqlite3"
         fail "Backup restaurado. NO se ha recargado la web app. Avísame con este mensaje de error para investigar antes de reintentar."
         exit 1
     fi
@@ -261,7 +281,7 @@ if [ "$MIGRAR" = "1" ]; then
     # ahí, pero ilegibles. Se comprueba que un afiliado real se descifra bien
     # ANTES de recargar la web, que es cuando lo verían los sindicatos.
     log "Comprobando que los datos personales se descifran correctamente..."
-    if python3 manage.py shell -c "
+    if python3 "$DJANGO_DIR/manage.py" shell -c "
 from gestion.models import Afiliado
 a = Afiliado.objects.first()
 if a is not None and not a.nombre_apellidos:
@@ -272,7 +292,7 @@ print('descifrado correcto')
     else
         fail "¡ALERTA! Los datos no se pueden descifrar tras la migración."
         fail "Causa más probable: CARNETS_ENCRYPTION_KEYS no es la clave con la que se cifraron."
-        cp "$BACKUP_DB" db.sqlite3
+        cp "$BACKUP_DB" "$DJANGO_DIR/db.sqlite3"
         fail "Backup restaurado (datos en claro, como estaban). NO se ha recargado la web app."
         fail "Revisa la clave en .env y vuelve a ejecutar el script."
         exit 1
@@ -283,7 +303,7 @@ rm -f "$CONTEO_ANTES"
 # ==============================================================================
 log "Paso 7: estáticos y comprobación final de Django"
 # ==============================================================================
-python3 manage.py collectstatic --noinput
+python3 "$DJANGO_DIR/manage.py" collectstatic --noinput
 
 # --fail-level WARNING: sin esto, `check --deploy` solo aborta con errores, y
 # los avisos de seguridad de Django (W008 sin redirección a HTTPS, W012 y W016
@@ -291,7 +311,7 @@ python3 manage.py collectstatic --noinput
 # decir: el despliegue informaba de "completado sin errores" sirviendo el sitio
 # por HTTP con las cookies viajando en claro. Aquí un aviso de seguridad debe
 # parar el despliegue igual que un error.
-python3 manage.py check --deploy --fail-level WARNING
+python3 "$DJANGO_DIR/manage.py" check --deploy --fail-level WARNING
 ok "collectstatic y check --deploy completados sin errores ni avisos."
 
 # ==============================================================================
@@ -303,5 +323,5 @@ echo "  3. Comprueba: tail -50 /var/log/${DOMINIO//./_}.error.log"
 echo "  4. Abre https://$DOMINIO/admin/ y confirma que carga bien"
 echo
 echo "Si algo va mal tras el reload, backup disponible en:"
-echo "  $PROJECT_DIR/$BACKUP_DB"
-echo "Rollback: cp $PROJECT_DIR/$BACKUP_DB $PROJECT_DIR/db.sqlite3 && git checkout <rama_anterior> && Reload"
+echo "  $BACKUP_DB"
+echo "Rollback: cp $BACKUP_DB $DJANGO_DIR/db.sqlite3 && git -C $PROJECT_DIR checkout <commit_anterior> && Reload"

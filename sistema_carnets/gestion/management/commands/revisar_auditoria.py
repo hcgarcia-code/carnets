@@ -15,14 +15,13 @@ alertas serias deben vivir alli: un archivo en el propio servidor lo puede
 editar quien lo haya comprometido, y entonces este comando no ve nada.
 """
 
-import json
 from datetime import datetime, timedelta, timezone
 
 from django.conf import settings
 from django.core.mail import mail_admins
 from django.core.management.base import BaseCommand
 
-from gestion.auditoria import ACCIONES
+from gestion.auditoria import ACCIONES, leer_sucesos
 
 VENTANA_POR_DEFECTO_HORAS = 1
 
@@ -63,7 +62,9 @@ class Command(BaseCommand):
 
         desde = datetime.now(timezone.utc) - timedelta(hours=opciones["horas"])
         try:
-            sucesos = self._leer(ruta, desde)
+            # Sin `max_bytes`: por cron importa no perder ningun suceso de la
+            # ventana, no la velocidad. El resumen del admin si lo acota.
+            sucesos, _ = leer_sucesos(ruta, desde)
         except OSError as exc:
             escribir(self.style.ERROR(f"No se pudo leer {ruta}: {exc}"))
             return
@@ -85,25 +86,6 @@ class Command(BaseCommand):
             fail_silently=False,
         )
         escribir(self.style.WARNING(f"Aviso enviado:\n{cuerpo}"))
-
-    def _leer(self, ruta, desde):
-        sucesos = {}
-        with open(ruta, encoding="utf-8") as archivo:
-            for linea in archivo:
-                linea = linea.strip()
-                if not linea:
-                    continue
-                try:
-                    registro = json.loads(linea)
-                    momento = datetime.fromisoformat(registro["ts"])
-                except (ValueError, KeyError, TypeError):
-                    # Una linea corrupta (el proceso murio a media escritura)
-                    # no puede impedir ver las demas: seria la forma mas facil
-                    # de ocultar un incidente real.
-                    continue
-                if momento >= desde:
-                    sucesos.setdefault(registro.get("accion", "?"), []).append(registro)
-        return sucesos
 
     def _redactar(self, destacados, horas):
         lineas = [f"Sucesos en las ultimas {horas} hora(s):", ""]

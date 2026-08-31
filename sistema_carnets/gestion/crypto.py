@@ -223,9 +223,17 @@ def descifrar(almacenado: str) -> str:
         nonce, cifrado = crudo[:TAMANO_NONCE_BYTES], crudo[TAMANO_NONCE_BYTES:]
         try:
             return AESGCM(clave).decrypt(nonce, cifrado, None).decode("utf-8")
-        except InvalidTag as exc:
-            # GCM ha detectado que el dato no es auténtico: o se manipuló la
-            # base de datos, o la clave no es la que se usó para cifrarlo.
+        except (InvalidTag, ValueError, UnicodeDecodeError) as exc:
+            # InvalidTag: GCM ha detectado que el dato no es auténtico (o se
+            # manipuló la base de datos, o la clave no es la que lo cifró).
+            #
+            # ValueError y UnicodeDecodeError cubren el cuerpo truncado. Si lo
+            # almacenado es más corto que el nonce, `crudo[:12]` deja un nonce
+            # de menos de 8 bytes y AESGCM lanza ValueError, no InvalidTag. Sin
+            # capturarlo, la excepción escapaba de `from_db_value` —que se
+            # ejecuta mientras se leen las filas— y tumbaba la consulta entera
+            # con un 500, que es justo lo que ese `except` existe para evitar.
+            # Todos estos casos significan lo mismo: el dato no se puede leer.
             raise ErrorDeDescifrado(
                 f"El dato cifrado con la clave {clave_id!r} está manipulado o corrupto.",
             ) from exc

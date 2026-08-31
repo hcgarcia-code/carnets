@@ -193,6 +193,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        # Sin OPTIONS rige el mínimo de Django, que son 8. Estas cuentas
+        # custodian ficheros de afiliación sindical (dato de categoría especial,
+        # Art. 9) y su única defensa en la entrada de sindicatos es la
+        # contraseña: el admin tiene además segundo factor, ellas no.
+        'OPTIONS': {'min_length': 12},
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -201,6 +206,18 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# Caducidad del enlace de reposición de contraseña.
+#
+# Django trae tres días por defecto, y la plantilla del correo
+# (gestion/templates/gestion/password/correo.txt) dice «El enlace caduca en unas
+# horas»: el sistema afirmaba algo falso sobre el enlace que da acceso a una
+# cuenta. Un enlace vivo durante tres días en un buzón es una llave olvidada en
+# la puerta, y la reposición se hace sin conocer la contraseña anterior.
+#
+# Si se cambia este valor, hay que revisar el texto del correo (hay un test que
+# comprueba que los dos dicen lo mismo).
+PASSWORD_RESET_TIMEOUT = int(os.environ.get('PASSWORD_RESET_TIMEOUT', str(2 * 60 * 60)))
 
 
 # Internationalization

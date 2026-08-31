@@ -1,0 +1,39 @@
+{% extends "admin/index.html" %}
+{% comment %}
+  Resumen de lo pendiente, encima de la lista de modelos de siempre.
+
+  Se usa únicamente el CSS que ya trae el admin de Django (.module, .errornote,
+  .quiet): este proyecto no sobrescribe la hoja de estilos del admin porque se
+  rompe al actualizarlo (ver tests/test_hoja_estilos.py).
+
+  Va dentro del admin y no en una vista aparte para heredar el segundo factor:
+  `admin_view()` llama a `has_permission()`, que en OTPAdminSite exige
+  `is_verified()`. Una vista con `@staff_member_required` sería alcanzable solo
+  con la contraseña.
+
+  Los comentarios de varias líneas van con la etiqueta `comment`. La forma
+  corta con llave y almohadilla solo vale para UNA línea: en varias, Django la
+  imprime tal cual dentro de la página. Pasó aquí.
+{% endcomment %}
+{% block content %}
+<div class="module" id="resumen-operativo">
+  <h2>Qué está pendiente</h2>
+
+  {% for alerta in alertas %}
+    <p class="errornote">{{ alerta.texto }}</p>
+  {% endfor %}
+
+  {% if pendientes %}
+    <ul>
+      {% for aviso in pendientes %}
+        <li><a href="{{ aviso.url }}">{{ aviso.texto }}</a></li>
+      {% endfor %}
+    </ul>
+  {% elif not alertas %}
+    <p class="quiet">No hay nada pendiente: ninguna cuenta esperando aprobación,
+      ningún acuerdo sin firmar y ningún carnet sin enviar a imprenta.</p>
+  {% endif %}
+</div>
+
+{{ block.super }}
+{% endblock %}

@@ -24,6 +24,7 @@ configuración de LOGGING. Ver deploy/auditoria_centralizada.md.
 
 import json
 import logging
+import os
 from datetime import datetime, timezone
 
 logger = logging.getLogger("auditoria")
@@ -61,6 +62,11 @@ class ACCIONES:
     AFILIADO_ABIERTO = "afiliado.abierto"
     AFILIADOS_EXPORTADOS = "afiliados.exportados"
     AFILIADOS_CARGADOS = "afiliados.cargados"
+    # Asignación de fecha de expedición desde el admin. Modifica registros de
+    # categoría especial con una sola orden SQL, así que no deja rastro en el
+    # historial de versiones: sin este registro era la única acción del admin
+    # que no aparecía en ninguna parte.
+    AFILIADOS_FECHADOS = "afiliados.fechados"
     # Anonimización por vencimiento del plazo de conservación. Es el único
     # rastro que queda: después de expurgar no hay dato que enseñar, así que
     # este registro es la prueba de haber cumplido el plazo (y de no haberse
@@ -134,3 +140,53 @@ def registrar(accion, *, peticion=None, usuario=None, cantidad=None, ids=None, *
     registro.update({clave: _acotar(valor) for clave, valor in detalles.items()})
 
     logger.info(json.dumps(registro, ensure_ascii=False, sort_keys=True))
+
+
+def leer_sucesos(ruta, desde, *, max_bytes=None):
+    """Lee el registro y agrupa por acción los sucesos posteriores a `desde`.
+
+    Vive aquí y no en quien lo consulta porque es este módulo el que decide el
+    formato: si algún día deja de ser un JSON por línea, hay un solo sitio que
+    cambiar. Lo usan el comando `revisar_auditoria` y el resumen del admin.
+
+    `max_bytes` acota la lectura a la cola del archivo. El registro es de
+    solo-adición y crece sin límite, así que quien lo consulte en cada carga de
+    página —el resumen del admin— no puede permitirse recorrerlo entero: se
+    volvería más lento cuanto más se usa el sistema. Los sucesos van en orden
+    cronológico, de modo que los recientes están al final. Sin `max_bytes` se
+    lee completo, que es lo que quiere el comando por cron: ahí importa no
+    perder nada, no la velocidad.
+
+    Devuelve `(sucesos, truncado)`. `truncado` avisa de que se descartó parte
+    del archivo, y por tanto de que los recuentos son un mínimo y no un total:
+    callarlo daría una cifra tranquilizadora justo durante un ataque, que es
+    cuando el archivo se llena de golpe.
+    """
+    sucesos = {}
+    truncado = False
+
+    with open(ruta, "rb") as archivo:
+        if max_bytes is not None:
+            archivo.seek(0, os.SEEK_END)
+            tamano = archivo.tell()
+            if tamano > max_bytes:
+                archivo.seek(tamano - max_bytes)
+                # La primera línea tras el salto viene cortada por la mitad.
+                archivo.readline()
+                truncado = True
+            else:
+                archivo.seek(0)
+
+        for linea in archivo:
+            try:
+                registro = json.loads(linea.decode("utf-8"))
+                momento = datetime.fromisoformat(registro["ts"])
+            except (ValueError, KeyError, TypeError, UnicodeDecodeError):
+                # Una linea corrupta (el proceso murio a media escritura) no
+                # puede impedir ver las demas: seria la forma mas facil de
+                # ocultar un incidente real.
+                continue
+            if momento >= desde:
+                sucesos.setdefault(registro.get("accion", "?"), []).append(registro)
+
+    return sucesos, truncado

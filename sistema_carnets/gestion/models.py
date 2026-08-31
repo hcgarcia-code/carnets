@@ -33,6 +33,12 @@ class PerfilSindicato(models.Model):
         null=True, blank=True, verbose_name="Dirección IP de la firma",
     )
 
+    class Meta:
+        # Sin esto Django pluraliza añadiendo una «s» al nombre de la clase y el
+        # índice del admin ofrece «Perfil sindicatos».
+        verbose_name = "sindicato"
+        verbose_name_plural = "sindicatos"
+
     def __str__(self):
         return f"Perfil de {self.usuario.username}"
 
@@ -149,6 +155,10 @@ class RegistroSubida(models.Model):
     cantidad_afiliados = models.IntegerField()
     nombre_archivo = models.CharField(max_length=255)
 
+    class Meta:
+        verbose_name = "carga de afiliados"
+        verbose_name_plural = "cargas de afiliados"
+
     def __str__(self):
         fecha = self.fecha.strftime('%d/%m/%Y')
         return f"{self.sindicato.username} - {self.cantidad_afiliados} afiliados ({fecha})"
@@ -162,6 +172,8 @@ class Notificacion(models.Model):
 
     class Meta:
         ordering = ['-fecha_creacion']
+        verbose_name = "notificación"
+        verbose_name_plural = "notificaciones"
 
     def __str__(self):
         return f"Notificación para {self.usuario.username} ({self.fecha_creacion:%d/%m/%Y %H:%M})"

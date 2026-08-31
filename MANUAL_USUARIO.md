@@ -53,7 +53,7 @@ El formulario pide cinco datos (la contraseña, dos veces) y termina con el bot�
 | **Correo electrónico** | Obligatorio. Es por donde recuperas la contraseña | `metal@cgtbcn.org` |
 | **Sindicato o rama** | Nombre completo, para que el administrador sepa a quién aprueba | `CGT Rama Metal Barcelona` |
 | **Persona que solicita** | Tu nombre, para que sepa a quién está aprobando | `Ana Ejemplo` |
-| **Contraseña** | Mínimo 8 caracteres; el sistema rechaza las demasiado comunes o solo numéricas | `MiSindicato-2026!` |
+| **Contraseña** | Mínimo 12 caracteres; el sistema rechaza las demasiado comunes o solo numéricas | `MiSindicato-2026!` |
 
 > **Pon una dirección de correo que uséis de verdad**, mejor del sindicato que
 > personal: es la única vía de recuperar la contraseña sin depender del
@@ -294,7 +294,7 @@ dirección es la que declarasteis en el alta; y si sigue sin llegar, escribe a s
 > confirmara cuáles existen, cualquiera podría ir probando direcciones para
 > averiguar qué sindicatos usan el sistema.
 
-**El enlace caduca** y solo sirve una vez. Si tardas, pide otro.
+**El enlace caduca a las dos horas** y solo sirve una vez. Si tardas, pide otro.
 
 **Hay un límite de peticiones**: cinco cada cuarto de hora desde la misma conexión a
 internet. Si estáis varias personas en el mismo local y probáis a la vez, os puede
@@ -529,7 +529,8 @@ compartidos.
 - **HTTPS:** la comunicación entre tu navegador y el servidor va cifrada.
 - **Contraseñas con hash:** ni el administrador puede ver la tuya.
 - **Limitador de intentos:** 5 fallos bloquean el acceso 5 minutos, lo que hace inviable
-  probar contraseñas a ciegas.
+  probar contraseñas a ciegas. Vale igual para tu pantalla de acceso y para la del
+  administrador.
 - **Segundo factor en el administrador:** la cuenta que puede ver los nombres necesita además
   un código de 6 dígitos que cambia cada 30 segundos. Robar su contraseña ya no basta.
 - **Auditoría:** cada consulta y cada exportación de datos queda registrada.

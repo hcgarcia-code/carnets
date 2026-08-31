@@ -185,7 +185,7 @@ Estado a fecha de esta revisión. La columna «Riesgo residual» es la que queda
 | **Cifrado en reposo** | Robo del servidor o de un backup expone la BD | CRÍTICO | AES-256-GCM por columna sobre nombre, nº de afiliado y notas; claves servidas por KMS (Vault), nunca en el código | BAJO |
 | **Cifrado en tránsito** | Intercepción de la sesión de un sindicato | CRÍTICO | HTTPS forzado, HSTS, cookies Secure. El despliegue **se detiene** si falta cualquiera de los cuatro ajustes | BAJO |
 | **Credencial robada del admin** | Una contraseña filtrada abre el archivo entero descifrado | CRÍTICO | Segundo factor TOTP obligatorio en el admin, que es el único punto donde se descifra | BAJO |
-| **Fuerza bruta / credential stuffing** | Prueba masiva de contraseñas | ALTO | 5 intentos por par (IP, usuario) y bloqueo de 5 minutos; el contador vive en caché compartida, verificado por comprobación de despliegue | BAJO |
+| **Fuerza bruta / credential stuffing** | Prueba masiva de contraseñas | ALTO | 5 intentos por par (IP, usuario) y bloqueo de 5 minutos, **en las dos puertas: el login de sindicatos y el del admin, con un contador compartido**; contraseña de 12 caracteres mínimo; el contador vive en caché compartida, verificado por comprobación de despliegue | BAJO |
 | **Acceso horizontal (IDOR)** | Un sindicato accede a los afiliados de otro | CRÍTICO | Las vistas nunca aceptan identificadores desde la URL o el POST: derivan siempre de `request.user` | BAJO |
 | **Inyección SQL** | Excel manipulado para inyectar SQL | ALTO | ORM exclusivamente, sin SQL construido por concatenación; validación por expresión regular campo a campo | BAJO |
 | **XSS** | Script inyectado en un nombre de afiliado | ALTO | Autoescapado de plantillas sin excepciones + Content-Security-Policy con `script-src 'self'`, que deja inerte un XSS aunque llegara a inyectarse | BAJO |
@@ -233,7 +233,9 @@ Todas las de esta sección están en el código y cubiertas por pruebas automát
 
 #### Autenticación y autorización
 - **[v1.1] Segundo factor TOTP obligatorio en el administrador**, que es el único punto del sistema donde los datos se ven descifrados. No se exige a los sindicatos, que no descifran nada: sería un coste sin contrapartida.
-- Limitación de intentos: 5 fallos por par (IP, usuario) y bloqueo de 5 minutos. **[v1.1]** El contador vive en caché compartida entre procesos, y el despliegue se detiene si no lo está — con caché por proceso el límite se multiplicaba por el número de trabajadores.
+- Limitación de intentos: 5 fallos por par (IP, usuario) y bloqueo de 5 minutos. **[v1.1]** El contador vive en caché compartida entre procesos, y el despliegue se detiene si no lo está — con caché por proceso el límite se multiplicaba por el número de trabajadores. **[v1.2]** El límite cubre también la pantalla de acceso del administrador, que es la de Django y antes aceptaba intentos sin cuenta y sin dejar rastro: el segundo factor impedía la entrada, pero la contraseña de la única cuenta que descifra se podía probar sin límite y en silencio. Los dos accesos comparten contador, de modo que atacar la misma credencial por las dos puertas no dobla los intentos.
+- **[v1.2]** Longitud mínima de contraseña de 12 caracteres. En la entrada de sindicatos la contraseña es la única defensa —el segundo factor solo cubre el admin—, y el mínimo anterior era el de Django por omisión (8), no una decisión tomada.
+- **[v1.2]** El enlace de reposición de contraseña caduca a las 2 horas. Antes regía el valor por defecto de Django (3 días), mientras el correo enviado al sindicato afirmaba que caducaba «en unas horas»: un enlace que da acceso a una cuenta permanecía utilizable en un buzón durante tres días.
 - Autorización por rol; las vistas nunca aceptan identificadores desde la URL o el formulario, siempre derivan de `request.user`.
 - Las cuentas de sindicato nacen inactivas y requieren aprobación manual.
 

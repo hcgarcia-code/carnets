@@ -30,6 +30,12 @@ staticfiles/
 # Configuración local de Claude Code (específica de esta máquina)
 .claude/
 
+# Skills instaladas por la CLI de skills: 4.500 archivos de terceros que no
+# mantenemos. Un `git add -A` distraído los metería en un repositorio que
+# trata datos de categoría especial. Se reinstalan con `npx skills`.
+.agents/
+skills-lock.json
+
 # Excel de ejemplo generado por `manage.py preparar_pruebas`
 afiliados_de_ejemplo.xlsx
 

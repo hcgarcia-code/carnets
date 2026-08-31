@@ -201,9 +201,17 @@ Detalles deliberados:
 
 | Limitador | Clave del contador | Umbral | Bloqueo |
 |---|---|---|---|
-| Login (`auth_views.py`) | par (IP, usuario) | 5 fallos | **5 minutos** → 429 |
+| Login de sindicatos (`auth_views.py`) | par (IP, usuario) | 5 fallos | **5 minutos** → 429 |
+| Login del admin (`auth_views.py`) | par (IP, usuario), **el mismo contador** | 5 fallos | **5 minutos** → 429 |
 | Alta (`views.py`) | IP | 5 solicitudes | **1 hora** → 429 |
 | Reposición de contraseña (`auth_views.py`) | **IP sola** | 5 peticiones | **15 minutos** → 429 |
+
+El del admin comparte contador con el de sindicatos a propósito: es el mismo modelo `User`, así
+que llevar dos cuentas separadas daría al atacante el doble de intentos sobre la misma
+credencial. Se implementa en `AdminConLimiteDeIntentos`, que envuelve solo `login()` de
+`OTPAdminSite`: el segundo factor sigue aplicándose por `has_permission()`, intacto. Un fallo
+cuenta igual si es de contraseña que de código de un solo uso — las dos cosas son un intento de
+acceso que no ha salido bien.
 
 El de login cuenta por *(IP, usuario)* y no solo por IP: así un atacante no puede bloquear la
 cuenta de un tercero desde fuera, y sigue cortándose el tanteo de contraseñas.
@@ -281,8 +289,9 @@ Sindicato puede loguear
 - Nombre de usuario único
 - `nombre_identificativo` obligatorio: es la única pista con la que el administrador decide a
   quién está aprobando
-- Contraseña: ≥ 8 caracteres y los 4 validadores de Django (ni común, ni solo numérica, ni
-  parecida al usuario)
+- Contraseña: ≥ 12 caracteres y los 4 validadores de Django (ni común, ni solo numérica, ni
+  parecida al usuario). El mínimo se sube del 8 por defecto de Django porque en la entrada de
+  sindicatos la contraseña es la única defensa: el admin tiene además segundo factor, ellos no
 - Máximo 5 solicitudes por IP/hora
 
 **El formulario no recoge correo electrónico** (`Meta.fields = ("username",)`). Consecuencias

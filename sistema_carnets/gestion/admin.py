@@ -1,16 +1,49 @@
+from datetime import timedelta
+
 import pandas as pd
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
+from django.db.models import Count, Max, Q
 from django.http import HttpResponse
 from django.utils import timezone
-from django_otp.admin import OTPAdminSite
 from simple_history.admin import SimpleHistoryAdmin
 
 from .auditoria import ACCIONES, registrar
-from .models import Afiliado, PerfilSindicato, RegistroSubida
+from .auth_views import AdminConLimiteDeIntentos
+from .models import Afiliado, Notificacion, PerfilSindicato, RegistroSubida
+from .resumen import DIAS_SIN_ACTIVIDAD, resumen_operativo
 from .services import marcar_como_impresos_y_notificar
+
+
+class SitioAdminCarnets(AdminConLimiteDeIntentos):
+    """El sitio del admin: segundo factor, limite de intentos y resumen en la portada.
+
+    El resumen va aqui dentro y no en una vista aparte a proposito. Una vista con
+    `@staff_member_required` comprueba `is_active and is_staff` y nada mas: seria
+    alcanzable con la contrasena sola, pegada a un admin que exige segundo
+    factor. El indice pasa por `admin_view()` -> `has_permission()`, que en
+    OTPAdminSite incluye `is_verified()`.
+
+    No se audita la consulta de la portada: aqui no se descifra nada, solo hay
+    recuentos. Registrar cada visita a `/admin/` llenaria de ruido el archivo que
+    tiene que servir para encontrar quien miro datos personales.
+    """
+
+    index_template = 'gestion/admin_indice.html'
+
+    def index(self, request, extra_context=None):
+        # Se reparten aqui y no en la plantilla porque se pintan en dos sitios
+        # distintos: las alertas en caja roja arriba, lo pendiente como lista de
+        # enlaces. Separarlo en el HTML obligaria a recorrer la lista dos veces
+        # con un `if` dentro de cada vuelta.
+        avisos = resumen_operativo()
+        return super().index(request, {
+            **(extra_context or {}),
+            'alertas': [a for a in avisos if a['nivel'] == 'alerta'],
+            'pendientes': [a for a in avisos if a['nivel'] != 'alerta'],
+        })
 
 # El admin exige segundo factor. Es el unico sitio donde los datos personales
 # se descifran y se ven en claro: el panel de la imprenta consulta con
@@ -19,13 +52,16 @@ from .services import marcar_como_impresos_y_notificar
 # del administrador, asi que si se filtra, se entrega el archivo entero de
 # afiliacion sindical (dato de categoria especial, RGPD Art. 9).
 #
+# La clase ademas limita los intentos de acceso: la vista de login del admin es
+# la de Django y aceptaba intentos sin cuenta ni rastro (ver auth_views.py).
+#
 # Se reemplaza la clase del sitio ya existente en vez de crear uno nuevo para
 # no tener que reescribir el register() de cada modelo ni la ruta de urls.py.
 #
 # Para darse de alta: `manage.py activar_2fa <usuario>`. Sin ejecutarlo antes,
 # el admin queda inaccesible (el comando funciona desde la consola del
 # servidor, asi que no es un bloqueo del que no se pueda salir).
-admin.site.__class__ = OTPAdminSite
+admin.site.__class__ = SitioAdminCarnets
 
 
 # --- ACCIÓN 1: Poner fecha a los carnets ---
@@ -33,8 +69,25 @@ admin.site.__class__ = OTPAdminSite
 # de staff que llegue al listado, aunque solo tenga permiso de ver.
 @admin.action(description="1. Asignar fecha de expedición (Día de hoy)", permissions=["change"])
 def asignar_fecha_hoy(modeladmin, request, queryset):
+    # Los identificadores se leen ANTES de actualizar: el queryset puede venir
+    # de un filtro sobre fecha_expedicion, y en ese caso dejaría de casar con
+    # las mismas filas justo después de escribirlas.
+    identificadores = list(queryset.values_list('pk', flat=True))
+
     # Toma todos los afiliados que hayas seleccionado y les pone la fecha actual
     filas_actualizadas = queryset.update(fecha_expedicion=timezone.now().date())
+
+    # `update()` no pasa por save(), así que no deja versión en el historial de
+    # django-simple-history. Sin este registro, la acción modificaba campos de
+    # registros de categoría especial sin aparecer en ninguno de los dos
+    # rastros: era la única de las tres acciones del admin en esa situación.
+    registrar(
+        ACCIONES.AFILIADOS_FECHADOS,
+        peticion=request,
+        cantidad=filas_actualizadas,
+        ids=identificadores,
+    )
+
     modeladmin.message_user(
         request, f"Éxito: Se ha asignado la fecha a {filas_actualizadas} carnets.",
     )
@@ -45,6 +98,24 @@ def asignar_fecha_hoy(modeladmin, request, queryset):
 # personales descifrados de los afiliados seleccionados.
 @admin.action(description="2. Descargar Excel para Máquina de Carnets", permissions=["change"])
 def exportar_imprenta(modeladmin, request, queryset):
+    # "Select all N" del listado selecciona TODO lo que cumpla el filtro
+    # actual, esté ya impreso o no: si el admin no ha filtrado antes por
+    # "Pendiente de imprimir", una selección de varias páginas arrastra
+    # afiliados ya enviados. Reprocesarlos pisaría su fecha_envio_imprenta
+    # original y generaría una notificación de reenvío falsa al sindicato.
+    # La acción se defiende sola en vez de confiar en que se aplicó el filtro.
+    seleccionados = queryset.count()
+    queryset = queryset.filter(estado_impresion=Afiliado.ESTADO_PENDIENTE)
+    ya_impresos = seleccionados - queryset.count()
+
+    if not queryset.exists():
+        modeladmin.message_user(
+            request,
+            "Los afiliados seleccionados ya estaban impresos: no se ha generado ningún Excel.",
+            level=messages.WARNING,
+        )
+        return None
+
     datos = []
     identificadores = []
     # Recorremos los afiliados seleccionados y extraemos sus datos exactos
@@ -86,6 +157,14 @@ def exportar_imprenta(modeladmin, request, queryset):
         cantidad=len(identificadores),
         ids=identificadores,
     )
+
+    if ya_impresos:
+        modeladmin.message_user(
+            request,
+            f"Se han omitido {ya_impresos} afiliado(s) que ya estaban impresos. "
+            f"Exportados {len(identificadores)}.",
+            level=messages.WARNING,
+        )
 
     return response
 
@@ -167,7 +246,99 @@ class AfiliadoAdmin(SimpleHistoryAdmin):
 
 
 admin.site.register(Afiliado, AfiliadoAdmin)
-admin.site.register(PerfilSindicato)
+
+
+class FiltroDeActividad(admin.SimpleListFilter):
+    """Sindicatos que han dejado de cargar altas.
+
+    Es la consulta que antes no se podía hacer: para saber quién lleva meses
+    sin subir nada había que abrir los perfiles uno a uno. Un sindicato dormido
+    no es un fallo técnico —nada falla— pero sí el aviso de que alguien dejó de
+    usar el sistema y sus afiliados se están quedando sin carnet.
+    """
+
+    title = "actividad de cargas"
+    parameter_name = "actividad"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("sin_cargas", "No ha subido nunca"),
+            ("dormidos", f"Sin cargar en {DIAS_SIN_ACTIVIDAD} días"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "sin_cargas":
+            return queryset.filter(usuario__subidas__isnull=True)
+        if self.value() == "dormidos":
+            # Se reutiliza `_ultima_carga`, que ya viene anotada de
+            # PerfilSindicatoAdmin.get_queryset. Volver a anotar aquí un Max
+            # sobre la misma relación añadiría un segundo JOIN sobre subidas y
+            # duplicaría filas para el Count que va al lado. Este filtro solo
+            # se usa en ese ModelAdmin, que es quien pone la anotación.
+            limite = timezone.now() - timedelta(days=DIAS_SIN_ACTIVIDAD)
+            return queryset.filter(
+                Q(_ultima_carga__lt=limite) | Q(_ultima_carga__isnull=True),
+            )
+        return queryset
+
+
+@admin.register(PerfilSindicato)
+class PerfilSindicatoAdmin(admin.ModelAdmin):
+    """La pantalla desde la que se decide a quién se aprueba y a quién se reclama.
+
+    Estaba registrado a pelo, así que el listado solo enseñaba «Perfil de
+    <usuario>»: para saber quién había pedido el alta, si había firmado el
+    acuerdo o qué había cargado, había que abrir cada ficha. Los datos ya
+    estaban en la base; lo que faltaba era enseñarlos.
+
+    Aquí no se ve ningún dato de afiliado: los recuentos son agregados y el
+    nombre del sindicato y la persona de contacto ya estaban en este formulario.
+    """
+
+    list_display = (
+        'usuario', 'nombre_identificativo', 'persona_contacto',
+        'cuenta_activa', 'acuerdo', 'num_cargas', 'ultima_carga',
+    )
+    list_filter = ('acuerdo_aceptado', 'usuario__is_active', FiltroDeActividad)
+    # Solo campos sin cifrar: el buscador del admin genera un WHERE ... LIKE, y
+    # sobre una columna cifrada nunca encontraría nada (ver CampoTextoCifrado).
+    search_fields = ('usuario__username', 'nombre_identificativo', 'persona_contacto')
+    # La firma del acuerdo es la constancia de un consentimiento: se sella sola
+    # al aceptarlo (ver views.acuerdo_legal). Editable a mano deja de probar
+    # nada, que es justo para lo que se guarda.
+    readonly_fields = ('fecha_aceptacion', 'ip_aceptacion')
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('usuario').annotate(
+            _num_cargas=Count('usuario__subidas', distinct=True),
+            _ultima_carga=Max('usuario__subidas__fecha'),
+        )
+
+    @admin.display(boolean=True, description="Cuenta aprobada", ordering='usuario__is_active')
+    def cuenta_activa(self, perfil):
+        # El alta autoservicio crea la cuenta inactiva y se aprueba a mano desde
+        # el listado de usuarios: es el dato que más se consulta aquí.
+        return perfil.usuario.is_active
+
+    @admin.display(description="Acuerdo de protección de datos", ordering='acuerdo_aceptado')
+    def acuerdo(self, perfil):
+        if not perfil.acuerdo_aceptado:
+            return "Sin firmar"
+        if perfil.fecha_aceptacion:
+            return f"Firmado el {timezone.localtime(perfil.fecha_aceptacion):%d/%m/%Y}"
+        return "Firmado"
+
+    @admin.display(description="Cargas", ordering='_num_cargas')
+    def num_cargas(self, perfil):
+        return perfil._num_cargas
+
+    @admin.display(description="Última carga", ordering='_ultima_carga')
+    def ultima_carga(self, perfil):
+        if perfil._ultima_carga is None:
+            return "Nunca"
+        dias = (timezone.now() - perfil._ultima_carga).days
+        fecha = timezone.localtime(perfil._ultima_carga)
+        return f"{fecha:%d/%m/%Y} (hace {dias} día(s))"
 
 
 @admin.register(RegistroSubida)
@@ -175,9 +346,32 @@ class RegistroSubidaAdmin(admin.ModelAdmin):
     list_display = ('sindicato', 'fecha', 'cantidad_afiliados', 'nombre_archivo')
     list_filter = ('sindicato',)
     readonly_fields = ('sindicato', 'fecha', 'cantidad_afiliados', 'nombre_archivo')
+    # Navegación por año/mes/día, que es como se pregunta de verdad por esto
+    # ("¿qué se subió en marzo?"). Django la construye sola desde el campo.
+    date_hierarchy = 'fecha'
 
     def has_add_permission(self, request):
         # Solo se crean automáticamente al subir un Excel, nunca a mano.
+        return False
+
+
+@admin.register(Notificacion)
+class NotificacionAdmin(admin.ModelAdmin):
+    """Qué se le ha dicho a cada sindicato y cuándo.
+
+    Las genera el envío a imprenta. Se registran solo para poder consultarlas
+    cuando un sindicato pregunta si se le avisó: escribir una a mano le diría
+    que se imprimió algo que no se imprimió, así que no se pueden crear ni
+    editar desde aquí.
+    """
+
+    list_display = ('usuario', 'fecha_creacion', 'leida', 'mensaje')
+    list_filter = ('leida', 'fecha_creacion')
+    search_fields = ('usuario__username',)
+    readonly_fields = ('usuario', 'mensaje', 'leida', 'fecha_creacion')
+    date_hierarchy = 'fecha_creacion'
+
+    def has_add_permission(self, request):
         return False
 
 
@@ -189,6 +383,33 @@ def aprobar_cuentas(modeladmin, request, queryset):
     # éxito infle el recuento con cuentas que ya estaban aprobadas de antes.
     activadas = queryset.filter(is_active=False).update(is_active=True)
     modeladmin.message_user(request, f"{activadas} cuenta(s) activada(s).")
+
+
+class RegistroSubidaInline(admin.TabularInline):
+    """El historial de cargas del sindicato, en su propia ficha.
+
+    Va sobre `User` y no sobre `PerfilSindicato` porque la clave ajena de
+    RegistroSubida apunta a `User` (el perfil solo tiene un OneToOne, que no
+    sirve para un inline).
+
+    Solo lectura entera: un RegistroSubida es la constancia de qué entregó cada
+    sindicato y cuándo. Escrito a mano dejaría de serlo.
+    """
+
+    model = RegistroSubida
+    extra = 0
+    can_delete = False
+    fields = ('fecha', 'cantidad_afiliados', 'nombre_archivo')
+    readonly_fields = fields
+    # Sin esto, Django hace una consulta por cada carga para pintar el desplegable
+    # de sindicato, aunque el campo no se muestre.
+    ordering = ('-fecha',)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 admin.site.unregister(User)
@@ -206,6 +427,14 @@ class UsuarioAdmin(UserAdmin):
     # (Django no deduplica) y el panel lateral pintaba "Por activo" duplicado.
     list_filter = UserAdmin.list_filter
     actions = [aprobar_cuentas]
+
+    def get_inlines(self, request, obj=None):
+        # El alta de un usuario en el admin es un formulario en dos pasos: en el
+        # primero todavía no hay fila a la que colgar el inline. Django lo
+        # renderizaría contra un objeto sin guardar y revienta el formulario.
+        if obj is None:
+            return ()
+        return (RegistroSubidaInline,)
 
     @admin.display(description="Sindicato/rama declarado al darse de alta")
     def sindicato_declarado(self, usuario):

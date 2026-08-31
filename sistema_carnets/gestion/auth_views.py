@@ -1,6 +1,7 @@
 from django.contrib.auth.views import LoginView, PasswordResetView
 from django.core.cache import cache
 from django.http import HttpResponse
+from django_otp.admin import OTPAdminSite
 
 from .auditoria import ACCIONES, registrar
 
@@ -63,6 +64,70 @@ class LoginConLimiteDeIntentos(LoginView):
         cache.delete(clave)
         registrar(ACCIONES.LOGIN_CORRECTO, peticion=self.request, usuario=username)
         return super().form_valid(form)
+
+
+class AdminConLimiteDeIntentos(OTPAdminSite):
+    """El sitio del admin, con el mismo límite de intentos que el de sindicatos.
+
+    django-otp cubre el segundo factor, que es la defensa principal: acertar la
+    contraseña no basta para entrar. Pero la vista de acceso del admin es la de
+    Django y aceptaba intentos sin cuenta y sin dejar rastro —los eventos
+    `login.fallido` los emite LoginConLimiteDeIntentos, que solo cubre
+    `/login/`—, de modo que la única cuenta que ve los datos personales en claro
+    tenía un oráculo de contraseña ilimitado y silencioso.
+
+    El contador se comparte con el login de sindicatos a propósito: es el mismo
+    modelo `User`, así que llevar dos cuentas separadas le daría al atacante el
+    doble de intentos sobre la misma credencial.
+
+    Se envuelve `login()` y no `has_permission()`: el segundo factor tiene que
+    seguir aplicándose exactamente igual, y aquí solo se añade el límite delante.
+    """
+
+    def login(self, request, extra_context=None):
+        if request.method != 'POST':
+            return super().login(request, extra_context)
+
+        username = request.POST.get('username', '')
+        clave = _clave_intentos(request, username)
+        if cache.get(clave, 0) >= INTENTOS_MAXIMOS:
+            registrar(
+                ACCIONES.LOGIN_BLOQUEADO, peticion=request, usuario=username, vista='admin',
+            )
+            return HttpResponse(
+                "Demasiados intentos fallidos. Inténtalo de nuevo en unos minutos.",
+                status=429,
+            )
+
+        respuesta = super().login(request, extra_context)
+
+        # El resultado se deduce del código de respuesta, NO de `request.user`.
+        #
+        # Mirar `request.user.is_authenticated` parecía natural y era un agujero:
+        # quien envía el formulario puede traer ya sesión de OTRA cuenta —le
+        # basta una cuenta de sindicato corriente—, y entonces sale cierto pase
+        # lo que pase con las credenciales tecleadas. Con eso, el límite no
+        # contaba nada y la auditoría no escribía nada: intentos ilimitados y
+        # silenciosos contra la única cuenta que descifra datos personales.
+        #
+        # En un POST solo `form_valid` puede redirigir, porque es lo único que
+        # llama a `auth_login()`. Así que 302 es un acierto y 200 (formulario
+        # reenseñado) es un fallo, con sesión previa o sin ella.
+        if respuesta.status_code in (301, 302):
+            cache.delete(clave)
+            registrar(
+                ACCIONES.LOGIN_CORRECTO, peticion=request, usuario=username, vista='admin',
+            )
+        elif respuesta.status_code == 200:
+            # Solo el formulario reenseñado cuenta como intento. Un 403 de CSRF
+            # no llega a comprobar credenciales, y contarlo dejaría que una
+            # petición forzada desde otro sitio gastara el cupo del administrador.
+            cache.set(clave, cache.get(clave, 0) + 1, VENTANA_BLOQUEO_SEGUNDOS)
+            registrar(
+                ACCIONES.LOGIN_FALLIDO, peticion=request, usuario=username, vista='admin',
+            )
+
+        return respuesta
 
 
 class RecuperarPasswordConLimite(PasswordResetView):

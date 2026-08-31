@@ -82,6 +82,58 @@ afiliación sindical**. El segundo factor es lo que impide que una credencial fi
 Si el código no se acepta, comprueba que la hora de tu teléfono esté sincronizada: TOTP se
 basa en el reloj, y un desfase de más de medio minuto invalida los códigos.
 
+> **Cinco intentos fallidos y la pantalla deja de responder durante 5 minutos**
+> (devuelve un `429`). Cuenta igual fallar la contraseña que el código de un solo
+> uso, así que si estás peleándote con el reloj del móvil puedes agotarlos sin
+> haberte equivocado de contraseña ni una vez. **No es un bloqueo del que no se
+> pueda salir: se espera y ya está**, no hay nada que ejecutar en el servidor.
+>
+> El contador es por par (tu IP, tu usuario), así que no bloquea a nadie más, y
+> es el mismo que el de la pantalla de acceso de los sindicatos: la misma
+> credencial no tiene diez intentos por tener dos puertas.
+>
+> Cada fallo y cada bloqueo quedan en el registro de auditoría con `vista: admin`,
+> y `revisar_auditoria` avisa por correo a partir de tres bloqueos en una hora
+> (ver §5.4). Si te llega ese aviso y no eras tú, alguien está probando
+> contraseñas contra tu cuenta.
+
+### 2.4 La portada: qué está pendiente
+
+Nada más entrar, encima de la lista de siempre, hay un recuadro **«Qué está
+pendiente»**. Es lo primero que conviene mirar cada día:
+
+| Aviso | Qué significa | Adónde lleva |
+|---|---|---|
+| *N cuentas de sindicato pendientes de aprobar* | Altas nuevas esperando revisión | Usuarios, ya filtrado por inactivos |
+| *N sindicatos aprobados que aún no han firmado el acuerdo* | Tienen cuenta y no han pasado por el acuerdo de protección de datos | Sindicatos, ya filtrado |
+| *N carnets pendientes de enviar a imprenta* | El trabajo del día | Afiliados pendientes |
+| *N sindicatos sin cargar altas en 60 días* | Sindicatos dormidos: conviene llamarles | Sindicatos, filtrado por actividad |
+
+**Cada aviso es un enlace al listado ya filtrado**: no hace falta saber montar el
+filtro, se pulsa y está. Y el número del aviso coincide con el que sale luego en
+el listado.
+
+Si no hay nada que hacer, lo dice. Una portada sin avisos significa que no queda
+nada pendiente, no que no se haya mirado.
+
+**En rojo salen las alertas**, que son otra cosa: no es trabajo pendiente sino
+algo que no funciona. Hay dos:
+
+- *«El registro de auditoría no está configurado»* — falta `AUDITORIA_LOG_PATH`
+  en el `.env` del servidor y **los accesos a datos personales no se están
+  guardando**. Es un incumplimiento del Art. 30, no una molestia. Ver
+  `deploy/auditoria_centralizada.md`.
+- *«N bloqueos por intentos fallidos de acceso en la última hora»* — alguien está
+  probando contraseñas. Si pone «Más de N», es que hubo tantos que no caben en lo
+  que se lee del registro: mira el archivo entero.
+
+Estas dos no llevan enlace porque el registro de auditoría no es una tabla de la
+base de datos a propósito: se lee del archivo en el servidor.
+
+> La portada exige el segundo factor como el resto del admin. Se puso aquí
+> dentro, y no en una página aparte, justo por eso: una vista suelta protegida
+> solo con «es personal» sería alcanzable con la contraseña sola.
+
 ---
 
 ## 3. Gestión de Cuentas de Sindicatos
@@ -132,6 +184,40 @@ basa en el reloj, y un desfase de más de medio minuto invalida los códigos.
 **Filtros útiles:**
 - "Activo" → muestra solo cuentas habilitadas
 - "Sin crear perfil" → cuentas nuevas sin aceptar términos
+
+Al abrir la ficha de un usuario verás además, abajo, **su historial de cargas**:
+cada Excel que ha subido, con la fecha, cuántos afiliados traía y el nombre del
+archivo. Es de solo lectura —un registro de subida es la constancia de qué
+entregó ese sindicato y cuándo, así que no se puede crear ni editar a mano.
+
+### 3.2.bis Panel de Sindicatos: quién ha firmado y quién ha dejado de subir
+
+**Ruta:** `/admin/gestion/perfilsindicato/`
+
+Es la pantalla para ver el estado de todos los sindicatos de una vez, sin abrir
+fichas una a una:
+
+| Columna | Para qué sirve |
+|---------|----------------|
+| Sindicato o rama | El nombre que declaró al darse de alta |
+| Persona que solicita | Quién lleva la cuenta, para saber a quién llamar |
+| Cuenta aprobada | ☑ si ya está activa; ☐ si sigue pendiente de aprobación |
+| Acuerdo de protección de datos | "Sin firmar", o la fecha en que firmó |
+| Cargas | Cuántos Excel ha subido en total |
+| Última carga | Cuándo fue la última, y cuántos días hace |
+
+**Filtros:**
+- **Acuerdo aceptado** → los que están usando el sistema sin haber firmado
+- **Por activo** → las altas pendientes de aprobar
+- **Actividad de cargas** → "No ha subido nunca" y "Sin cargar en 60 días"
+
+Ese último filtro es el que no se podía consultar antes. Un sindicato dormido no
+da ningún error —el sistema funciona— pero significa que alguien dejó de subir
+altas y sus afiliados se están quedando sin carnet. Conviene mirarlo una vez al
+mes y llamar a los que salgan.
+
+El buscador de esta pantalla busca por usuario, nombre del sindicato y persona
+de contacto. Aquí no se ve ningún dato de afiliados: solo recuentos.
 
 ### 3.3 Editar Información de Sindicato
 

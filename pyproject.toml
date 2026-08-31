@@ -1,10 +1,20 @@
+# .agents y .claude son herramientas del entorno de desarrollo, no del proyecto:
+# traen miles de scripts de terceros que no mantenemos. Sin excluirlos, los dos
+# comandos que documenta CLAUDE.md (`ruff check .` y `bandit -r .`) devuelven
+# miles de avisos ajenos y dejan de servir para ver si NUESTRO codigo esta bien.
 [tool.bandit]
-exclude_dirs = ["venv", "tests", "sistema_carnets/gestion/migrations", "staticfiles"]
+exclude_dirs = [
+    "venv", "tests", "sistema_carnets/gestion/migrations", "staticfiles",
+    ".agents", ".claude",
+]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-exclude = ["venv", "sistema_carnets/gestion/migrations", "staticfiles"]
+exclude = [
+    "venv", "sistema_carnets/gestion/migrations", "staticfiles",
+    ".agents", ".claude",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "S", "B"]
